@@ -33,8 +33,15 @@ const Feature: React.FC = () => {
     return (
         <section className="w-full bg-[#F2EDE4] py-20">
             <div className="mx-auto max-w-6xl px-8">
-                <h2 className="mb-12 text-center font-serif text-4xl font-medium text-[#1A1614] md:text-4xl">Why Choose Our Legal Products</h2>
+                {/* Title */}
+                <h2 className="mb-2 text-center font-serif text-4xl font-medium text-[#1A1614] md:text-4xl">Why Choose Our Legal Products</h2>
 
+                {/* Subtitle */}
+                <p className="mb-12 text-center text-lg text-[#70665E] md:text-ml">
+                    Create, customize, and get legally verified documents quickly with AI assistance and expert review.
+                </p>
+
+                {/* Feature Cards */}
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                     {features.map((feature, idx) => (
                         <div

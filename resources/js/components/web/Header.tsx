@@ -7,8 +7,12 @@ export default function Header() {
     const [active, setActive] = useState('home');
 
     useEffect(() => {
-        if (url === '/products') setActive('products');
-        else setActive('home'); // default to home
+        if (url.startsWith('/products')) setActive('products');
+        else if (url === '/') setActive('home');
+        else if (url.startsWith('/#about')) setActive('about');
+        else if (url.startsWith('/#services')) setActive('services');
+        else if (url.startsWith('/#contact')) setActive('contact');
+        else setActive('home'); // fallback
     }, [url]);
 
     const menu = [
