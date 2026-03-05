@@ -49,15 +49,11 @@ export default function AdminSettings({ user, success }: SettingsProps) {
     return (
         <AdminLayout user={user}>
             <Head title="Settings" />
-            
+
             <div className="mx-auto flex max-w-4xl flex-col gap-6 p-4 md:p-6">
                 <div className="flex flex-col gap-2">
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                        Settings
-                    </h1>
-                    <p className="text-gray-500 dark:text-gray-400">
-                        Manage your account settings and change your password
-                    </p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
+                    <p className="text-gray-500 dark:text-gray-400">Manage your account settings and change your password</p>
                 </div>
 
                 {success && (
@@ -77,9 +73,7 @@ export default function AdminSettings({ user, success }: SettingsProps) {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Profile Information</CardTitle>
-                                <CardDescription>
-                                    Update your account's profile information and email address.
-                                </CardDescription>
+                                <CardDescription>Update your account's profile information and email address.</CardDescription>
                             </CardHeader>
 
                             <form onSubmit={updateProfile}>
@@ -93,32 +87,18 @@ export default function AdminSettings({ user, success }: SettingsProps) {
                                             onChange={(e) => profileForm.setData('name', e.target.value)}
                                             disabled={profileForm.processing}
                                         />
-                                        {profileForm.errors.name && (
-                                            <p className="text-sm text-red-500">{profileForm.errors.name}</p>
-                                        )}
+                                        {profileForm.errors.name && <p className="text-sm text-red-500">{profileForm.errors.name}</p>}
                                     </div>
 
                                     <div className="space-y-2">
                                         <Label htmlFor="email">Email</Label>
-                                        <Input
-                                            id="email"
-                                            name="email"
-                                            value={user.email}
-                                            disabled
-                                            className="bg-gray-50 dark:bg-gray-800"
-                                        />
-                                        <p className="text-sm text-gray-500">
-                                            Email cannot be changed
-                                        </p>
+                                        <Input id="email" name="email" value={user.email} disabled className="bg-gray-50 dark:bg-gray-800" />
+                                        <p className="text-sm text-gray-500">Email cannot be changed</p>
                                     </div>
                                 </CardContent>
 
                                 <CardFooter>
-                                    <Button
-                                        type="submit"
-                                        disabled={profileForm.processing || !profileForm.isDirty}
-                                        className="ml-auto"
-                                    >
+                                    <Button type="submit" disabled={profileForm.processing || !profileForm.isDirty} className="ml-auto">
                                         Save Changes
                                     </Button>
                                 </CardFooter>
@@ -130,9 +110,7 @@ export default function AdminSettings({ user, success }: SettingsProps) {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Change Password</CardTitle>
-                                <CardDescription>
-                                    Ensure your account is using a long, random password to stay secure.
-                                </CardDescription>
+                                <CardDescription>Ensure your account is using a long, random password to stay secure.</CardDescription>
                             </CardHeader>
 
                             <form onSubmit={updatePassword}>
@@ -144,15 +122,11 @@ export default function AdminSettings({ user, success }: SettingsProps) {
                                             name="current_password"
                                             type="password"
                                             value={passwordForm.data.current_password}
-                                            onChange={(e) =>
-                                                passwordForm.setData('current_password', e.target.value)
-                                            }
+                                            onChange={(e) => passwordForm.setData('current_password', e.target.value)}
                                             disabled={passwordForm.processing}
                                         />
                                         {passwordForm.errors.current_password && (
-                                            <p className="text-sm text-red-500">
-                                                {passwordForm.errors.current_password}
-                                            </p>
+                                            <p className="text-sm text-red-500">{passwordForm.errors.current_password}</p>
                                         )}
                                     </div>
 
@@ -163,14 +137,10 @@ export default function AdminSettings({ user, success }: SettingsProps) {
                                             name="password"
                                             type="password"
                                             value={passwordForm.data.password}
-                                            onChange={(e) =>
-                                                passwordForm.setData('password', e.target.value)
-                                            }
+                                            onChange={(e) => passwordForm.setData('password', e.target.value)}
                                             disabled={passwordForm.processing}
                                         />
-                                        {passwordForm.errors.password && (
-                                            <p className="text-sm text-red-500">{passwordForm.errors.password}</p>
-                                        )}
+                                        {passwordForm.errors.password && <p className="text-sm text-red-500">{passwordForm.errors.password}</p>}
                                     </div>
 
                                     <div className="space-y-2">
@@ -180,9 +150,7 @@ export default function AdminSettings({ user, success }: SettingsProps) {
                                             name="password_confirmation"
                                             type="password"
                                             value={passwordForm.data.password_confirmation}
-                                            onChange={(e) =>
-                                                passwordForm.setData('password_confirmation', e.target.value)
-                                            }
+                                            onChange={(e) => passwordForm.setData('password_confirmation', e.target.value)}
                                             disabled={passwordForm.processing}
                                         />
                                     </div>
