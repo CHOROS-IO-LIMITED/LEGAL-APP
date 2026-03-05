@@ -1,6 +1,6 @@
 import Header from '@/components/web/Header';
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 interface Product {
@@ -102,14 +102,22 @@ const ProductDetails: React.FC = () => {
 
                     {/* RIGHT SIDE */}
                     <div className="flex justify-center">
-                        <div key={selectedIdx} className="w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-sm">
-                            <img src={product.image} alt={product.title} className="h-60 w-full object-cover" />
-                            <div className="p-6">
-                                <div className="mb-2 flex items-center justify-between">
-                                    <h3 className="text-xl font-semibold text-[#1A1614]">{product.title}</h3>
-                                    <span className="text-lg font-bold text-[#3D2B1F]">{product.price}</span>
-                                </div>
+                        <div key={selectedIdx} className="relative w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-sm">
+                            <img src={product.image} alt={product.title} className="h-60 w-full rounded-t-2xl object-cover" />
+
+                            <div className="flex flex-col p-6">
+                                <h3 className="text-xl font-semibold text-[#1A1614]">{product.title}</h3>
+
                                 <p className="mb-6 line-clamp-2 text-sm text-[#70665E]">{product.description}</p>
+
+                                <div className="mb-4 flex items-center justify-between">
+                                    <span className="text-lg font-bold text-[#3D2B1F]">{product.price}</span>
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-green-600 bg-green-100/70 px-3 py-1 text-xs font-semibold text-green-600 shadow-sm">
+                                        <Check size={14} />
+                                        Lawyer Included
+                                    </span>
+                                </div>
+
                                 <button className="group flex w-full cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white transition-colors duration-200 hover:bg-[#5A4638]">
                                     Checkout
                                     <ArrowRight size={18} className="transition-transform duration-200 group-hover:translate-x-1" />

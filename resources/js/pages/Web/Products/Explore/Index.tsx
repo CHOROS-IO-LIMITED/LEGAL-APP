@@ -65,7 +65,7 @@ const Explore: React.FC = () => {
                     {products.map((product, idx) => (
                         <Link
                             key={idx}
-                            href={route('product.details', { index: idx })} // pass index in URL
+                            href={route('product.details', { index: idx })}
                             className="block overflow-hidden rounded-2xl bg-white shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md"
                         >
                             <img
