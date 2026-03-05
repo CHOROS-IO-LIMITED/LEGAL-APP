@@ -20,7 +20,7 @@ export default function Header() {
     ];
 
     return (
-        <header className="border-b border-[#E8E2D6] bg-white">
+        <header className="sticky top-0 z-50 border-b border-[#E8E2D6] bg-white">
             <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
                 {/* Logo */}
                 <div className="text-xl font-bold text-[#1A1614]">
@@ -47,10 +47,13 @@ export default function Header() {
 
                 {/* Sign in */}
                 <div>
-                    <button className="flex items-center gap-2 rounded-md bg-[#3D2B1F] px-6 py-2 text-sm font-semibold tracking-wide text-white shadow-sm transition-all duration-200 hover:opacity-95 hover:shadow-md">
+                    <Link
+                        href={route('auth.login')}
+                        className="flex items-center gap-2 rounded-md bg-[#3D2B1F] px-6 py-2 text-sm font-semibold tracking-wide text-white shadow-sm transition-all duration-200 hover:opacity-95 hover:shadow-md"
+                    >
                         Sign In
                         <LogIn className="h-4 w-4" />
-                    </button>
+                    </Link>
                 </div>
             </div>
         </header>
