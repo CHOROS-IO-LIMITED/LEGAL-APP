@@ -1,4 +1,5 @@
 import Header from '@/components/web/Header';
+import Feature from './Feature/Index';
 
 export default function Index() {
     return (
@@ -6,8 +7,10 @@ export default function Index() {
             <Header />
             <section className="mx-auto max-w-6xl px-8 py-20 text-center">
                 {/* Kicker Badge */}
-                <div className="mx-auto mb-4 inline-block rounded-full bg-[#F2EDE4] px-4 py-1 text-xs font-semibold tracking-widest text-[#3D2B1F] uppercase">
-                    AI-Powered & Lawyer Reviewed
+                <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full bg-[#F2EDE4] px-4 py-1 text-xs font-semibold tracking-widest text-[#3D2B1F] uppercase shadow-[0_0_8px_rgba(166,138,100,0.3)]">
+                    <span>AI-Powered</span>
+                    <span className="h-1 w-1 rounded-full bg-[#A68A64]" />
+                    <span>Lawyer Reviewed</span>
                 </div>
 
                 {/* Hero Headline */}
@@ -39,6 +42,7 @@ export default function Index() {
                     </p>
                 </div>
             </section>
+            <Feature />
         </div>
     );
 }
