@@ -25,12 +25,12 @@ const Hero: React.FC = () => {
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
                 {/* Primary Button */}
                 <button className="flex items-center gap-2 rounded-md border-2 border-[#3D2B1F] bg-[#3D2B1F] px-4 py-2 text-base font-semibold tracking-wide text-white shadow-sm transition-all duration-200 hover:opacity-95 hover:shadow-md">
-                    Browse All Products
+                    Browse Products
                 </button>
 
                 {/* Secondary Button */}
                 <button className="flex items-center gap-2 rounded-md border-2 border-[#E8E2D6] px-4 py-2 text-base font-semibold tracking-wide text-[#3D2B1F] transition-all duration-200 hover:bg-[#E8E2D6]/10 hover:shadow-sm">
-                    Featured Templates
+                    Learn More
                 </button>
             </div>
 
