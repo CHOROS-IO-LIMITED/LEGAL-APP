@@ -52,6 +52,7 @@ export default function DocumentTable({ items, pageSize = 5, onReview }: Props) 
 
     return (
         <Card className="border-[#E7E1D7] bg-white shadow-sm">
+            {/* Card Header: Document Title */}
             <CardHeader className="border-b border-[#E7E1D7] pb-3">
                 <CardTitle className="flex items-center gap-2 text-base font-semibold text-[#1A1614]">
                     <FolderOpen className="h-4 w-4 text-[#7C7368]" />
@@ -59,6 +60,7 @@ export default function DocumentTable({ items, pageSize = 5, onReview }: Props) 
                 </CardTitle>
             </CardHeader>
 
+            {/* Card Content: Document list or empty state */}
             <CardContent className="p-0">
                 <div className="divide-y divide-[#E7E1D7]">
                     {empty ? (
@@ -70,6 +72,7 @@ export default function DocumentTable({ items, pageSize = 5, onReview }: Props) 
 
                             return (
                                 <div key={doc.id} className="flex items-center justify-between gap-4 px-6 py-4 transition-colors hover:bg-[#F7F3EB]">
+                                    {/* Left: Document info and urgency badge */}
                                     <div className="flex min-w-0 items-center gap-3">
                                         <div
                                             className={['rounded-lg border border-[#E7E1D7] p-2', doc.isUrgent ? 'bg-[#FFF7E6]' : 'bg-white'].join(
@@ -97,6 +100,7 @@ export default function DocumentTable({ items, pageSize = 5, onReview }: Props) 
                                         </div>
                                     </div>
 
+                                    {/* Right: Status pill and review button */}
                                     <div className="flex shrink-0 items-center gap-3">
                                         <span className={`${meta.pillClassName} inline-flex items-center gap-1.5`}>
                                             <StatusIcon className="h-3.5 w-3.5" />
@@ -120,6 +124,7 @@ export default function DocumentTable({ items, pageSize = 5, onReview }: Props) 
                     )}
                 </div>
 
+                {/* Pagination footer */}
                 {!empty ? (
                     <div className="flex items-center justify-between gap-3 border-t border-[#E7E1D7] bg-white px-6 py-3">
                         <div className="text-xs text-[#6B635B]">
