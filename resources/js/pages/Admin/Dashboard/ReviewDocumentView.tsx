@@ -186,7 +186,7 @@ export default function ReviewDocumentView({ document, onBack, onChangeStatus, o
                 </Card>
             </div>
 
-            {/* Right Column */}
+            {/* Right Column Card */}
             <div className="space-y-3">
                 {/* Lawyer Decision Card */}
                 <Card className="overflow-hidden border-[#E7E1D7] bg-white shadow-sm">
