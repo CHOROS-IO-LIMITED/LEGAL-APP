@@ -1,7 +1,8 @@
-import Header from '@/components/web/Header'
+import Header from '@/components/web/Header';
 
-import HowItWorks from './HowItWorks/Index'
-import Hero from './ProductHero/Index'
+import HowItWorks from './HowItWorks/Index';
+import Hero from './ProductHero/Index';
+import Explore from './Explore/Index';
 
 export default function Index() {
     return (
@@ -9,6 +10,7 @@ export default function Index() {
             <Header />
             <Hero />
             <HowItWorks />
+            <Explore />
         </div>
-    )
+    );
 }
