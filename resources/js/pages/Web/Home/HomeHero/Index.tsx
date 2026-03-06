@@ -2,7 +2,7 @@ import React from 'react';
 
 const Hero: React.FC = () => {
     return (
-        <section className="mx-auto max-w-6xl px-8 py-20 text-center">
+        <section className="mx-auto flex h-[calc(100vh-64px)] max-w-6xl flex-col justify-center px-8 text-center">
             {/* Kicker Badge */}
             <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full bg-[#F2EDE4] px-4 py-1 text-xs font-semibold tracking-widest text-[#3D2B1F] uppercase shadow-[0_0_8px_rgba(166,138,100,0.3)]">
                 <span>AI-Powered</span>
