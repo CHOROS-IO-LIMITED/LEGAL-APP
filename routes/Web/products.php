@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\Payment\EmailVerificationController;
 use App\Http\Controllers\Web\Payment\PaymentController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\ProductDetailsController;
+use App\Http\Controllers\Web\QnA\QuestionController;
 use Illuminate\Support\Facades\Route;
 
 // public route
@@ -18,6 +19,9 @@ Route::get('/products/details/checkout', [PaymentController::class, 'index'])->n
 
 // step 3:
 Route::get('/products/details/verify', [EmailVerificationController::class, 'index'])->name('email.verify');
+
+// step 4:
+Route::get('/products/details/Q&A', [QuestionController::class, 'index'])->name('product.QnA');
 
 // step 1: product detail with optional index parameter
 Route::get('/products/details/{index?}', [ProductDetailsController::class, 'index'])->name('product.details');

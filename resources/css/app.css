@@ -186,3 +186,18 @@
 /* * {
     border: 1px red solid;
 } */
+
+@keyframes loaderDash {
+    0% {
+        stroke-dasharray: 1 200;
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dasharray: 100 200;
+        stroke-dashoffset: -15;
+    }
+    100% {
+        stroke-dasharray: 100 200;
+        stroke-dashoffset: -125;
+    }
+}

@@ -14,151 +14,154 @@ const Checkout: React.FC = () => {
         <div className="min-h-screen bg-[#FCF9F2] font-sans">
             <Header />
 
-            <section className="mx-auto flex min-h-[calc(100vh-64px)] max-w-6xl flex-col justify-between px-8 py-10">
-                {/* Stepper */}
-                <div className="mb-10">
-                    <Stepper steps={steps} currentStep={2} />
-                </div>
-
-                <div className="mb-12 flex flex-col items-center">
-                    <Link
-                        href={route('product.details')}
-                        className="group mb-4 inline-flex items-center font-medium text-[#3D2B1F] transition-colors duration-200 hover:text-[#5A4638]"
-                    >
-                        <ArrowLeft size={18} className="mr-2 transition-transform duration-200 group-hover:-translate-x-1" />
-                        Back
-                    </Link>
-
-                    <h2 className="text-center font-serif text-4xl font-bold text-[#1A1614]">Secure Checkout</h2>
-
-                    <p className="mt-2 text-center text-base font-medium text-[#70665E]">
-                        Review your order and complete payment to generate your <span className="text-[#3D2B1F]">legally-binding</span> documents.
-                    </p>
-                </div>
-
-                <div className="mx-auto grid w-full max-w-4xl gap-8 lg:grid-cols-12">
-                    {/* LEFT SIDE */}
-                    <div className="flex flex-col gap-6 lg:col-span-7">
-                        {/* Your Details */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Your Details</CardTitle>
-                                <CardDescription>Provide your contact information for billing and document delivery.</CardDescription>
-                            </CardHeader>
-
-                            <CardContent className="flex flex-col gap-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex flex-col gap-2">
-                                        <Label htmlFor="firstName">First Name</Label>
-                                        <Input id="firstName" placeholder="John" />
-                                    </div>
-
-                                    <div className="flex flex-col gap-2">
-                                        <Label htmlFor="lastName">Last Name</Label>
-                                        <Input id="lastName" placeholder="Smith" />
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col gap-2">
-                                    <Label htmlFor="email">Email Address</Label>
-                                    <Input id="email" type="email" placeholder="john.smith@email.com" />
-                                </div>
-
-                                <div className="flex flex-col gap-2">
-                                    <Label htmlFor="company">Company (Optional)</Label>
-                                    <Input id="company" placeholder="Acme Ltd." />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Payment */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Payment</CardTitle>
-                                <CardDescription>Enter your card details to complete your purchase.</CardDescription>
-                            </CardHeader>
-
-                            <CardContent className="flex flex-col gap-4">
-                                <div className="flex flex-col gap-2">
-                                    <Label htmlFor="cardNumber">Card Number</Label>
-                                    <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex flex-col gap-2">
-                                        <Label htmlFor="expiry">Expiry</Label>
-                                        <Input id="expiry" placeholder="MM / YY" />
-                                    </div>
-
-                                    <div className="flex flex-col gap-2">
-                                        <Label htmlFor="cvc">CVC</Label>
-                                        <Input id="cvc" placeholder="123" />
-                                    </div>
-                                </div>
-
-                                <Link
-                                    href={route('email.verify')}
-                                    className="mt-2 flex w-full items-center justify-center gap-2 rounded bg-[#3D2B1F] px-4 py-2 text-white hover:bg-[#5A4638]"
-                                >
-                                    <Lock size={16} />
-                                    Pay Securely
-                                </Link>
-                            </CardContent>
-                        </Card>
+            <section className="mx-auto flex min-h-[calc(100vh-64px)] max-w-6xl flex-col px-8 py-10">
+                <div className="flex flex-col space-y-12">
+                    {/* Stepper */}
+                    <div>
+                        <Stepper steps={steps} currentStep={2} />
                     </div>
 
-                    {/* RIGHT SIDE */}
-                    <div className="lg:col-span-5">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Order Summary</CardTitle>
-                            </CardHeader>
+                    {/* Title Block */}
+                    <div className="flex flex-col items-center text-center">
+                        <Link
+                            href={route('product.details')}
+                            className="group mb-4 inline-flex items-center font-medium text-[#3D2B1F] transition-colors duration-200 hover:text-[#5A4638]"
+                        >
+                            <ArrowLeft size={18} className="mr-2 transition-transform duration-200 group-hover:-translate-x-1" />
+                            Back
+                        </Link>
 
-                            <CardContent className="flex flex-col gap-4">
-                                <div className="rounded-xl p-4" style={{ backgroundColor: 'rgba(252, 249, 242, 0.7)' }}>
-                                    <div className="flex justify-between text-sm font-semibold text-[#1A1614]">
-                                        <span>NDA Agreement</span>
-                                        <span>£9.99</span>
+                        <h2 className="font-serif text-4xl font-bold text-[#1A1614]">Secure Checkout</h2>
+
+                        <p className="mt-2 text-base font-medium text-[#70665E]">
+                            Review your order and complete payment to generate your <span className="text-[#3D2B1F]">legally-binding</span> documents.
+                        </p>
+                    </div>
+
+                    {/* Checkout Content */}
+                    <div className="mx-auto grid w-full max-w-5xl gap-8 lg:grid-cols-12">
+                        {/* LEFT SIDE */}
+                        <div className="flex flex-col gap-6 lg:col-span-7">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Your Details</CardTitle>
+                                    <CardDescription>Provide your contact information for billing and document delivery.</CardDescription>
+                                </CardHeader>
+
+                                <CardContent className="flex flex-col gap-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="flex flex-col gap-2">
+                                            <Label htmlFor="firstName">First Name</Label>
+                                            <Input id="firstName" placeholder="John" />
+                                        </div>
+
+                                        <div className="flex flex-col gap-2">
+                                            <Label htmlFor="lastName">Last Name</Label>
+                                            <Input id="lastName" placeholder="Smith" />
+                                        </div>
                                     </div>
-                                    <div className="mt-1 text-xs text-[#70665E]">AI-Drafted • Legally Reviewed</div>
-                                </div>
 
-                                <div className="flex justify-between text-sm">
-                                    <span>Lawyer Review</span>
-                                    <span>£10.00</span>
-                                </div>
+                                    <div className="flex flex-col gap-2">
+                                        <Label htmlFor="email">Email Address</Label>
+                                        <Input id="email" type="email" placeholder="john.smith@email.com" />
+                                    </div>
 
-                                <div className="flex justify-between text-sm">
-                                    <span>VAT (0%)</span>
-                                    <span>£0.00</span>
-                                </div>
+                                    <div className="flex flex-col gap-2">
+                                        <Label htmlFor="company">Company (Optional)</Label>
+                                        <Input id="company" placeholder="Acme Ltd." />
+                                    </div>
+                                </CardContent>
+                            </Card>
 
-                                <div className="flex justify-between border-t border-[#E8E2D6] pt-4 font-semibold">
-                                    <span>Total</span>
-                                    <span>£52</span>
-                                </div>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Payment</CardTitle>
+                                    <CardDescription>Enter your card details to complete your purchase.</CardDescription>
+                                </CardHeader>
 
-                                <div className="mt-1 rounded-xl border border-green-300 bg-green-50 p-3 shadow-sm">
-                                    <h4 className="mb-2 text-xs font-semibold text-[#1A1614]">What to Expect</h4>
-                                    <ul className="flex flex-col gap-1">
-                                        {[
-                                            'Guided Q&A',
-                                            'Document prepared professionally',
-                                            'Legally reviewed within 24 hours',
-                                            'Sign and Download',
-                                        ].map((item) => (
-                                            <li
-                                                key={item}
-                                                className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-100 px-2 py-1.5 text-xs text-[#1A1614]"
-                                            >
-                                                <Check size={14} className="text-green-600" />
-                                                {item}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                <CardContent className="flex flex-col gap-4">
+                                    <div className="flex flex-col gap-2">
+                                        <Label htmlFor="cardNumber">Card Number</Label>
+                                        <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="flex flex-col gap-2">
+                                            <Label htmlFor="expiry">Expiry</Label>
+                                            <Input id="expiry" placeholder="MM / YY" />
+                                        </div>
+
+                                        <div className="flex flex-col gap-2">
+                                            <Label htmlFor="cvc">CVC</Label>
+                                            <Input id="cvc" placeholder="123" />
+                                        </div>
+                                    </div>
+
+                                    <Link
+                                        href={route('email.verify')}
+                                        className="mt-2 flex w-full items-center justify-center gap-2 rounded bg-[#3D2B1F] px-4 py-2 text-white hover:bg-[#5A4638]"
+                                    >
+                                        <Lock size={16} />
+                                        Pay Securely
+                                    </Link>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {/* RIGHT SIDE */}
+                        <div className="lg:col-span-5">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Order Summary</CardTitle>
+                                </CardHeader>
+
+                                <CardContent className="flex flex-col gap-4">
+                                    <div className="rounded-xl bg-[#FCF9F2] p-4">
+                                        <div className="flex justify-between text-sm font-semibold text-[#1A1614]">
+                                            <span>NDA Agreement</span>
+                                            <span>£9.99</span>
+                                        </div>
+                                        <div className="mt-1 text-xs text-[#70665E]">AI-Drafted • Legally Reviewed</div>
+                                    </div>
+
+                                    <div className="flex justify-between text-sm">
+                                        <span>Lawyer Review</span>
+                                        <span>£10.00</span>
+                                    </div>
+
+                                    <div className="flex justify-between text-sm">
+                                        <span>VAT (0%)</span>
+                                        <span>£0.00</span>
+                                    </div>
+
+                                    <div className="flex justify-between border-t border-[#E8E2D6] pt-4 font-semibold">
+                                        <span>Total</span>
+                                        <span>£52</span>
+                                    </div>
+
+                                    <div className="rounded-xl border border-green-300 bg-green-50 p-3 shadow-sm">
+                                        <h4 className="mb-2 text-xs font-semibold text-[#1A1614]">What to Expect</h4>
+
+                                        <ul className="flex flex-col gap-1">
+                                            {[
+                                                'Guided Q&A',
+                                                'Document prepared professionally',
+                                                'Legally reviewed within 24 hours',
+                                                'Sign and Download',
+                                            ].map((item) => (
+                                                <li
+                                                    key={item}
+                                                    className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-100 px-2 py-1.5 text-xs text-[#1A1614]"
+                                                >
+                                                    <Check size={14} className="text-green-600" />
+                                                    {item}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </div>
                 </div>
             </section>

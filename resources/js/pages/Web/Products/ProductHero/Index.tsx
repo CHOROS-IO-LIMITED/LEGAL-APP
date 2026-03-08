@@ -18,7 +18,7 @@ const Hero: React.FC = () => {
 
             {/* Hero Description */}
             <p className="mx-auto mb-10 max-w-2xl text-lg text-[#70665E] md:text-xl">
-                Explore our range of ready-to-use legal documents. Each template is AI-assisted, lawyer-reviewed, and fully customizable—so you can
+                Explore our range of ready-to-use legal documents. Each template is AI-assisted, lawyer-reviewed, and fully customizable, so you can
                 create contracts, agreements, and forms in minutes.
             </p>
 

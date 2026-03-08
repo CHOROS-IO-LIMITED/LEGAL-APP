@@ -1,7 +1,8 @@
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Header from '@/components/web/Header';
 import Stepper from '@/components/web/Stepper';
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
 import React, { useState } from 'react';
 
 interface Product {
@@ -55,6 +56,7 @@ const ProductDetails: React.FC = () => {
     const initialIndex = Number(props.selectedIndex ?? 0);
 
     const [selectedProducts, setSelectedProducts] = useState<number[]>(props.selectedIndex !== undefined ? [initialIndex] : []);
+
     const [errorIdx, setErrorIdx] = useState<number | null>(null);
 
     const toggleProduct = (idx: number) => {
@@ -72,115 +74,215 @@ const ProductDetails: React.FC = () => {
         setSelectedProducts([...selectedProducts, idx]);
     };
 
+    const rotateLeft = () => {
+        setSelectedProducts((prev) => {
+            if (prev.length <= 1) return prev;
+            const [first, ...rest] = prev;
+            return [...rest, first];
+        });
+    };
+
+    const rotateRight = () => {
+        setSelectedProducts((prev) => {
+            if (prev.length <= 1) return prev;
+            const last = prev[prev.length - 1];
+            return [last, ...prev.slice(0, -1)];
+        });
+    };
+
+    const focusCard = (productIdx: number) => {
+        setSelectedProducts((prev) => {
+            const currentPos = prev.indexOf(productIdx);
+            if (currentPos === -1) return prev;
+
+            const middle = Math.floor(prev.length / 2);
+            const newOrder = [...prev];
+
+            newOrder.splice(currentPos, 1);
+            newOrder.splice(middle, 0, productIdx);
+
+            return newOrder;
+        });
+    };
+
     const steps = ['Products', 'KYC', 'Checkout', 'Verification', 'Q&A'];
+
+    const selectedProductObjects = selectedProducts.map((i) => products[i]);
+
+    const totalPrice = selectedProductObjects.reduce((sum, p) => sum + parseFloat(p.price.replace('£', '')), 0).toFixed(2);
 
     return (
         <div className="min-h-screen bg-[#FCF9F2] font-sans">
             <Header />
 
-            <section className="mx-auto flex min-h-[calc(100vh-64px)] max-w-6xl flex-col justify-between px-8 py-10">
-                <div className="mb-10">
+            <section className="mx-auto flex min-h-[calc(100vh-64px)] max-w-6xl flex-col px-8 py-10">
+                <div className="flex flex-col space-y-12">
                     <Stepper steps={steps} currentStep={0} />
-                </div>
 
-                <div className="mb-12 text-center md:text-left">
-                    <Link
-                        href={route('products')}
-                        className="group mb-4 inline-flex items-center font-medium text-[#3D2B1F] transition-colors duration-200 hover:text-[#5A4638]"
-                    >
-                        <ArrowLeft size={18} className="mr-2 transition-transform duration-200 group-hover:-translate-x-1" />
-                        Back
-                    </Link>
+                    <div className="flex flex-col items-center text-center">
+                        <Link
+                            href={route('products')}
+                            className="group mb-4 inline-flex items-center font-medium text-[#3D2B1F] hover:text-[#5A4638]"
+                        >
+                            <ArrowLeft size={18} className="mr-2 transition-transform duration-200 group-hover:-translate-x-1" />
+                            Back
+                        </Link>
 
-                    <div>
                         <h2 className="font-serif text-4xl font-bold text-[#1A1614]">Choose Your Document</h2>
+
                         <p className="mt-2 text-base font-medium text-[#70665E]">
                             You may select up to <span className="text-[#3D2B1F]">4 documents</span>.
                         </p>
                     </div>
-                </div>
 
-                <div className="grid gap-12 md:grid-cols-2">
-                    {/* LEFT SIDE */}
-                    <div className="space-y-4">
-                        {products.map((p, idx) => {
-                            const checked = selectedProducts.includes(idx);
-                            return (
-                                <label
-                                    key={idx}
-                                    className={`flex cursor-pointer items-center justify-between rounded-lg border bg-white p-4 transition-all duration-200 ${
-                                        errorIdx === idx
-                                            ? 'animate-shake border-red-500 ring-2 ring-red-300'
-                                            : checked
-                                              ? 'border-[#3D2B1F] ring-2 ring-[#A68A64]'
-                                              : 'border-[#E8E2D6]'
-                                    } hover:-translate-y-1 hover:shadow-md`}
-                                >
-                                    <span className="font-medium text-[#1A1614]">{p.title}</span>
-                                    <input
-                                        type="checkbox"
-                                        checked={checked}
-                                        onChange={() => toggleProduct(idx)}
-                                        className="h-4 w-4 cursor-pointer accent-[#3D2B1F]"
-                                    />
-                                </label>
-                            );
-                        })}
-                    </div>
+                    <div className="grid gap-12 md:grid-cols-2">
+                        {/* LEFT SIDE */}
+                        <div className="space-y-3">
+                            {products.map((p, idx) => {
+                                const checked = selectedProducts.includes(idx);
 
-                    {/* RIGHT SIDE */}
-                    <div className="flex flex-col items-center">
-                        <div className="relative h-[400px] w-full max-w-sm">
-                            {selectedProducts.length === 0 ? (
-                                <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-[#E8E2D6] bg-white text-[#70665E]">
-                                    Select documents to preview
-                                </div>
-                            ) : (
-                                selectedProducts.map((idx, stackIndex) => {
-                                    const product = products[idx];
-                                    const total = selectedProducts.length;
-                                    const middle = (total - 1) / 2;
-                                    const offset = stackIndex - middle;
-                                    const rotateDeg = offset * 6;
-                                    const translateX = offset * 28;
+                                return (
+                                    <label
+                                        key={idx}
+                                        className={`flex cursor-pointer items-center justify-between rounded-lg border bg-white p-4 transition-all duration-200 ${
+                                            errorIdx === idx
+                                                ? 'animate-shake border-red-500 ring-2 ring-red-300'
+                                                : checked
+                                                  ? 'border-[#3D2B1F] ring-2 ring-[#A68A64]'
+                                                  : 'border-[#E8E2D6]'
+                                        } hover:-translate-y-1 hover:shadow-md`}
+                                    >
+                                        <span className="font-medium text-[#1A1614]">{p.title}</span>
 
-                                    return (
-                                        <div
-                                            key={idx}
-                                            className="absolute w-full max-w-sm rounded-2xl bg-white shadow-md transition-all duration-300"
-                                            style={{
-                                                transform: `translateX(${translateX}px) rotate(${rotateDeg}deg)`,
-                                                zIndex: stackIndex + 1,
-                                                bottom: 0,
-                                            }}
-                                        >
-                                            <img src={product.image} alt={product.title} className="h-60 w-full rounded-t-2xl object-cover" />
-                                            <div className="flex flex-col p-6">
-                                                <h3 className="text-xl font-semibold text-[#1A1614]">{product.title}</h3>
-                                                <p className="mb-6 line-clamp-2 text-sm text-[#70665E]">{product.description}</p>
-                                                <div className="mb-4 flex items-center justify-between">
-                                                    <span className="text-lg font-bold text-[#3D2B1F]">{product.price}</span>
-                                                    <span className="inline-flex items-center gap-1 rounded-full border border-green-600 bg-green-100/70 px-3 py-1 text-xs font-semibold text-green-600 shadow-sm">
-                                                        <Check size={14} />
-                                                        Lawyer Included
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            )}
+                                        <input
+                                            type="checkbox"
+                                            checked={checked}
+                                            onChange={() => toggleProduct(idx)}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="h-4 w-4 cursor-pointer accent-[#3D2B1F]"
+                                        />
+                                    </label>
+                                );
+                            })}
                         </div>
 
-                        {selectedProducts.length > 0 && (
-                            <Link
-                                href={route('product.kyc')}
-                                className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white transition-colors duration-200 hover:bg-[#5A4638]"
-                            >
-                                Checkout ({selectedProducts.length})
-                                <ArrowRight size={18} className="transition-transform duration-200 group-hover:translate-x-1" />
-                            </Link>
-                        )}
+                        {/* RIGHT SIDE */}
+                        <div className="flex flex-col items-center">
+                            <div className="relative h-[400px] w-full max-w-sm">
+                                {selectedProducts.length > 1 && (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={rotateLeft}
+                                            className="absolute top-1/2 -left-12 z-30 -translate-y-1/2 cursor-pointer rounded-full bg-white/80 p-2 shadow-md backdrop-blur hover:bg-white"
+                                        >
+                                            <ChevronLeft size={20} />
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={rotateRight}
+                                            className="absolute top-1/2 -right-12 z-30 -translate-y-1/2 cursor-pointer rounded-full bg-white/80 p-2 shadow-md backdrop-blur hover:bg-white"
+                                        >
+                                            <ChevronRight size={20} />
+                                        </button>
+                                    </>
+                                )}
+
+                                {selectedProducts.length === 0 ? (
+                                    <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-[#E8E2D6] bg-white text-[#70665E]">
+                                        Select documents to preview
+                                    </div>
+                                ) : (
+                                    selectedProducts.map((idx, stackIndex) => {
+                                        const product = products[idx];
+                                        const total = selectedProducts.length;
+                                        const middle = (total - 1) / 2;
+
+                                        const offset = stackIndex - middle;
+                                        const rotateDeg = offset * 6;
+                                        const translateX = offset * 28;
+
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className="absolute w-full max-w-sm rounded-2xl bg-white shadow-md transition-all duration-500 ease-out will-change-transform"
+                                                style={{
+                                                    transform: `translateX(${translateX}px) rotate(${rotateDeg}deg)`,
+                                                    zIndex: stackIndex + 1,
+                                                    bottom: 0,
+                                                }}
+                                            >
+                                                <img src={product.image} alt={product.title} className="h-60 w-full rounded-t-2xl object-cover" />
+
+                                                <div className="flex flex-col p-6">
+                                                    <h3 className="text-xl font-semibold text-[#1A1614]">{product.title}</h3>
+
+                                                    <p className="mb-6 line-clamp-2 text-sm text-[#70665E]">{product.description}</p>
+
+                                                    <div className="mb-4 flex items-center justify-between">
+                                                        <span className="text-lg font-bold text-[#3D2B1F]">{product.price}</span>
+
+                                                        <span className="inline-flex items-center gap-1 rounded-full border border-green-600 bg-green-100/70 px-3 py-1 text-xs font-semibold text-green-600 shadow-sm">
+                                                            <Check size={14} />
+                                                            Lawyer Included
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+
+                            {selectedProducts.length > 0 && (
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <button className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]">
+                                            Checkout ({selectedProducts.length})
+                                            <ArrowRight size={18} className="transition-transform duration-200 group-hover:translate-x-1" />
+                                        </button>
+                                    </DialogTrigger>
+
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Confirm Your Purchase</DialogTitle>
+
+                                            <DialogDescription>You're about to purchase the following documents.</DialogDescription>
+                                        </DialogHeader>
+
+                                        <div className="space-y-3">
+                                            {selectedProductObjects.map((p, i) => (
+                                                <div key={i} className="flex items-center justify-between rounded-md border p-3">
+                                                    <span className="font-medium">{p.title}</span>
+                                                    <span className="font-semibold">{p.price}</span>
+                                                </div>
+                                            ))}
+
+                                            <div className="flex items-center justify-between border-t pt-3 font-semibold">
+                                                <span>Total</span>
+                                                <span>£{totalPrice}</span>
+                                            </div>
+                                            <div className="bg-muted flex items-start gap-2 rounded-md p-3 text-sm">
+                                                <ShieldCheck className="mt-0.5 h-4 w-4 text-green-600" />
+                                                <p className="text-muted-foreground">
+                                                    We need to verify your identity before completing your purchase.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <DialogFooter>
+                                            <Link
+                                                href={route('product.kyc')}
+                                                className="rounded-md bg-[#3D2B1F] px-4 py-2 text-white hover:bg-[#5A4638]"
+                                            >
+                                                Continue to KYC
+                                            </Link>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            )}
+                        </div>
                     </div>
                 </div>
             </section>

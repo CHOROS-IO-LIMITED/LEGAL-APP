@@ -53,7 +53,7 @@ const Explore: React.FC = () => {
             <div className="mx-auto max-w-6xl px-8">
                 {/* Header */}
                 <div className="mb-16 flex flex-col items-center gap-6 md:flex-row md:items-start md:justify-center">
-                    <h2 className="flex-1 text-center font-serif text-4xl font-medium text-[#1A1614] md:text-left">Explore Our Legal Documents</h2>
+                    <h2 className="flex-1 text-center font-serif text-4xl font-medium text-[#1A1614] md:text-left">Explore Our <span className='text-[#3D2B1F]'>Legal Documents</span></h2>
                     <div className="hidden h-12 w-px bg-[#E8E2D6] md:block" />
                     <p className="max-w-md flex-1 text-center text-lg text-[#70665E] md:text-left">
                         Ready-to-use legal templates—AI-assisted, lawyer-reviewed, and fully customizable.
