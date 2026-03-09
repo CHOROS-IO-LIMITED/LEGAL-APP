@@ -33,17 +33,17 @@ const STATUS_META: Record<
             'inline-flex items-center gap-1.5 rounded-full border border-[#C7D2FE] bg-[#EEF2FF] px-3 py-1 text-xs font-medium text-[#4F46E5]',
         Icon: Eye,
     },
-    awaiting_signature: {
-        label: 'Awaiting Signature',
-        badgeClassName:
-            'inline-flex items-center gap-1.5 rounded-full border border-[#F6E4B5] bg-[#FFF7E6] px-3 py-1 text-xs font-medium text-[#B7791F]',
-        Icon: Clock,
-    },
-    completed: {
-        label: 'Completed',
+    approved: {
+        label: 'Approved',
         badgeClassName:
             'inline-flex items-center gap-1.5 rounded-full border border-[#A7F3D0] bg-[#ECFDF5] px-3 py-1 text-xs font-medium text-[#059669]',
         Icon: CheckCircle2,
+    },
+    request_amendments: {
+        label: 'Request Amendments',
+        badgeClassName:
+            'inline-flex items-center gap-1.5 rounded-full border border-[#F6E4B5] bg-[#FFF7E6] px-3 py-1 text-xs font-medium text-[#B7791F]',
+        Icon: SquarePen,
     },
     rejected: {
         label: 'Rejected',
@@ -69,7 +69,8 @@ function ContractSection({ title, lines = ['w-full', 'w-11/12', 'w-10/12'] }: { 
 
 function getDecisionFromStatus(status: DocumentStatus): DecisionState {
     if (status === 'rejected') return 'rejected';
-    if (status === 'awaiting_signature' || status === 'completed') return 'locked';
+    if (status === 'request_amendments') return 'amendments';
+    if (status === 'approved') return 'locked';
     return null;
 }
 
@@ -91,7 +92,7 @@ export default function ReviewDocumentView({ document, onBack, onChangeStatus, o
 
     const statusMeta = STATUS_META[document.status];
     const StatusIcon = statusMeta.Icon;
-    const isLocked = document.status === 'awaiting_signature' || document.status === 'completed';
+    const isLocked = document.status === 'approved';
 
     const isNoteDirty = useMemo(() => {
         return note.trim() !== (document.note ?? '').trim();
@@ -124,7 +125,7 @@ export default function ReviewDocumentView({ document, onBack, onChangeStatus, o
         }
 
         onSaveNote(note.trim());
-        onChangeStatus('in_review');
+        onChangeStatus('request_amendments');
         setDecision('amendments');
         setNoteError('');
         setNoteSaved(true);
@@ -238,13 +239,9 @@ export default function ReviewDocumentView({ document, onBack, onChangeStatus, o
                                     </div>
 
                                     <div className="mt-4 space-y-1.5">
-                                        <p className="text-sm font-semibold text-[#1A1614]">
-                                            {document.status === 'completed' ? 'Document Completed' : 'Waiting for Recipient'}
-                                        </p>
+                                        <p className="text-sm font-semibold text-[#1A1614]">Document Approved</p>
                                         <p className="text-xs leading-5 text-[#6B635B]">
-                                            {document.status === 'completed'
-                                                ? 'This document has been fully signed and recorded.'
-                                                : 'This document has already been sent and is awaiting the recipient’s signature.'}
+                                            This document has been reviewed, signed, and marked as complete.
                                         </p>
                                     </div>
 
@@ -358,15 +355,6 @@ export default function ReviewDocumentView({ document, onBack, onChangeStatus, o
                                 </div>
                             </div>
                         </div>
-                        {/* <div className="pt-2">
-                            <Link
-                                href={route('product.details')}
-                                className="group inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#3D2B1F] px-4 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#2E2017] hover:shadow-md focus:ring-2 focus:ring-[#3D2B1F]/20 focus:outline-none active:translate-y-0"
-                            >
-                                <SquarePen className="h-4 w-4 transition-transform duration-200 group-hover:rotate-[-8deg]" />
-                                Add Another Agreement
-                            </Link>
-                        </div> */}
                     </CardContent>
                 </Card>
 
@@ -413,7 +401,6 @@ export default function ReviewDocumentView({ document, onBack, onChangeStatus, o
                         </button>
 
                         {noteError ? <p className="text-xs font-medium text-[#C45454]">{noteError}</p> : null}
-
                         {!noteError && noteSaved ? <p className="text-xs font-medium text-[#1F9D6A]">Note saved successfully.</p> : null}
                     </CardContent>
                 </Card>

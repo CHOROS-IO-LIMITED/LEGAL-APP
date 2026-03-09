@@ -13,7 +13,7 @@ interface User {
     email: string;
 }
 
-export type DocumentStatus = 'pending_review' | 'in_review' | 'awaiting_signature' | 'completed' | 'rejected';
+export type DocumentStatus = 'pending_review' | 'in_review' | 'approved' | 'request_amendments' | 'rejected';
 
 export type AuditTrailItem = {
     id: string | number;
@@ -33,12 +33,8 @@ export type DocumentItem = {
     paymentStatus?: 'Received' | 'Pending';
     note?: string;
 
-    recipientName?: string;
-    recipientEmail?: string;
-
+    submitterSignedAt?: string;
     lawyerSignedAt?: string;
-    sentAt?: string;
-    recipientSignedAt?: string;
     completedAt?: string;
 
     auditTrail?: AuditTrailItem[];
@@ -48,7 +44,7 @@ interface DashboardProps {
     user: User;
 }
 
-type ActiveView = 'review' | 'sign' | 'sent' | 'completed';
+type ActiveView = 'review' | 'sign' | 'success' | 'completed';
 
 const INITIAL_DOCUMENTS: DocumentItem[] = [
     {
@@ -90,20 +86,20 @@ const INITIAL_DOCUMENTS: DocumentItem[] = [
         title: 'Commercial Lease — Elm Square',
         submittedBy: 'Amanda Lopez',
         submittedAtLabel: 'Today 09:20',
-        status: 'awaiting_signature',
+        status: 'approved',
         clientEmail: 'amanda@example.com',
         kycStatus: 'Verified',
         paymentStatus: 'Received',
-        note: 'Approved for signing.',
-        recipientName: 'Daniel Carter',
-        recipientEmail: 'daniel@example.com',
+        note: 'Approved and signed.',
+        submitterSignedAt: 'Mar 9, 2026 • 9:20 AM',
         lawyerSignedAt: 'Mar 9, 2026 • 10:05 AM',
-        sentAt: 'Mar 9, 2026 • 10:08 AM',
+        completedAt: 'Mar 9, 2026 • 10:05 AM',
         auditTrail: [
             { id: 1, label: 'Document submitted', timestamp: 'Mar 9, 2026 • 9:20 AM' },
             { id: 2, label: 'Lawyer reviewed document', timestamp: 'Mar 9, 2026 • 9:52 AM' },
-            { id: 3, label: 'Lawyer signed document', timestamp: 'Mar 9, 2026 • 10:05 AM' },
-            { id: 4, label: 'Sent to recipient', timestamp: 'Mar 9, 2026 • 10:08 AM' },
+            { id: 3, label: 'Lawyer approved document', timestamp: 'Mar 9, 2026 • 10:05 AM' },
+            { id: 4, label: 'Lawyer signed document', timestamp: 'Mar 9, 2026 • 10:05 AM' },
+            { id: 5, label: 'Document completed', timestamp: 'Mar 9, 2026 • 10:05 AM' },
         ],
     },
     {
@@ -122,35 +118,31 @@ const INITIAL_DOCUMENTS: DocumentItem[] = [
         title: 'Consulting Agreement — Pixel Inc.',
         submittedBy: 'Amanda Lopez',
         submittedAtLabel: '28 Feb',
-        status: 'pending_review',
+        status: 'request_amendments',
         clientEmail: 'amanda@example.com',
         kycStatus: 'Pending',
         paymentStatus: 'Pending',
-        note: '',
+        note: 'Please update payment clause and term section.',
     },
     {
         id: 7,
         title: 'Service Agreement — Horizon Studio',
         submittedBy: 'Robert Chen',
         submittedAtLabel: '27 Feb',
-        status: 'completed',
+        status: 'approved',
         clientEmail: 'robert@example.com',
         kycStatus: 'Verified',
         paymentStatus: 'Received',
         note: 'Reviewed and finalized.',
-        recipientName: 'Sarah Mitchell',
-        recipientEmail: 'sarah@example.com',
+        submitterSignedAt: 'Mar 9, 2026 • 9:20 AM',
         lawyerSignedAt: 'Mar 9, 2026 • 2:42 PM',
-        sentAt: 'Mar 9, 2026 • 2:44 PM',
-        recipientSignedAt: 'Mar 9, 2026 • 3:10 PM',
-        completedAt: 'Mar 9, 2026 • 3:10 PM',
+        completedAt: 'Mar 9, 2026 • 2:42 PM',
         auditTrail: [
             { id: 1, label: 'Document submitted', timestamp: 'Mar 9, 2026 • 2:15 PM' },
             { id: 2, label: 'Lawyer reviewed document', timestamp: 'Mar 9, 2026 • 2:30 PM' },
-            { id: 3, label: 'Lawyer signed document', timestamp: 'Mar 9, 2026 • 2:42 PM' },
-            { id: 4, label: 'Sent to recipient', timestamp: 'Mar 9, 2026 • 2:44 PM' },
-            { id: 5, label: 'Recipient signed document', timestamp: 'Mar 9, 2026 • 3:10 PM' },
-            { id: 6, label: 'Document completed', timestamp: 'Mar 9, 2026 • 3:10 PM' },
+            { id: 3, label: 'Lawyer approved document', timestamp: 'Mar 9, 2026 • 2:42 PM' },
+            { id: 4, label: 'Lawyer signed document', timestamp: 'Mar 9, 2026 • 2:42 PM' },
+            { id: 5, label: 'Document completed', timestamp: 'Mar 9, 2026 • 2:42 PM' },
         ],
     },
 ];
@@ -164,17 +156,14 @@ export default function AdminDashboard({ user }: DashboardProps) {
 
     const stats = useMemo(() => {
         const total = documents.length;
-        const pending = documents.filter(
-            (doc) => doc.status === 'pending_review' || doc.status === 'in_review' || doc.status === 'awaiting_signature',
-        ).length;
-
-        const approved = documents.filter((doc) => doc.status === 'completed').length;
+        const pending = documents.filter((doc) => doc.status === 'pending_review' || doc.status === 'in_review').length;
+        const approved = documents.filter((doc) => doc.status === 'approved').length;
         const rejected = documents.filter((doc) => doc.status === 'rejected').length;
 
         return [
             { icon: ClipboardList, value: total, description: 'Total This Month' },
             { icon: Clock, value: pending, description: 'Pending' },
-            { icon: CheckCircle, value: approved, description: 'Completed' },
+            { icon: CheckCircle, value: approved, description: 'Approved' },
             { icon: XCircleIcon, value: rejected, description: 'Rejected' },
         ];
     }, [documents]);
@@ -209,28 +198,27 @@ export default function AdminDashboard({ user }: DashboardProps) {
         setActiveView('sign');
     }
 
-    function handleSentDocument(payload: { recipientName: string; recipientEmail: string }) {
+    function handleApproveDocument(payload: { fullName: string; date: string }) {
         if (!selectedDocument) return;
 
-        const now = 'Mar 9, 2026 • 2:44 PM';
+        const now = 'Mar 9, 2026 • 2:42 PM';
 
         handleUpdateDocument(selectedDocument.id, {
-            status: 'awaiting_signature',
-            recipientName: payload.recipientName,
-            recipientEmail: payload.recipientEmail,
-            sentAt: now,
-            lawyerSignedAt: selectedDocument.lawyerSignedAt ?? 'Mar 9, 2026 • 2:42 PM',
+            status: 'approved',
+            lawyerSignedAt: now,
+            completedAt: now,
             auditTrail: [
                 ...(selectedDocument.auditTrail ?? [
                     { id: 1, label: 'Document submitted', timestamp: selectedDocument.submittedAtLabel },
                     { id: 2, label: 'Lawyer reviewed document', timestamp: 'Mar 9, 2026 • 2:30 PM' },
-                    { id: 3, label: 'Lawyer signed document', timestamp: 'Mar 9, 2026 • 2:42 PM' },
                 ]),
-                { id: Date.now(), label: 'Sent to recipient', timestamp: now },
+                { id: Date.now(), label: `Approved by ${payload.fullName}`, timestamp: payload.date || now },
+                { id: Date.now() + 1, label: 'Lawyer signed document', timestamp: now },
+                { id: Date.now() + 2, label: 'Document completed', timestamp: now },
             ],
         });
 
-        setActiveView('sent');
+        setActiveView('success');
     }
 
     function handleViewCompleted(doc: DocumentItem) {
@@ -258,6 +246,7 @@ export default function AdminDashboard({ user }: DashboardProps) {
                                     Admin Dashboard
                                 </button>
                             )}
+
                             {activeView === 'review' && (
                                 <ReviewDocumentView
                                     document={selectedDocument}
@@ -269,9 +258,10 @@ export default function AdminDashboard({ user }: DashboardProps) {
                             )}
 
                             {activeView === 'sign' && (
-                                <SignView document={selectedDocument} onBack={handleBackToReviewFromSign} onSend={handleSentDocument} />
+                                <SignView document={selectedDocument} onBack={handleBackToReviewFromSign} onApprove={handleApproveDocument} />
                             )}
-                            {activeView === 'sent' && <SuccessView document={selectedDocument} onBackToDashboard={handleCloseDocumentFlow} />}
+
+                            {activeView === 'success' && <SuccessView document={selectedDocument} onBackToDashboard={handleCloseDocumentFlow} />}
 
                             {activeView === 'completed' && (
                                 <CompletedDocumentView

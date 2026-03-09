@@ -42,7 +42,7 @@ export default function CompletedDocumentView({ document, onBack, onDownload }: 
 
                             <span className="inline-flex items-center gap-1.5 rounded-full border border-[#A7F3D0] bg-[#ECFDF5] px-3 py-1 text-xs font-medium text-[#059669]">
                                 <CheckCircle2 className="h-3.5 w-3.5" />
-                                Approved
+                                Completed
                             </span>
                         </div>
 
@@ -61,7 +61,7 @@ export default function CompletedDocumentView({ document, onBack, onDownload }: 
                                                 RESIDENTIAL LEASE AGREEMENT
                                             </h2>
                                             <p className="text-xs font-medium text-[#8B8178] md:text-sm">
-                                                Final approved document with submitter and admin lawyer signatures
+                                                Finalized document with completed signatures
                                             </p>
                                         </header>
 
@@ -79,20 +79,20 @@ export default function CompletedDocumentView({ document, onBack, onDownload }: 
                                         <div className="grid gap-4 border-t border-[#EEE7DC] pt-6 md:grid-cols-2">
                                             <div className="rounded-xl border border-[#EEE7DC] bg-[#FCFAF6] p-4">
                                                 <p className="text-[11px] font-semibold tracking-[0.08em] text-[#8A8178] uppercase">
-                                                    Client Signature
+                                                    Lawyer Signature
                                                 </p>
-                                                <p className="mt-3 font-serif text-xl text-[#231F1B] italic">{document.submittedBy}</p>
-                                                <p className="mt-2 text-xs text-[#6B635B]">
-                                                    Signed: {document.submitterSignedAt ?? document.submittedAtLabel ?? '—'}
-                                                </p>
+                                                <p className="mt-3 font-serif text-xl text-[#231F1B] italic">Admin Lawyer</p>
+                                                <p className="mt-2 text-xs text-[#6B635B]">Signed: {document.lawyerSignedAt ?? '—'}</p>
                                             </div>
 
                                             <div className="rounded-xl border border-[#EEE7DC] bg-[#FCFAF6] p-4">
                                                 <p className="text-[11px] font-semibold tracking-[0.08em] text-[#8A8178] uppercase">
-                                                    Lawyer Signature
+                                                    Recipient Signature
                                                 </p>
-                                                <p className="mt-3 font-serif text-xl text-[#231F1B] italic">admin lawyer</p>
-                                                <p className="mt-2 text-xs text-[#6B635B]">Signed: {document.lawyerSignedAt ?? '—'}</p>
+                                                <p className="mt-3 font-serif text-xl text-[#231F1B] italic">
+                                                    {document.recipientName ?? 'Recipient'}
+                                                </p>
+                                                <p className="mt-2 text-xs text-[#6B635B]">Signed: {document.recipientSignedAt ?? '—'}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -107,24 +107,26 @@ export default function CompletedDocumentView({ document, onBack, onDownload }: 
                         <CardHeader className="border-b border-[#EFE7DB] px-4 pt-4 pb-3">
                             <CardTitle className="flex items-center gap-2 text-[12px] font-semibold tracking-[0.12em] text-[#4E463F] uppercase">
                                 <CheckCircle2 className="h-3.5 w-3.5 text-[#1F9D6A]" />
-                                Approval Details
+                                Completion Details
                             </CardTitle>
                         </CardHeader>
 
                         <CardContent className="space-y-3 px-4 pt-4 pb-4 text-sm">
                             <div>
                                 <p className="text-[11px] text-[#8A8178]">Status</p>
-                                <p className="font-medium text-[#1A1614]">Approved</p>
+                                <p className="font-medium text-[#1A1614]">Completed</p>
                             </div>
 
                             <div>
-                                <p className="text-[11px] text-[#8A8178]">Client</p>
-                                <p className="font-medium text-[#1A1614]">{document.submittedBy}</p>
+                                <p className="text-[11px] text-[#8A8178]">Completed At</p>
+                                <p className="font-medium text-[#1A1614]">{document.completedAt ?? '—'}</p>
                             </div>
 
                             <div>
-                                <p className="text-[11px] text-[#8A8178]">Approved At</p>
-                                <p className="font-medium text-[#1A1614]">{document.completedAt ?? document.lawyerSignedAt ?? '—'}</p>
+                                <p className="text-[11px] text-[#8A8178]">Recipient</p>
+                                <p className="font-medium text-[#1A1614]">
+                                    {document.recipientName ?? '—'} · {document.recipientEmail ?? '—'}
+                                </p>
                             </div>
 
                             <button
