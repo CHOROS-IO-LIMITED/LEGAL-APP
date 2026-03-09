@@ -1,9 +1,26 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LogIn } from 'lucide-react';
+import { ChevronDown, LayoutDashboard, LogIn, LogOut } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
+type User = {
+    id: number;
+    name: string;
+    email: string;
+    role: 'admin' | 'user';
+};
+
+type PageProps = {
+    auth: {
+        user: User | null;
+    };
+} & Record<string, unknown>;
+
 export default function Header() {
-    const { url } = usePage(); // get current URL
+    const { url, props } = usePage<PageProps>();
+    const { auth } = props;
+
     const [active, setActive] = useState('home');
 
     useEffect(() => {
@@ -12,7 +29,7 @@ export default function Header() {
         else if (url.startsWith('/#about')) setActive('about');
         else if (url.startsWith('/#services')) setActive('services');
         else if (url.startsWith('/#contact')) setActive('contact');
-        else setActive('home'); // fallback
+        else setActive('home');
     }, [url]);
 
     const menu = [
@@ -22,6 +39,12 @@ export default function Header() {
         { name: 'Services', href: '/#services' },
         { name: 'Contact', href: '/#contact' },
     ];
+
+    // const dashboardRoute = auth.user?.role === 'admin' ? route('admin.dashboard') : route('user.dashboard');
+    const dashboardRoute = {
+        admin: route('admin.dashboard'),
+        user: route('user.dashboard'),
+    }[auth.user?.role ?? 'user'];
 
     return (
         <header className="sticky top-0 z-50 border-b border-[#E8E2D6] bg-white">
@@ -34,6 +57,7 @@ export default function Header() {
                         LegalDocs
                     </span>
                 </Link>
+
                 {/* Nav */}
                 <nav className="flex flex-1 justify-center space-x-10 text-sm font-medium text-[#70665E]">
                     {menu.map((item) => (
@@ -52,16 +76,51 @@ export default function Header() {
                     ))}
                 </nav>
 
-                {/* Sign in */}
-                <div>
+                {/* Auth Section */}
+                {auth.user ? (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="flex items-center gap-3 rounded-full px-2 py-1 transition hover:bg-[#F6F2EA]">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#3D2B1F] text-sm font-semibold text-white">
+                                    {auth.user.name.slice(0, 2).toUpperCase()}
+                                </div>
+
+                                <div className="hidden text-left sm:block">
+                                    <p className="text-sm font-semibold text-[#3D2B1F]">{auth.user.name}</p>
+                                    <p className="text-xs text-[#70665E]">My Account</p>
+                                </div>
+
+                                <ChevronDown className="h-4 w-4 text-[#70665E]" />
+                            </button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align="end" className="w-44">
+                            <DropdownMenuItem asChild>
+                                <Link href={dashboardRoute} className="flex items-center gap-2">
+                                    <LayoutDashboard size={16} />
+                                    Dashboard
+                                </Link>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuSeparator />
+
+                            <DropdownMenuItem asChild>
+                                <Link href={route('auth.logout')} className="flex items-center gap-2 text-red-600">
+                                    <LogOut size={16} />
+                                    Logout
+                                </Link>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                ) : (
                     <Link
                         href={route('auth.login')}
-                        className="flex items-center gap-2 rounded-md bg-[#3D2B1F] px-6 py-2 text-sm font-semibold tracking-wide text-white shadow-sm transition-all duration-200 hover:opacity-95 hover:shadow-md"
+                        className="flex items-center gap-2 rounded-md bg-[#3D2B1F] px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
                     >
                         Sign In
                         <LogIn className="h-4 w-4" />
                     </Link>
-                </div>
+                )}
             </div>
         </header>
     );

@@ -5,6 +5,20 @@ import { Link, usePage } from '@inertiajs/react';
 import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
 import React, { useState } from 'react';
 
+type User = {
+    id: number;
+    name: string;
+    email: string;
+    role: 'admin' | 'user';
+};
+
+type PageProps = {
+    auth: {
+        user: User | null;
+    };
+    selectedIndex?: number;
+} & Record<string, unknown>;
+
 interface Product {
     image: string;
     title: string;
@@ -14,37 +28,37 @@ interface Product {
 
 const products: Product[] = [
     {
-        image: '../../images/products/placeholder.webp',
+        image: '/images/products/placeholder.webp',
         title: 'NDA Agreement',
         price: '£9.99',
         description: 'Non-Disclosure Agreement, ready to customize for your business or project.',
     },
     {
-        image: '../../images/products/placeholder.webp',
+        image: '/images/products/placeholder.webp',
         title: 'Employment Contract',
         price: '£14.99',
         description: 'Standard employment contract, fully editable and lawyer-reviewed for compliance.',
     },
     {
-        image: '../../images/products/placeholder.webp',
+        image: '/images/products/placeholder.webp',
         title: 'Service Agreement',
         price: '£12.99',
         description: 'Professional service agreement, perfect for freelancers and agencies.',
     },
     {
-        image: '../../images/products/placeholder.webp',
+        image: '/images/products/placeholder.webp',
         title: 'Residential Lease',
         price: '£19.99',
         description: 'Customizable residential lease agreement for landlords and tenants.',
     },
     {
-        image: '../../images/products/placeholder.webp',
+        image: '/images/products/placeholder.webp',
         title: 'Marketing Partner',
         price: '£11.99',
         description: 'Agreement for marketing partnerships and collaborations.',
     },
     {
-        image: '../../images/products/placeholder.webp',
+        image: '/images/products/placeholder.webp',
         title: 'Business Sale',
         price: '£24.99',
         description: 'Comprehensive business sale contract, ready to use for transactions.',
@@ -52,7 +66,9 @@ const products: Product[] = [
 ];
 
 const ProductDetails: React.FC = () => {
-    const { props } = usePage();
+    const { props } = usePage<PageProps>();
+    const { auth } = props;
+
     const initialIndex = Number(props.selectedIndex ?? 0);
 
     const [selectedProducts, setSelectedProducts] = useState<number[]>(props.selectedIndex !== undefined ? [initialIndex] : []);
@@ -90,21 +106,6 @@ const ProductDetails: React.FC = () => {
         });
     };
 
-    const focusCard = (productIdx: number) => {
-        setSelectedProducts((prev) => {
-            const currentPos = prev.indexOf(productIdx);
-            if (currentPos === -1) return prev;
-
-            const middle = Math.floor(prev.length / 2);
-            const newOrder = [...prev];
-
-            newOrder.splice(currentPos, 1);
-            newOrder.splice(middle, 0, productIdx);
-
-            return newOrder;
-        });
-    };
-
     const steps = ['Products', 'KYC', 'Checkout', 'Verification', 'Q&A'];
 
     const selectedProductObjects = selectedProducts.map((i) => products[i]);
@@ -136,7 +137,7 @@ const ProductDetails: React.FC = () => {
                     </div>
 
                     <div className="grid gap-12 md:grid-cols-2">
-                        {/* LEFT SIDE */}
+                        {/* LEFT */}
                         <div className="space-y-3">
                             {products.map((p, idx) => {
                                 const checked = selectedProducts.includes(idx);
@@ -166,13 +167,12 @@ const ProductDetails: React.FC = () => {
                             })}
                         </div>
 
-                        {/* RIGHT SIDE */}
+                        {/* RIGHT */}
                         <div className="flex flex-col items-center">
                             <div className="relative h-[400px] w-full max-w-sm">
                                 {selectedProducts.length > 1 && (
                                     <>
                                         <button
-                                            type="button"
                                             onClick={rotateLeft}
                                             className="absolute top-1/2 -left-12 z-30 -translate-y-1/2 cursor-pointer rounded-full bg-white/80 p-2 shadow-md backdrop-blur hover:bg-white"
                                         >
@@ -180,7 +180,6 @@ const ProductDetails: React.FC = () => {
                                         </button>
 
                                         <button
-                                            type="button"
                                             onClick={rotateRight}
                                             className="absolute top-1/2 -right-12 z-30 -translate-y-1/2 cursor-pointer rounded-full bg-white/80 p-2 shadow-md backdrop-blur hover:bg-white"
                                         >
@@ -206,7 +205,7 @@ const ProductDetails: React.FC = () => {
                                         return (
                                             <div
                                                 key={idx}
-                                                className="absolute w-full max-w-sm rounded-2xl bg-white shadow-md transition-all duration-500 ease-out will-change-transform"
+                                                className="absolute w-full max-w-sm rounded-2xl bg-white shadow-md transition-all duration-500"
                                                 style={{
                                                     transform: `translateX(${translateX}px) rotate(${rotateDeg}deg)`,
                                                     zIndex: stackIndex + 1,
@@ -223,7 +222,7 @@ const ProductDetails: React.FC = () => {
                                                     <div className="mb-4 flex items-center justify-between">
                                                         <span className="text-lg font-bold text-[#3D2B1F]">{product.price}</span>
 
-                                                        <span className="inline-flex items-center gap-1 rounded-full border border-green-600 bg-green-100/70 px-3 py-1 text-xs font-semibold text-green-600 shadow-sm">
+                                                        <span className="inline-flex items-center gap-1 rounded-full border border-green-600 bg-green-100/70 px-3 py-1 text-xs font-semibold text-green-600">
                                                             <Check size={14} />
                                                             Lawyer Included
                                                         </span>
@@ -235,52 +234,88 @@ const ProductDetails: React.FC = () => {
                                 )}
                             </div>
 
+                            {/* CHECKOUT AREA */}
+
                             {selectedProducts.length > 0 && (
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <button className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]">
-                                            Checkout ({selectedProducts.length})
-                                            <ArrowRight size={18} className="transition-transform duration-200 group-hover:translate-x-1" />
-                                        </button>
-                                    </DialogTrigger>
+                                <>
+                                    {/* LOGGED IN */}
+                                    {auth.user && (
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <button className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]">
+                                                    Checkout ({selectedProducts.length})
+                                                    <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                                                </button>
+                                            </DialogTrigger>
 
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>Confirm Your Purchase</DialogTitle>
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Confirm Your Purchase</DialogTitle>
+                                                    <DialogDescription>You're about to purchase the following documents.</DialogDescription>
+                                                </DialogHeader>
 
-                                            <DialogDescription>You're about to purchase the following documents.</DialogDescription>
-                                        </DialogHeader>
+                                                <div className="space-y-3">
+                                                    {selectedProductObjects.map((p, i) => (
+                                                        <div key={i} className="flex items-center justify-between rounded-md border p-3">
+                                                            <span className="font-medium">{p.title}</span>
+                                                            <span className="font-semibold">{p.price}</span>
+                                                        </div>
+                                                    ))}
 
-                                        <div className="space-y-3">
-                                            {selectedProductObjects.map((p, i) => (
-                                                <div key={i} className="flex items-center justify-between rounded-md border p-3">
-                                                    <span className="font-medium">{p.title}</span>
-                                                    <span className="font-semibold">{p.price}</span>
+                                                    <div className="flex items-center justify-between border-t pt-3 font-semibold">
+                                                        <span>Total</span>
+                                                        <span>£{totalPrice}</span>
+                                                    </div>
+
+                                                    <div className="bg-muted flex items-start gap-2 rounded-md p-3 text-sm">
+                                                        <ShieldCheck className="mt-0.5 h-4 w-4 text-green-600" />
+                                                        <p className="text-muted-foreground">
+                                                            We need to verify your identity before completing your purchase.
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                            ))}
 
-                                            <div className="flex items-center justify-between border-t pt-3 font-semibold">
-                                                <span>Total</span>
-                                                <span>£{totalPrice}</span>
-                                            </div>
-                                            <div className="bg-muted flex items-start gap-2 rounded-md p-3 text-sm">
-                                                <ShieldCheck className="mt-0.5 h-4 w-4 text-green-600" />
-                                                <p className="text-muted-foreground">
-                                                    We need to verify your identity before completing your purchase.
-                                                </p>
-                                            </div>
-                                        </div>
+                                                <DialogFooter>
+                                                    <Link
+                                                        href={route('product.kyc')}
+                                                        className="rounded-md bg-[#3D2B1F] px-4 py-2 text-white hover:bg-[#5A4638]"
+                                                    >
+                                                        Continue to KYC
+                                                    </Link>
+                                                </DialogFooter>
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
 
-                                        <DialogFooter>
-                                            <Link
-                                                href={route('product.kyc')}
-                                                className="rounded-md bg-[#3D2B1F] px-4 py-2 text-white hover:bg-[#5A4638]"
-                                            >
-                                                Continue to KYC
-                                            </Link>
-                                        </DialogFooter>
-                                    </DialogContent>
-                                </Dialog>
+                                    {/* GUEST */}
+                                    {!auth.user && (
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <button className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]">
+                                                    Checkout ({selectedProducts.length})
+                                                    <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                                                </button>
+                                            </DialogTrigger>
+
+                                            <DialogContent className="max-w-sm">
+                                                <DialogHeader>
+                                                    <DialogTitle>Login Required</DialogTitle>
+
+                                                    <DialogDescription>You must sign in before continuing to checkout.</DialogDescription>
+                                                </DialogHeader>
+
+                                                <DialogFooter>
+                                                    <Link
+                                                        href={route('auth.login')}
+                                                        className="w-full rounded-md bg-[#3D2B1F] px-4 py-2 text-center text-white hover:bg-[#5A4638]"
+                                                    >
+                                                        Sign In
+                                                    </Link>
+                                                </DialogFooter>
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
