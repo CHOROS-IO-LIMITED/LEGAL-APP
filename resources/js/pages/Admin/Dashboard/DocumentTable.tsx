@@ -8,6 +8,8 @@ type Props = {
     items: DocumentItem[];
     pageSize?: number;
     onReview?: (item: DocumentItem) => void;
+    onViewCompleted?: (item: DocumentItem) => void;
+    onDownload?: (item: DocumentItem) => void;
 };
 
 const STATUS: Record<
@@ -16,36 +18,42 @@ const STATUS: Record<
         label: string;
         pillClassName: string;
         Icon: React.ElementType;
-        canReview: boolean;
+        action: 'review' | 'view_download' | 'none';
     }
 > = {
     pending_review: {
         label: 'Pending Review',
         pillClassName: 'rounded-full border px-2.5 py-1 text-xs bg-[#FFF7E6] text-[#B7791F] border-[#F6E4B5]',
         Icon: Clock,
-        canReview: true,
+        action: 'review',
     },
     in_review: {
         label: 'In Review',
         pillClassName: 'rounded-full border px-2.5 py-1 text-xs bg-[#EEF2FF] text-[#4F46E5] border-[#C7D2FE]',
         Icon: Eye,
-        canReview: true,
+        action: 'review',
     },
-    approved: {
-        label: 'Approved',
+    awaiting_signature: {
+        label: 'Awaiting Signature',
+        pillClassName: 'rounded-full border px-2.5 py-1 text-xs bg-[#FFF7E6] text-[#B7791F] border-[#F6E4B5]',
+        Icon: Clock,
+        action: 'none',
+    },
+    completed: {
+        label: 'Completed',
         pillClassName: 'rounded-full border px-2.5 py-1 text-xs bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
         Icon: CheckCircle2,
-        canReview: false,
+        action: 'view_download',
     },
     rejected: {
         label: 'Rejected',
         pillClassName: 'rounded-full border px-2.5 py-1 text-xs bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
         Icon: XCircle,
-        canReview: false,
+        action: 'none',
     },
 };
 
-export default function DocumentTable({ items, pageSize = 5, onReview }: Props) {
+export default function DocumentTable({ items, pageSize = 5, onReview, onViewCompleted, onDownload }: Props) {
     const pager = usePagination(items, pageSize);
     const rows = pager.paginatedItems;
     const empty = useMemo(() => items.length === 0, [items.length]);
@@ -107,7 +115,7 @@ export default function DocumentTable({ items, pageSize = 5, onReview }: Props) 
                                             {meta.label}
                                         </span>
 
-                                        {meta.canReview && (
+                                        {meta.action === 'review' && (
                                             <button
                                                 type="button"
                                                 onClick={() => onReview?.(doc)}
@@ -116,6 +124,28 @@ export default function DocumentTable({ items, pageSize = 5, onReview }: Props) 
                                                 <Eye className="h-4 w-4" />
                                                 Review
                                             </button>
+                                        )}
+
+                                        {meta.action === 'view_download' && (
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => onViewCompleted?.(doc)}
+                                                    className="inline-flex items-center gap-2 rounded-xl bg-[#3D2B1F] px-3.5 py-2 text-sm font-medium text-white transition-all hover:bg-[#2E2017] hover:shadow-sm focus:ring-2 focus:ring-[#A68A64]/40 focus:outline-none"
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                    View
+                                                </button>
+                                                {/* 
+                                                <button
+                                                    type="button"
+                                                    onClick={() => onDownload?.(doc)}
+                                                    className="group inline-flex h-9 items-center gap-2 rounded-lg border border-[#E2DBD2] bg-white px-3 text-sm font-medium text-[#2F2A26] shadow-sm transition-all duration-200 hover:border-[#CDBBA4] hover:bg-[#FCFAF6] hover:shadow-md focus:ring-2 focus:ring-[#A68A64]/20 focus:outline-none"
+                                                >
+                                                    <Download className="h-4 w-4" />
+                                                    Download
+                                                </button> */}
+                                            </div>
                                         )}
                                     </div>
                                 </div>
