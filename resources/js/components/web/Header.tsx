@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ChevronDown, LayoutDashboard, LogIn, LogOut } from 'lucide-react';
+import { ChevronDown, LayoutDashboard, LogIn, LogOut, Menu, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -22,6 +22,11 @@ export default function Header() {
     const { auth } = props;
 
     const [active, setActive] = useState('home');
+    const [mobileOpen, setMobileOpen] = useState(false);
+
+    useEffect(() => {
+        setMobileOpen(false);
+    }, [url]);
 
     useEffect(() => {
         if (url.startsWith('/products')) setActive('products');
@@ -58,8 +63,12 @@ export default function Header() {
                     </span>
                 </Link>
 
+                <button onClick={() => setMobileOpen((prev) => !prev)} className="md:hidden">
+                    {mobileOpen ? <X className="h-6 w-6 text-[#3D2B1F]" /> : <Menu className="h-6 w-6 text-[#3D2B1F]" />}
+                </button>
+
                 {/* Nav */}
-                <nav className="flex flex-1 justify-center space-x-10 text-sm font-medium text-[#70665E]">
+                <nav className="hidden flex-1 justify-center space-x-10 text-sm font-medium text-[#70665E] md:flex">
                     {menu.map((item) => (
                         <Link
                             key={item.name}
@@ -77,50 +86,99 @@ export default function Header() {
                 </nav>
 
                 {/* Auth Section */}
-                {auth.user ? (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <button className="flex items-center gap-3 rounded-full px-2 py-1 transition hover:bg-[#F6F2EA]">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#3D2B1F] text-sm font-semibold text-white">
-                                    {auth.user.name.slice(0, 2).toUpperCase()}
-                                </div>
+                <div className="hidden md:block">
+                    {auth.user ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="flex items-center gap-3 rounded-full px-2 py-1 transition hover:bg-[#F6F2EA]">
+                                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#3D2B1F] text-sm font-semibold text-white">
+                                        {auth.user.name.slice(0, 2).toUpperCase()}
+                                    </div>
 
-                                <div className="hidden text-left sm:block">
-                                    <p className="text-sm font-semibold text-[#3D2B1F]">{auth.user.name}</p>
-                                    <p className="text-xs text-[#70665E]">My Account</p>
-                                </div>
+                                    <div className="hidden text-left sm:block">
+                                        <p className="text-sm font-semibold text-[#3D2B1F]">{auth.user.name}</p>
+                                        <p className="text-xs text-[#70665E]">My Account</p>
+                                    </div>
 
-                                <ChevronDown className="h-4 w-4 text-[#70665E]" />
-                            </button>
-                        </DropdownMenuTrigger>
+                                    <ChevronDown className="h-4 w-4 text-[#70665E]" />
+                                </button>
+                            </DropdownMenuTrigger>
 
-                        <DropdownMenuContent align="end" className="w-44">
-                            <DropdownMenuItem asChild>
-                                <Link href={dashboardRoute} className="flex items-center gap-2">
+                            <DropdownMenuContent align="end" className="w-44">
+                                <DropdownMenuItem asChild>
+                                    <Link href={dashboardRoute} className="flex items-center gap-2">
+                                        <LayoutDashboard size={16} />
+                                        Dashboard
+                                    </Link>
+                                </DropdownMenuItem>
+
+                                <DropdownMenuSeparator />
+
+                                <DropdownMenuItem asChild>
+                                    <Link href={route('auth.logout')} className="flex items-center gap-2 text-red-600">
+                                        <LogOut size={16} />
+                                        Logout
+                                    </Link>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : (
+                        <Link
+                            href={route('auth.login')}
+                            className="flex items-center gap-2 rounded-md bg-[#3D2B1F] px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
+                        >
+                            Sign In
+                            <LogIn className="h-4 w-4" />
+                        </Link>
+                    )}
+                </div>
+            </div>
+
+            <div
+                className={`absolute top-full left-0 w-full overflow-hidden border-t border-[#E8E2D6] bg-white shadow-md transition-all duration-300 md:hidden ${
+                    mobileOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+                }`}
+            >
+                <div className="flex flex-col space-y-4 px-6 py-4 text-sm font-medium text-[#70665E]">
+                    {menu.map((item) => {
+                        const isActive = active === item.name.toLowerCase();
+
+                        return (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                onClick={() => {
+                                    setActive(item.name.toLowerCase());
+                                    setMobileOpen(false);
+                                }}
+                                className={`py-1 transition-colors ${isActive ? 'font-semibold text-[#3D2B1F]' : 'hover:text-[#1A1614]'}`}
+                            >
+                                {item.name}
+                            </Link>
+                        );
+                    })}
+
+                    <div className="border-t pt-4">
+                        {auth.user ? (
+                            <>
+                                <Link href={dashboardRoute} className="flex items-center gap-2 py-2">
                                     <LayoutDashboard size={16} />
                                     Dashboard
                                 </Link>
-                            </DropdownMenuItem>
 
-                            <DropdownMenuSeparator />
-
-                            <DropdownMenuItem asChild>
-                                <Link href={route('auth.logout')} className="flex items-center gap-2 text-red-600">
+                                <Link href={route('auth.logout')} className="flex items-center gap-2 py-2 text-red-600">
                                     <LogOut size={16} />
                                     Logout
                                 </Link>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                ) : (
-                    <Link
-                        href={route('auth.login')}
-                        className="flex items-center gap-2 rounded-md bg-[#3D2B1F] px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
-                    >
-                        Sign In
-                        <LogIn className="h-4 w-4" />
-                    </Link>
-                )}
+                            </>
+                        ) : (
+                            <Link href={route('auth.login')} className="flex items-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-2 text-white">
+                                Sign In
+                                <LogIn size={16} />
+                            </Link>
+                        )}
+                    </div>
+                </div>
             </div>
         </header>
     );
