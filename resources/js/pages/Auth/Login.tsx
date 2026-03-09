@@ -1,9 +1,8 @@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Head, useForm } from '@inertiajs/react';
+import { MoveLeft } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { route } from 'ziggy-js';
 
@@ -21,23 +20,17 @@ export default function Login({ flash }: LoginProps) {
     });
 
     const [authError, setAuthError] = useState<string | null>(null);
+
     const [flashMessage, setFlashMessage] = useState<{
         type: 'success' | 'error' | null;
         message: string | null;
     }>({ type: null, message: null });
 
-    // Check for flash messages
     useEffect(() => {
         if (flash?.success) {
-            setFlashMessage({
-                type: 'success',
-                message: flash.success,
-            });
+            setFlashMessage({ type: 'success', message: flash.success });
         } else if (flash?.error) {
-            setFlashMessage({
-                type: 'error',
-                message: flash.error,
-            });
+            setFlashMessage({ type: 'error', message: flash.error });
         } else {
             setFlashMessage({ type: null, message: null });
         }
@@ -45,15 +38,13 @@ export default function Login({ flash }: LoginProps) {
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
+
         setAuthError(null);
         setFlashMessage({ type: null, message: null });
 
         post(route('auth.login.store'), {
             onError: (errors) => {
-                // If we received an authentication error from the backend
-                if (errors.auth) {
-                    setAuthError(errors.auth);
-                }
+                if (errors.auth) setAuthError(errors.auth);
             },
         });
     };
@@ -61,107 +52,167 @@ export default function Login({ flash }: LoginProps) {
     return (
         <>
             <Head title="Login" />
-            <div className="flex min-h-screen items-center justify-center bg-gray-100 p-6">
-                <Card className="w-full max-w-sm rounded-2xl shadow-xl">
-                    <CardContent className="p-8">
-                        <h1 className="mb-6 text-center text-3xl font-bold text-gray-800">Welcome Back!</h1>
 
-                        {/* Show flash messages */}
-                        {flashMessage.message && (
-                            <Alert variant={flashMessage.type === 'error' ? 'destructive' : 'default'} className="mb-4">
-                                <AlertDescription>{flashMessage.message}</AlertDescription>
-                            </Alert>
-                        )}
+            <div className="flex min-h-screen items-center justify-center p-6" style={{ background: '#FCF9F2' }}>
+                <div className="flex w-full max-w-5xl overflow-hidden rounded-lg bg-white shadow-xl">
+                    {/* LEFT PANEL */}
+                    <div
+                        className="relative hidden flex-1 flex-col p-8 text-white md:flex"
+                        style={{
+                            background: 'linear-gradient(to bottom, #3D2B1F, #1A1614)',
+                        }}
+                    >
+                        <div className="mb-6">
+                            <a
+                                href="/"
+                                className="group inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 font-semibold text-white transition hover:bg-white/30"
+                            >
+                                <span className="transition-transform duration-200 group-hover:-translate-x-1">
+                                    <MoveLeft size={18} />
+                                </span>
+                                <span>Back to Website</span>
+                            </a>
+                        </div>
 
-                        {/* Show authentication error if any */}
-                        {authError && (
-                            <Alert variant="destructive" className="mb-4">
-                                <AlertDescription>{authError}</AlertDescription>
-                            </Alert>
-                        )}
+                        <div className="mb-15 flex flex-1 items-center justify-center">
+                            <div className="flex flex-col items-center gap-4 text-center">
+                                <img src="/images/logo/logo.png" alt="LegalDocs Logo" className="h-40 w-40 object-contain" />
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            {/* Email Field */}
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Gmail</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="yourname@gmail.com"
-                                    className="w-full"
-                                    value={data.email}
-                                    onChange={(e) => setData('email', e.target.value)}
-                                />
-                                {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
-                            </div>
-
-                            {/* Password Field */}
-                            <div className="space-y-2">
-                                <Label htmlFor="password">Password</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    placeholder="••••••••"
-                                    className="w-full"
-                                    value={data.password}
-                                    onChange={(e) => setData('password', e.target.value)}
-                                />
-                                {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
-                            </div>
-
-                            {/* Submit Button */}
-                            <Button type="submit" className="mt-4 w-full" disabled={processing}>
-                                {processing ? 'Logging in...' : 'Login'}
-                            </Button>
-                        </form>
-
-                        {/* Divider & Google Auth */}
-                        <div className="relative my-6">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm uppercase">
-                                <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                                <p className="max-w-sm text-base leading-relaxed">
+                                    Sign in to access your legal documents, manage purchases, and securely complete your verification process.
+                                </p>
                             </div>
                         </div>
 
-                        <Button
-                            variant="outline"
-                            className="w-full"
-                            onClick={() => {
-                                window.location.href = route('auth.google');
-                            }}
-                        >
-                            <svg className="mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px">
-                                <path
-                                    fill="#4285F4"
-                                    d="M24 9.5c3.54 0 6.52 1.28 8.96 3.36l6.64-6.64C34.82 2.02 29.7 0 24 0 14.32 0 6.06 5.74 2.21 13.97l7.81 6.07C12.12 13.34 17.56 9.5 24 9.5z"
-                                />
-                                <path
-                                    fill="#34A853"
-                                    d="M46.04 24.5c0-1.47-.13-2.88-.37-4.25H24v8.5h12.54c-.56 2.87-2.07 5.32-4.26 7.05l6.7 6.7c4.31-3.98 6.77-9.79 6.77-16z"
-                                />
-                                <path
-                                    fill="#FBBC05"
-                                    d="M10.26 28.65c-.64-1.91-1-3.95-1-6.05s.36-4.14 1-6.05l-7.81-6.07C.79 13.17 0 18.44 0 24c0 5.56.79 10.83 2.21 15.52l8.05-6.18z"
-                                />
-                                <path
-                                    fill="#EA4335"
-                                    d="M24 48c5.7 0 10.82-2.02 14.7-5.45l-6.7-6.7c-1.96 1.31-4.42 2.07-7 2.07-6.44 0-11.88-3.84-14.04-9.35l-8.05 6.18C6.06 42.26 14.32 48 24 48z"
-                                />
-                            </svg>
-                            Continue with Google
-                        </Button>
+                        <div className="mt-auto text-center text-sm tracking-wide">© 2026 LegalDocs</div>
+                    </div>
 
-                        {/* Signup Link */}
-                        <p className="mt-4 text-center text-sm text-gray-500">
-                            Don't have an account?{' '}
-                            <a href={route('auth.register')} className="text-blue-500 hover:underline">
-                                Sign up
-                            </a>
-                        </p>
-                    </CardContent>
-                </Card>
+                    {/* RIGHT PANEL */}
+                    <div className="flex flex-1 items-center justify-center p-8" style={{ background: '#F2EDE4' }}>
+                        <div className="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow-xl">
+                            {/* HEADER */}
+                            <div className="border-b p-5 text-center" style={{ borderColor: '#E8E2D6' }}>
+                                <h2 className="text-2xl font-bold tracking-tight" style={{ color: '#1A1614' }}>
+                                    Login
+                                </h2>
+
+                                <p className="mt-1 text-sm text-[#6B5E55]">Enter your credentials to continue.</p>
+                            </div>
+
+                            {/* BODY */}
+                            <div className="flex flex-col gap-4 p-5">
+                                {flashMessage.message && (
+                                    <Alert variant={flashMessage.type === 'error' ? 'destructive' : 'default'}>
+                                        <AlertDescription>{flashMessage.message}</AlertDescription>
+                                    </Alert>
+                                )}
+
+                                {authError && (
+                                    <Alert variant="destructive">
+                                        <AlertDescription>{authError}</AlertDescription>
+                                    </Alert>
+                                )}
+
+                                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                                    {/* EMAIL */}
+                                    <div className="flex flex-col">
+                                        <label className="mb-1 text-sm font-medium text-[#1A1614]">Email</label>
+
+                                        <Input
+                                            type="email"
+                                            value={data.email}
+                                            onChange={(e) => setData('email', e.target.value)}
+                                            placeholder="Enter your email"
+                                            className="rounded border-[#E8E2D6] focus:ring-2 focus:ring-[#A68A64]"
+                                        />
+
+                                        {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
+                                    </div>
+
+                                    {/* PASSWORD */}
+                                    <div className="flex flex-col">
+                                        <label className="mb-1 text-sm font-medium text-[#1A1614]">Password</label>
+
+                                        <Input
+                                            type="password"
+                                            value={data.password}
+                                            onChange={(e) => setData('password', e.target.value)}
+                                            placeholder="Enter your password"
+                                            className="rounded border-[#E8E2D6] focus:ring-2 focus:ring-[#A68A64]"
+                                        />
+
+                                        {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
+
+                                        <div className="mt-2 flex items-center justify-between text-sm">
+                                            <label className="flex items-center gap-2 text-[#1A1614]">
+                                                <input type="checkbox" className="h-4 w-4 rounded border-[#E8E2D6] accent-[#3D2B1F]" />
+                                                Remember me
+                                            </label>
+
+                                            <a href="/forgot-password" className="hover:underline" style={{ color: '#A68A64' }}>
+                                                Forgot Password?
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    {/* LOGIN BUTTON */}
+                                    <Button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="w-full cursor-pointer rounded bg-[#3D2B1F] py-3 font-semibold tracking-wide text-white hover:bg-[#2f2117]"
+                                    >
+                                        {processing ? 'Signing in...' : 'Sign In'}
+                                    </Button>
+                                </form>
+
+                                {/* DIVIDER */}
+                                <div className="my-3 flex items-center">
+                                    <hr className="flex-1" style={{ borderColor: '#E8E2D6' }} />
+                                    <span className="px-3 text-sm text-[#A68A64]">or</span>
+                                    <hr className="flex-1" style={{ borderColor: '#E8E2D6' }} />
+                                </div>
+
+                                {/* GOOGLE LOGIN */}
+                                <Button
+                                    type="button"
+                                    onClick={() => (window.location.href = route('auth.google'))}
+                                    variant="outline"
+                                    className="flex w-full cursor-pointer items-center justify-center gap-3 border-[#E8E2D6] py-3 hover:bg-[#F2EDE4]"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-5 w-5">
+                                        <path
+                                            fill="#EA4335"
+                                            d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+                                        />
+                                        <path
+                                            fill="#4285F4"
+                                            d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+                                        />
+                                        <path
+                                            fill="#FBBC05"
+                                            d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+                                        />
+                                        <path
+                                            fill="#34A853"
+                                            d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+                                        />
+                                    </svg>
+                                    Sign in with Google
+                                </Button>
+                            </div>
+
+                            {/* FOOTER */}
+                            <div className="border-t p-5 text-center" style={{ borderColor: '#E8E2D6' }}>
+                                <p className="text-sm text-[#6B5E55]">
+                                    Don't have an account?{' '}
+                                    <a href={route('auth.register')} className="hover:underline" style={{ color: '#A68A64' }}>
+                                        Register
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </>
     );
