@@ -9,7 +9,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Link, usePage } from '@inertiajs/react';
-import { BarChart, ChevronDown, CreditCard, LayoutDashboard, MessageSquare, Settings, Share, Users } from 'lucide-react';
+import { ChevronDown, LayoutDashboard, Settings } from 'lucide-react';
 
 interface User {
     name: string;
@@ -45,7 +45,7 @@ export default function AdminLayout({ user, children }: AdminLayoutProps) {
                             </Button>
                         </Link>
 
-                        <Button
+                        {/* <Button
                             variant="ghost"
                             className="flex w-full items-center justify-start gap-3 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                         >
@@ -83,7 +83,7 @@ export default function AdminLayout({ user, children }: AdminLayoutProps) {
                         >
                             <MessageSquare size={18} />
                             Feedback
-                        </Button>
+                        </Button> */}
                     </nav>
                 </div>
 

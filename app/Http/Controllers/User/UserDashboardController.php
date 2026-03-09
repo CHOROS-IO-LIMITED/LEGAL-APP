@@ -13,7 +13,7 @@ class UserDashboardController extends Controller
     {
         $user = Auth::user();
 
-        return Inertia::render('User/Dashboard', [
+        return Inertia::render('User/Dashboard/Index', [
             'user' => [
                 'name' => $user->name,
                 'email' => $user->email,

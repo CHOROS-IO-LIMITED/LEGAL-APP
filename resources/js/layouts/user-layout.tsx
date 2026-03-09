@@ -8,9 +8,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Separator } from '@/components/ui/separator';
 import { Link, usePage } from '@inertiajs/react';
-import { BarChart, ChevronDown, CreditCard, LayoutDashboard, MessageSquare, Settings, Share, Users } from 'lucide-react';
+import { ChevronDown, LayoutDashboard, Settings } from 'lucide-react';
 
 interface User {
     name: string;
@@ -31,7 +30,7 @@ export default function UserLayout({ user, children }: UserLayoutProps) {
             {/* Sidebar */}
             <div className="hidden w-64 flex-col border-r bg-white md:flex dark:border-gray-700 dark:bg-gray-800">
                 <div className="flex h-16 items-center border-b px-4 dark:border-gray-700">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Admin Portal</h2>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">User Portal</h2>
                 </div>
 
                 <div className="flex-1 overflow-auto py-4">
@@ -46,7 +45,7 @@ export default function UserLayout({ user, children }: UserLayoutProps) {
                             </Button>
                         </Link>
 
-                        <Button
+                        {/* <Button
                             variant="ghost"
                             className="flex w-full items-center justify-start gap-3 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                         >
@@ -84,7 +83,7 @@ export default function UserLayout({ user, children }: UserLayoutProps) {
                         >
                             <MessageSquare size={18} />
                             Feedback
-                        </Button>
+                        </Button> */}
                     </nav>
                 </div>
 
@@ -128,7 +127,7 @@ export default function UserLayout({ user, children }: UserLayoutProps) {
             {/* Main Content */}
             <div className="flex flex-1 flex-col overflow-hidden">
                 {/* Header */}
-                <header className="flex h-16 items-center border-b bg-white px-4 md:px-6 dark:border-gray-700 dark:bg-gray-800">
+                {/* <header className="flex h-16 items-center border-b bg-white px-4 md:px-6 dark:border-gray-700 dark:bg-gray-800">
                     <Button variant="outline" size="icon" className="mr-2 md:hidden">
                         <LayoutDashboard size={20} />
                     </Button>
@@ -170,7 +169,7 @@ export default function UserLayout({ user, children }: UserLayoutProps) {
                             </DropdownMenu>
                         </div>
                     </div>
-                </header>
+                </header> */}
 
                 {children}
             </div>
