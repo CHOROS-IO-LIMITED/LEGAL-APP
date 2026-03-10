@@ -131,7 +131,7 @@ export default function SignView({ currentUserEmail, document, onBack, onSign }:
                     <CardHeader className="border-b border-[#EFE7DB] px-4 pt-4 pb-3">
                         <CardTitle className="flex items-center gap-2 text-[12px] font-semibold tracking-[0.12em] text-[#4E463F] uppercase">
                             <FileSignature className="h-3.5 w-3.5 text-[#7C7368]" />
-                            Signing Status
+                            Signature Status
                         </CardTitle>
                     </CardHeader>
 

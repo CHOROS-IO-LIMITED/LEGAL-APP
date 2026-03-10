@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { usePagination } from '@/hooks/Shared/usePagination';
-import { AlertTriangle, CheckCircle2, Clock, Eye, FileText, FolderOpen, SquarePen, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock, Eye, FileSignature, FileText, FolderOpen, SquarePen, XCircle } from 'lucide-react';
 import { useMemo } from 'react';
 import type { DocumentItem, DocumentStatus } from './Index';
 
@@ -9,7 +9,6 @@ type Props = {
     pageSize?: number;
     onReview?: (item: DocumentItem) => void;
     onViewCompleted?: (item: DocumentItem) => void;
-    onDownload?: (item: DocumentItem) => void;
 };
 
 const STATUS: Record<
@@ -18,38 +17,51 @@ const STATUS: Record<
         label: string;
         pillClassName: string;
         Icon: React.ElementType;
-        action: 'review' | 'view_success' | 'none';
+        action: 'review' | 'view_completed';
+        actionLabel: string;
     }
 > = {
-    pending_review: {
-        label: 'Pending Review',
+    pending_lawyer_review: {
+        label: 'Waiting Review',
         pillClassName: 'rounded-full border px-2.5 py-1 text-xs bg-[#FFF7E6] text-[#B7791F] border-[#F6E4B5]',
         Icon: Clock,
         action: 'review',
+        actionLabel: 'Review',
     },
-    in_review: {
-        label: 'In Review',
-        pillClassName: 'rounded-full border px-2.5 py-1 text-xs bg-[#EEF2FF] text-[#4F46E5] border-[#C7D2FE]',
-        Icon: Eye,
-        action: 'review',
-    },
-    approved: {
-        label: 'Approved',
-        pillClassName: 'rounded-full border px-2.5 py-1 text-xs bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
-        Icon: CheckCircle2,
-        action: 'view_success',
-    },
-    request_amendments: {
-        label: 'Request Amendments',
+    changes_requested: {
+        label: 'Changes Requested',
         pillClassName: 'rounded-full border px-2.5 py-1 text-xs bg-[#FFF7E6] text-[#B7791F] border-[#F6E4B5]',
         Icon: SquarePen,
-        action: 'none',
+        action: 'review',
+        actionLabel: 'Review',
     },
     rejected: {
         label: 'Rejected',
         pillClassName: 'rounded-full border px-2.5 py-1 text-xs bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
         Icon: XCircle,
-        action: 'none',
+        action: 'review',
+        actionLabel: 'View',
+    },
+    awaiting_signatures: {
+        label: 'Awaiting Signatures',
+        pillClassName: 'rounded-full border px-2.5 py-1 text-xs bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]',
+        Icon: FileSignature,
+        action: 'review',
+        actionLabel: 'View',
+    },
+    partially_signed: {
+        label: 'Partially Signed',
+        pillClassName: 'rounded-full border px-2.5 py-1 text-xs bg-[#EEFDF3] text-[#15803D] border-[#BBF7D0]',
+        Icon: FileSignature,
+        action: 'review',
+        actionLabel: 'View',
+    },
+    completed: {
+        label: 'Completed',
+        pillClassName: 'rounded-full border px-2.5 py-1 text-xs bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]',
+        Icon: CheckCircle2,
+        action: 'view_completed',
+        actionLabel: 'View',
     },
 };
 
@@ -111,25 +123,23 @@ export default function DocumentTable({ items, pageSize = 5, onReview, onViewCom
                                             {meta.label}
                                         </span>
 
-                                        {meta.action === 'review' && (
+                                        {meta.action === 'review' ? (
                                             <button
                                                 type="button"
                                                 onClick={() => onReview?.(doc)}
                                                 className="inline-flex items-center gap-2 rounded-xl bg-[#3D2B1F] px-3.5 py-2 text-sm font-medium text-white transition-all hover:bg-[#2E2017] hover:shadow-sm focus:ring-2 focus:ring-[#A68A64]/40 focus:outline-none"
                                             >
                                                 <Eye className="h-4 w-4" />
-                                                Review
+                                                {meta.actionLabel}
                                             </button>
-                                        )}
-
-                                        {meta.action === 'view_success' && (
+                                        ) : (
                                             <button
                                                 type="button"
                                                 onClick={() => onViewCompleted?.(doc)}
                                                 className="inline-flex items-center gap-2 rounded-xl bg-[#3D2B1F] px-3.5 py-2 text-sm font-medium text-white transition-all hover:bg-[#2E2017] hover:shadow-sm focus:ring-2 focus:ring-[#A68A64]/40 focus:outline-none"
                                             >
                                                 <Eye className="h-4 w-4" />
-                                                View
+                                                {meta.actionLabel}
                                             </button>
                                         )}
                                     </div>
