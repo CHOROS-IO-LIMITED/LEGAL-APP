@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import UserLayout from '@/layouts/user-layout';
-import { ArrowLeft, CheckCircle, ClipboardList, Clock, XCircleIcon } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { ArrowLeft, CheckCircle, ClipboardList, Clock, Plus, SquarePen } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import CompletedDocumentView from './CompletedDocumentView';
 import DocumentTable from './DocumentTable';
@@ -13,7 +14,7 @@ interface User {
     email: string;
 }
 
-export type DocumentStatus = 'pending_review' | 'in_review' | 'awaiting_signature' | 'completed' | 'rejected';
+export type DocumentStatus = 'draft' | 'pending_lawyer_review' | 'approved' | 'changes_requested';
 
 export type AuditTrailItem = {
     id: string | number;
@@ -27,18 +28,15 @@ export type DocumentItem = {
     submittedBy: string;
     submittedAtLabel: string;
     status: DocumentStatus;
-    isUrgent?: boolean;
     clientEmail?: string;
     kycStatus?: 'Verified' | 'Pending';
     paymentStatus?: 'Received' | 'Pending';
-    note?: string;
 
-    recipientName?: string;
-    recipientEmail?: string;
+    clientNote?: string;
+    lawyerNote?: string;
 
+    submitterSignedAt?: string;
     lawyerSignedAt?: string;
-    sentAt?: string;
-    recipientSignedAt?: string;
     completedAt?: string;
 
     auditTrail?: AuditTrailItem[];
@@ -48,7 +46,7 @@ interface DashboardProps {
     user: User;
 }
 
-type ActiveView = 'review' | 'sign' | 'sent' | 'completed';
+type ActiveView = 'review' | 'sign' | 'success' | 'completed';
 
 const INITIAL_DOCUMENTS: DocumentItem[] = [
     {
@@ -56,101 +54,54 @@ const INITIAL_DOCUMENTS: DocumentItem[] = [
         title: 'Residential Lease — J. Harrington',
         submittedBy: 'James Harrington',
         submittedAtLabel: 'Today 14:32',
-        status: 'pending_review',
-        isUrgent: true,
+        status: 'draft',
         clientEmail: 'james@example.com',
         kycStatus: 'Verified',
         paymentStatus: 'Received',
-        note: '',
+        clientNote: '',
     },
     {
         id: 2,
         title: 'NDA — Acme Ltd.',
         submittedBy: 'Sarah Mitchell',
         submittedAtLabel: 'Today 11:15',
-        status: 'pending_review',
+        status: 'pending_lawyer_review',
         clientEmail: 'sarah@example.com',
         kycStatus: 'Verified',
         paymentStatus: 'Received',
-        note: '',
+        clientNote: '',
     },
     {
         id: 3,
         title: 'Employment Contract — TechCorp',
         submittedBy: 'Robert Chen',
         submittedAtLabel: 'Yesterday',
-        status: 'in_review',
+        status: 'changes_requested',
         clientEmail: 'robert@example.com',
         kycStatus: 'Pending',
         paymentStatus: 'Pending',
-        note: '',
+        lawyerNote: 'Please revise the compensation clause and update the probationary period.',
+        clientNote: '',
     },
     {
         id: 4,
         title: 'Commercial Lease — Elm Square',
         submittedBy: 'Amanda Lopez',
         submittedAtLabel: 'Today 09:20',
-        status: 'awaiting_signature',
+        status: 'approved',
         clientEmail: 'amanda@example.com',
         kycStatus: 'Verified',
         paymentStatus: 'Received',
-        note: 'Approved for signing.',
-        recipientName: 'Daniel Carter',
-        recipientEmail: 'daniel@example.com',
+        clientNote: 'Final version submitted successfully.',
+        submitterSignedAt: 'Mar 9, 2026 • 9:20 AM',
         lawyerSignedAt: 'Mar 9, 2026 • 10:05 AM',
-        sentAt: 'Mar 9, 2026 • 10:08 AM',
+        completedAt: 'Mar 9, 2026 • 10:05 AM',
         auditTrail: [
             { id: 1, label: 'Document submitted', timestamp: 'Mar 9, 2026 • 9:20 AM' },
             { id: 2, label: 'Lawyer reviewed document', timestamp: 'Mar 9, 2026 • 9:52 AM' },
-            { id: 3, label: 'Lawyer signed document', timestamp: 'Mar 9, 2026 • 10:05 AM' },
-            { id: 4, label: 'Sent to recipient', timestamp: 'Mar 9, 2026 • 10:08 AM' },
-        ],
-    },
-    {
-        id: 5,
-        title: 'Partnership Contract — Nova Group',
-        submittedBy: 'Daniel Reed',
-        submittedAtLabel: '1 Mar',
-        status: 'rejected',
-        clientEmail: 'daniel@example.com',
-        kycStatus: 'Verified',
-        paymentStatus: 'Received',
-        note: '',
-    },
-    {
-        id: 6,
-        title: 'Consulting Agreement — Pixel Inc.',
-        submittedBy: 'Amanda Lopez',
-        submittedAtLabel: '28 Feb',
-        status: 'pending_review',
-        clientEmail: 'amanda@example.com',
-        kycStatus: 'Pending',
-        paymentStatus: 'Pending',
-        note: '',
-    },
-    {
-        id: 7,
-        title: 'Service Agreement — Horizon Studio',
-        submittedBy: 'Robert Chen',
-        submittedAtLabel: '27 Feb',
-        status: 'completed',
-        clientEmail: 'robert@example.com',
-        kycStatus: 'Verified',
-        paymentStatus: 'Received',
-        note: 'Reviewed and finalized.',
-        recipientName: 'Sarah Mitchell',
-        recipientEmail: 'sarah@example.com',
-        lawyerSignedAt: 'Mar 9, 2026 • 2:42 PM',
-        sentAt: 'Mar 9, 2026 • 2:44 PM',
-        recipientSignedAt: 'Mar 9, 2026 • 3:10 PM',
-        completedAt: 'Mar 9, 2026 • 3:10 PM',
-        auditTrail: [
-            { id: 1, label: 'Document submitted', timestamp: 'Mar 9, 2026 • 2:15 PM' },
-            { id: 2, label: 'Lawyer reviewed document', timestamp: 'Mar 9, 2026 • 2:30 PM' },
-            { id: 3, label: 'Lawyer signed document', timestamp: 'Mar 9, 2026 • 2:42 PM' },
-            { id: 4, label: 'Sent to recipient', timestamp: 'Mar 9, 2026 • 2:44 PM' },
-            { id: 5, label: 'Recipient signed document', timestamp: 'Mar 9, 2026 • 3:10 PM' },
-            { id: 6, label: 'Document completed', timestamp: 'Mar 9, 2026 • 3:10 PM' },
+            { id: 3, label: 'Lawyer approved document', timestamp: 'Mar 9, 2026 • 10:05 AM' },
+            { id: 4, label: 'Lawyer signed document', timestamp: 'Mar 9, 2026 • 10:05 AM' },
+            { id: 5, label: 'Document completed', timestamp: 'Mar 9, 2026 • 10:05 AM' },
         ],
     },
 ];
@@ -164,35 +115,26 @@ export default function UserDashboard({ user }: DashboardProps) {
 
     const stats = useMemo(() => {
         const total = documents.length;
-        const pending = documents.filter(
-            (doc) => doc.status === 'pending_review' || doc.status === 'in_review' || doc.status === 'awaiting_signature',
-        ).length;
-
-        const approved = documents.filter((doc) => doc.status === 'completed').length;
-        const rejected = documents.filter((doc) => doc.status === 'rejected').length;
+        const draft = documents.filter((doc) => doc.status === 'draft').length;
+        const pending = documents.filter((doc) => doc.status === 'pending_lawyer_review').length;
+        const approved = documents.filter((doc) => doc.status === 'approved').length;
+        const changesRequested = documents.filter((doc) => doc.status === 'changes_requested').length;
 
         return [
-            { icon: ClipboardList, value: total, description: 'Total This Month' },
-            { icon: Clock, value: pending, description: 'Pending' },
-            { icon: CheckCircle, value: approved, description: 'Completed' },
-            { icon: XCircleIcon, value: rejected, description: 'Rejected' },
+            { icon: ClipboardList, value: total, description: 'Total Documents' },
+            { icon: SquarePen, value: draft, description: 'Drafts' },
+            { icon: Clock, value: pending, description: 'Waiting for Approval' },
+            { icon: CheckCircle, value: approved, description: 'Approved' },
         ];
     }, [documents]);
 
     function handleBackToReviewFromSign() {
-        if (!selectedDocument) return;
-
-        handleUpdateDocument(selectedDocument.id, { status: 'in_review' });
         setActiveView('review');
     }
 
     function handleOpenReview(doc: DocumentItem) {
         setSelectedDocumentId(doc.id);
         setActiveView('review');
-
-        setDocuments((prev) =>
-            prev.map((item) => (item.id === doc.id && item.status === 'pending_review' ? { ...item, status: 'in_review' } : item)),
-        );
     }
 
     function handleUpdateDocument(id: string | number, updates: Partial<DocumentItem>) {
@@ -209,28 +151,22 @@ export default function UserDashboard({ user }: DashboardProps) {
         setActiveView('sign');
     }
 
-    function handleSentDocument(payload: { recipientName: string; recipientEmail: string }) {
+    function handleApproveDocument(payload: { fullName: string; date: string }) {
         if (!selectedDocument) return;
 
-        const now = 'Mar 9, 2026 • 2:44 PM';
+        const now = 'Mar 9, 2026 • 2:42 PM';
 
         handleUpdateDocument(selectedDocument.id, {
-            status: 'awaiting_signature',
-            recipientName: payload.recipientName,
-            recipientEmail: payload.recipientEmail,
-            sentAt: now,
-            lawyerSignedAt: selectedDocument.lawyerSignedAt ?? 'Mar 9, 2026 • 2:42 PM',
+            status: 'pending_lawyer_review',
+            submitterSignedAt: payload.date || now,
             auditTrail: [
-                ...(selectedDocument.auditTrail ?? [
-                    { id: 1, label: 'Document submitted', timestamp: selectedDocument.submittedAtLabel },
-                    { id: 2, label: 'Lawyer reviewed document', timestamp: 'Mar 9, 2026 • 2:30 PM' },
-                    { id: 3, label: 'Lawyer signed document', timestamp: 'Mar 9, 2026 • 2:42 PM' },
-                ]),
-                { id: Date.now(), label: 'Sent to recipient', timestamp: now },
+                ...(selectedDocument.auditTrail ?? [{ id: 1, label: 'Document created', timestamp: selectedDocument.submittedAtLabel }]),
+                { id: Date.now(), label: `Signed by ${payload.fullName}`, timestamp: payload.date || now },
+                { id: Date.now() + 1, label: 'Submitted to lawyer for review', timestamp: now },
             ],
         });
 
-        setActiveView('sent');
+        setActiveView('success');
     }
 
     function handleViewCompleted(doc: DocumentItem) {
@@ -248,30 +184,32 @@ export default function UserDashboard({ user }: DashboardProps) {
                 <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
                     {selectedDocument ? (
                         <div className="space-y-4">
-                            {activeView === 'review' && (
+                            {/* {activeView === 'review' && (
                                 <button
                                     type="button"
                                     onClick={handleCloseDocumentFlow}
                                     className="inline-flex items-center gap-2 text-sm font-medium text-[#6B635B] transition-colors hover:text-[#1A1614]"
                                 >
                                     <ArrowLeft className="h-4 w-4" />
-                                    Admin Dashboard
+                                    User Dashboard
                                 </button>
-                            )}
+                            )} */}
+
                             {activeView === 'review' && (
                                 <ReviewDocumentView
                                     document={selectedDocument}
                                     onBack={handleCloseDocumentFlow}
                                     onChangeStatus={(status) => handleUpdateDocument(selectedDocument.id, { status })}
-                                    onSaveNote={(note) => handleUpdateDocument(selectedDocument.id, { note })}
+                                    onSaveNote={(note) => handleUpdateDocument(selectedDocument.id, { clientNote: note })}
                                     onApproveAndSign={handleSign}
                                 />
                             )}
 
                             {activeView === 'sign' && (
-                                <SignView document={selectedDocument} onBack={handleBackToReviewFromSign} onSend={handleSentDocument} />
+                                <SignView document={selectedDocument} onBack={handleBackToReviewFromSign} onApprove={handleApproveDocument} />
                             )}
-                            {activeView === 'sent' && <SuccessView document={selectedDocument} onBackToDashboard={handleCloseDocumentFlow} />}
+
+                            {activeView === 'success' && <SuccessView document={selectedDocument} onBackToDashboard={handleCloseDocumentFlow} />}
 
                             {activeView === 'completed' && (
                                 <CompletedDocumentView
@@ -283,11 +221,31 @@ export default function UserDashboard({ user }: DashboardProps) {
                         </div>
                     ) : (
                         <>
-                            <div className="flex flex-col gap-1">
-                                <h1 className="text-2xl font-semibold tracking-tight text-[#1A1614]">Dashboard Overview</h1>
-                                <p className="text-sm text-[#6B635B]">
-                                    Welcome back, {user.name}! Here&apos;s what&apos;s happening with your business today.
-                                </p>
+                            <div className="flex flex-col gap-4">
+                                <Link
+                                    href="/products/details"
+                                    className="inline-flex items-center gap-2 text-sm font-medium text-[#6B635B] transition-colors hover:text-[#1A1614]"
+                                >
+                                    <ArrowLeft className="h-4 w-4" />
+                                    Back to Products
+                                </Link>
+
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                    <div className="flex flex-col gap-1">
+                                        <h1 className="text-2xl font-semibold tracking-tight text-[#1A1614]">Dashboard Overview</h1>
+                                        <p className="text-sm text-[#6B635B]">
+                                            Welcome back, {user.name}! Here&apos;s what&apos;s happening with your documents today.
+                                        </p>
+                                    </div>
+
+                                    <Link
+                                        href="/products/details"
+                                        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#3D2B1F] px-4 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:bg-[#2E2017] hover:shadow-md focus:ring-2 focus:ring-[#3D2B1F]/20 focus:outline-none"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        Add Document
+                                    </Link>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">

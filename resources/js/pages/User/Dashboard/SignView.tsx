@@ -1,19 +1,34 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Calendar, Check, PenLine, Send } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, Calendar, Check, PenLine } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import type { DocumentItem } from './Index';
 
 type Props = {
     document: DocumentItem;
     onBack: () => void;
-    onSend: (payload: { recipientName: string; recipientEmail: string }) => void;
+    onApprove: (payload: { fullName: string; date: string }) => void;
 };
 
-export default function SignView({ document, onBack, onSend }: Props) {
-    const [recipientName, setRecipientName] = useState('');
-    const [recipientEmail, setRecipientEmail] = useState('');
+export default function SignView({ document, onBack, onApprove }: Props) {
+    const [fullName, setFullName] = useState('');
+    const [date, setDate] = useState('');
+    const [role, setRole] = useState('');
+    const [email, setEmail] = useState('');
     const [showSignature, setShowSignature] = useState(false);
-    const canSend = showSignature && recipientName.trim() && recipientEmail.trim();
+
+    const formattedDate = useMemo(() => {
+        if (!date) return '';
+        const parsed = new Date(date);
+        if (Number.isNaN(parsed.getTime())) return date;
+
+        return parsed.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+        });
+    }, [date]);
+
+    const canApprove = fullName.trim().length > 0 && date.trim().length > 0 && role.trim().length > 0 && email.trim().length > 0 && showSignature;
 
     return (
         <div className="mx-auto max-w-2xl space-y-4">
@@ -44,9 +59,10 @@ export default function SignView({ document, onBack, onSend }: Props) {
                         <div className="space-y-2">
                             <label className="text-[11px] font-semibold tracking-[0.08em] text-[#7B736B] uppercase">Full Legal Name</label>
                             <input
-                                value={document.submittedBy}
-                                readOnly
-                                className="h-10 w-full rounded-xl border border-[#E7E1D7] bg-[#FCFAF6] px-4 text-sm text-[#1A1614] outline-none"
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                                placeholder="Enter full legal name"
+                                className="h-10 w-full rounded-xl border border-[#E7E1D7] bg-white px-4 text-sm text-[#1A1614] transition outline-none focus:border-[#CDBBA4] focus:ring-4 focus:ring-[#A68A64]/10"
                             />
                         </div>
 
@@ -54,9 +70,10 @@ export default function SignView({ document, onBack, onSend }: Props) {
                             <label className="text-[11px] font-semibold tracking-[0.08em] text-[#7B736B] uppercase">Date</label>
                             <div className="relative">
                                 <input
-                                    value={document.submittedAtLabel}
-                                    readOnly
-                                    className="h-10 w-full rounded-xl border border-[#E7E1D7] bg-[#FCFAF6] px-4 pr-10 text-sm text-[#1A1614] outline-none"
+                                    type="date"
+                                    value={date}
+                                    onChange={(e) => setDate(e.target.value)}
+                                    className="h-10 w-full rounded-xl border border-[#E7E1D7] bg-white px-4 pr-10 text-sm text-[#1A1614] transition outline-none focus:border-[#CDBBA4] focus:ring-4 focus:ring-[#A68A64]/10"
                                 />
                                 <Calendar className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-[#7C7368]" />
                             </div>
@@ -65,18 +82,22 @@ export default function SignView({ document, onBack, onSend }: Props) {
                         <div className="space-y-2">
                             <label className="text-[11px] font-semibold tracking-[0.08em] text-[#7B736B] uppercase">Role / Title</label>
                             <input
-                                value="Landlord"
-                                readOnly
-                                className="h-10 w-full rounded-xl border border-[#E7E1D7] bg-[#FCFAF6] px-4 text-sm text-[#1A1614] outline-none"
+                                value={role}
+                                onChange={(e) => setRole(e.target.value)}
+                                placeholder="Enter role or title"
+                                className="h-10 w-full rounded-xl border border-[#E7E1D7] bg-white px-4 pr-10 text-sm text-[#1A1614] transition outline-none focus:border-[#CDBBA4] focus:ring-4 focus:ring-[#A68A64]/10"
                             />
                         </div>
 
                         <div className="space-y-2">
                             <label className="text-[11px] font-semibold tracking-[0.08em] text-[#7B736B] uppercase">Email</label>
                             <input
-                                value={document.clientEmail ?? 'james@example.com'}
-                                readOnly
-                                className="h-10 w-full rounded-xl border border-[#E7E1D7] bg-[#FCFAF6] px-4 text-sm text-[#1A1614] outline-none"
+                                type="email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Enter email address"
+                                className="h-10 w-full rounded-xl border border-[#E7E1D7] bg-white px-4 pr-10 text-sm text-[#1A1614] transition outline-none focus:border-[#CDBBA4] focus:ring-4 focus:ring-[#A68A64]/10"
                             />
                         </div>
                     </div>
@@ -91,7 +112,7 @@ export default function SignView({ document, onBack, onSend }: Props) {
                         >
                             {showSignature ? (
                                 <span className="font-serif text-[20px] font-semibold tracking-tight text-[#231F1B] italic md:text-[22px]">
-                                    {document.submittedBy}
+                                    {fullName || 'Your Signature'}
                                 </span>
                             ) : (
                                 <span className="text-sm font-medium text-[#8B8178]">Click to sign</span>
@@ -105,53 +126,20 @@ export default function SignView({ document, onBack, onSend }: Props) {
                             </div>
                         )}
                     </div>
-                </CardContent>
-            </Card>
-
-            <Card className="overflow-hidden rounded-2xl border-[#E7E1D7] bg-white shadow-sm">
-                <CardHeader className="border-b border-[#EFE7DB] px-6 pt-5 pb-4">
-                    <CardTitle className="flex items-center gap-2 text-[12px] font-semibold tracking-[0.12em] text-[#4E463F] uppercase">
-                        <Send className="h-3.5 w-3.5 text-[#7C7368]" />
-                        Send To Other Party
-                    </CardTitle>
-                </CardHeader>
-
-                <CardContent className="space-y-4 px-5 pt-4 pb-5">
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                            <label className="text-[11px] font-semibold tracking-[0.08em] text-[#7B736B] uppercase">Recipient Name</label>
-                            <input
-                                value={recipientName}
-                                onChange={(e) => setRecipientName(e.target.value)}
-                                placeholder="e.g. Sarah Mitchell"
-                                className="h-10 w-full rounded-xl border border-[#E7E1D7] bg-white px-4 text-sm text-[#1A1614] transition-all duration-200 outline-none placeholder:text-[#9B938A] focus:border-[#CDBBA4] focus:ring-4 focus:ring-[#A68A64]/10"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-[11px] font-semibold tracking-[0.08em] text-[#7B736B] uppercase">Recipient Email</label>
-                            <input
-                                value={recipientEmail}
-                                onChange={(e) => setRecipientEmail(e.target.value)}
-                                placeholder="sarah@example.com"
-                                className="h-10 w-full rounded-xl border border-[#E7E1D7] bg-white px-4 text-sm text-[#1A1614] transition-all duration-200 outline-none placeholder:text-[#9B938A] focus:border-[#CDBBA4] focus:ring-4 focus:ring-[#A68A64]/10"
-                            />
-                        </div>
-                    </div>
 
                     <button
                         type="button"
                         onClick={() =>
-                            onSend({
-                                recipientName: recipientName.trim(),
-                                recipientEmail: recipientEmail.trim(),
+                            onApprove({
+                                fullName: fullName.trim(),
+                                date: formattedDate || date,
                             })
                         }
-                        disabled={!canSend}
+                        disabled={!canApprove}
                         className="group inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#3D2B1F] px-4 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#2E2017] hover:shadow-md focus:ring-2 focus:ring-[#3D2B1F]/20 focus:outline-none active:translate-y-0 disabled:cursor-not-allowed disabled:bg-[#A39A90] disabled:hover:translate-y-0"
                     >
-                        <Send className="h-4 w-4 transition-transform duration-200 group-hover:-rotate-6" />
-                        Send Signed Document
+                        <PenLine className="h-4 w-4 transition-transform duration-200 group-hover:-rotate-6" />
+                        Approve Document
                     </button>
                 </CardContent>
             </Card>
