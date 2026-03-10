@@ -29,3 +29,7 @@ require __DIR__ . '/User/user-settings.php';
 
 // load web routes
 require __DIR__ . '/Web/products.php';
+require __DIR__ . '/Web/contacts.php';
+require __DIR__ . '/Web/blogs.php';
+require __DIR__ . '/Web/about.php';
+require __DIR__ . '/Web/legal.php';

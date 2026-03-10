@@ -31,18 +31,18 @@ export default function Header() {
     useEffect(() => {
         if (url.startsWith('/products')) setActive('products');
         else if (url === '/') setActive('home');
-        else if (url.startsWith('/#about')) setActive('about');
-        else if (url.startsWith('/#services')) setActive('services');
-        else if (url.startsWith('/#contact')) setActive('contact');
+        else if (url.startsWith('/about')) setActive('about');
+        else if (url.startsWith('/blogs')) setActive('blogs');
+        else if (url.startsWith('/contacts')) setActive('contact');
         else setActive('home');
     }, [url]);
 
     const menu = [
         { name: 'Home', href: '/' },
-        { name: 'About', href: '/#about' },
+        { name: 'About', href: '/about' },
         { name: 'Products', href: '/products' },
-        { name: 'Services', href: '/#services' },
-        { name: 'Contact', href: '/#contact' },
+        { name: 'Blogs', href: '/blogs' },
+        { name: 'Contact', href: '/contacts' },
     ];
 
     // const dashboardRoute = auth.user?.role === 'admin' ? route('admin.dashboard') : route('user.dashboard');

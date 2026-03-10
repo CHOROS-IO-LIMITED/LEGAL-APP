@@ -3,6 +3,7 @@ import Header from '@/components/web/Header';
 import HowItWorks from './HowItWorks/Index';
 import Hero from './ProductHero/Index';
 import Explore from './Explore/Index';
+import Footer from '@/components/web/Footer';
 
 export default function Index() {
     return (
@@ -11,6 +12,7 @@ export default function Index() {
             <Hero />
             <HowItWorks />
             <Explore />
+            <Footer />
         </div>
     );
 }
