@@ -9,7 +9,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Link, usePage } from '@inertiajs/react';
-import { ChevronDown, LayoutDashboard, Settings } from 'lucide-react';
+import { ChevronDown, CreditCard, FileArchive, FileText, LayoutDashboard, Settings } from 'lucide-react';
 
 interface User {
     name: string;
@@ -42,6 +42,26 @@ export default function AdminLayout({ user, children }: AdminLayoutProps) {
                             >
                                 <LayoutDashboard size={18} />
                                 Dashboard
+                            </Button>
+                        </Link>
+
+                        <Link href={route('admin.my-products')} className="w-full">
+                            <Button
+                                variant={isActive('/admin/my-products') ? 'secondary' : 'ghost'}
+                                className="flex w-full items-center justify-start gap-3 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                            >
+                                <FileText size={18} />
+                                Products
+                            </Button>
+                        </Link>
+
+                         <Link href={route('admin.billings')} className="w-full">
+                            <Button
+                                variant={isActive('/admin/billings') ? 'secondary' : 'ghost'}
+                                className="flex w-full items-center justify-start gap-3 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                            >
+                                <CreditCard size={18} />
+                                Billings
                             </Button>
                         </Link>
 

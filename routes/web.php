@@ -17,6 +17,8 @@ Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleC
 // load admin routes
 require __DIR__ . '/Admin/admin-auth.php';
 require __DIR__ . '/Admin/admin-dashboard.php';
+require __DIR__ . '/Admin/product.php';
+require __DIR__ . '/Admin/billing.php';
 require __DIR__ . '/Admin/admin-settings.php';
 
 
