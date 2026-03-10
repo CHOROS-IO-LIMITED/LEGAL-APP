@@ -184,7 +184,7 @@ export default function UserDashboard({ user }: DashboardProps) {
                 <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
                     {selectedDocument ? (
                         <div className="space-y-4">
-                            {activeView === 'review' && (
+                            {/* {activeView === 'review' && (
                                 <button
                                     type="button"
                                     onClick={handleCloseDocumentFlow}
@@ -193,7 +193,7 @@ export default function UserDashboard({ user }: DashboardProps) {
                                     <ArrowLeft className="h-4 w-4" />
                                     User Dashboard
                                 </button>
-                            )}
+                            )} */}
 
                             {activeView === 'review' && (
                                 <ReviewDocumentView
