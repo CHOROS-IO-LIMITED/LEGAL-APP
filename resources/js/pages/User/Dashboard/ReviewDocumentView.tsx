@@ -410,7 +410,8 @@ export default function ReviewDocumentView({ document, onBack, onSaveNote, onApp
                             </div>
 
                             <p className="mt-4 text-sm leading-6 text-[#8A8077]">
-                                We are applying your requested changes to the draft. Please keep this page open while the document is being updated.
+                                We are applying your requested changes to the document. Please keep this page open while the document is being
+                                updated.
                             </p>
                         </CardContent>
                     </Card>
