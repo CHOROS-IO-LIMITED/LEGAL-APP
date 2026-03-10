@@ -53,7 +53,9 @@ const Explore: React.FC = () => {
             <div className="mx-auto max-w-6xl px-8">
                 {/* Header */}
                 <div className="mb-16 flex flex-col items-center gap-6 md:flex-row md:items-start md:justify-center">
-                    <h2 className="flex-1 text-center font-serif text-4xl font-medium text-[#1A1614] md:text-left">Explore Our <span className='text-[#3D2B1F]'>Legal Documents</span></h2>
+                    <h2 className="flex-1 text-center font-serif text-4xl font-medium text-[#1A1614] md:text-left">
+                        Explore Our <span className="text-[#3D2B1F]">Legal Documents</span>
+                    </h2>
                     <div className="hidden h-12 w-px bg-[#E8E2D6] md:block" />
                     <p className="max-w-md flex-1 text-center text-lg text-[#70665E] md:text-left">
                         Ready-to-use legal templates—AI-assisted, lawyer-reviewed, and fully customizable.
@@ -86,9 +88,9 @@ const Explore: React.FC = () => {
                 <div className="mt-12 flex justify-center">
                     <Link
                         href={route('product.details')}
-                        className="rounded-full bg-[#3D2B1F] px-8 py-3 font-semibold text-white transition-colors duration-200 hover:bg-[#5A4638]"
+                        className="inline-block rounded-full bg-gradient-to-b from-[#FFB300] to-[#FF8C00] px-12 py-4 text-xl font-bold tracking-wider text-white shadow-[0_10px_25px_rgba(255,140,0,0.6)] transition-all duration-200 hover:scale-105"
                     >
-                        More Product
+                        PARTNERS
                     </Link>
                 </div>
             </div>
