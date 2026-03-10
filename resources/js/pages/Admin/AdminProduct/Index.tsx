@@ -47,19 +47,85 @@ const products = [
         price: '$39',
         image: '/images/products/placeholder.webp',
     },
+    {
+        name: 'Service Agreement',
+        description: 'Outlines the terms and expectations between a service provider and a client, including scope, payment, and responsibilities.',
+        price: '$35',
+        image: '/images/products/placeholder.webp',
+    },
+    {
+        name: 'Partnership Agreement',
+        description: 'Defines ownership, responsibilities, profit sharing, and decision-making rules between business partners.',
+        price: '$59',
+        image: '/images/products/placeholder.webp',
+    },
+    {
+        name: 'Lease Agreement',
+        description: 'A legal contract between a landlord and tenant specifying rental terms, payment schedule, and property usage rules.',
+        price: '$45',
+        image: '/images/products/placeholder.webp',
+    },
+    {
+        name: 'Freelance Contract',
+        description: 'Establishes the terms of work between a freelancer and client including deliverables, payment, and deadlines.',
+        price: '$32',
+        image: '/images/products/placeholder.webp',
+    },
+    {
+        name: 'Consulting Agreement',
+        description: 'Defines the relationship between a consultant and a client, including services provided, compensation, and confidentiality.',
+        price: '$42',
+        image: '/images/products/placeholder.webp',
+    },
+    {
+        name: 'Privacy Policy',
+        description: 'A legally compliant privacy policy explaining how a business collects, stores, and uses customer data.',
+        price: '$25',
+        image: '/images/products/placeholder.webp',
+    },
+    {
+        name: 'Terms and Conditions',
+        description: 'A comprehensive set of rules and guidelines users must agree to when using a website, app, or service.',
+        price: '$27',
+        image: '/images/products/placeholder.webp',
+    },
+    {
+        name: 'Shareholder Agreement',
+        description: 'Defines the rights, obligations, and ownership structure among shareholders in a company.',
+        price: '$69',
+        image: '/images/products/placeholder.webp',
+    },
+    {
+        name: 'Letter of Intent',
+        description: 'A preliminary document outlining the key terms of a proposed agreement before a formal contract is signed.',
+        price: '$31',
+        image: '/images/products/placeholder.webp',
+    },
 ];
 
 export default function ProductIndex({ user }: ProductIndexProps) {
+    // UI state
     const [documentFile, setDocumentFile] = useState<File | null>(null);
+    const [editingProduct, setEditingProduct] = useState<(typeof products)[0] | null>(null);
+    const [viewingProduct, setViewingProduct] = useState<(typeof products)[0] | null>(null);
 
+    // pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+
+    // pagination config
+    const ITEMS_PER_PAGE = 6;
+
+    // derived pagination values
+    const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedProducts = products.slice(startIndex, endIndex);
+
+    // handlers
     const handleDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] || null;
         setDocumentFile(file);
     };
-
-    const [editingProduct, setEditingProduct] = useState<(typeof products)[0] | null>(null);
-
-    const [viewingProduct, setViewingProduct] = useState<(typeof products)[0] | null>(null);
 
     return (
         <AdminLayout user={user}>
@@ -249,29 +315,18 @@ export default function ProductIndex({ user }: ProductIndexProps) {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All</SelectItem>
-                                    <SelectItem value="active">Active</SelectItem>
-                                    <SelectItem value="draft">Draft</SelectItem>
+                                    <SelectItem value="highest">Highest Price</SelectItem>
+                                    <SelectItem value="lowest">Lowest</SelectItem>
                                 </SelectContent>
                             </Select>
 
-                            <Select defaultValue="low">
+                            <Select defaultValue="az">
                                 <SelectTrigger className="w-[140px] border-[#E7E1D7] bg-white">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="low">Lowest</SelectItem>
-                                    <SelectItem value="high">Highest</SelectItem>
-                                </SelectContent>
-                            </Select>
-
-                            <Select defaultValue="newest">
-                                <SelectTrigger className="w-[160px] border-[#E7E1D7] bg-white">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="newest">Newest</SelectItem>
-                                    <SelectItem value="oldest">Oldest</SelectItem>
-                                    <SelectItem value="name">Name</SelectItem>
+                                    <SelectItem value="az">Name A-Z</SelectItem>
+                                    <SelectItem value="za">Name Z-A</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -279,14 +334,19 @@ export default function ProductIndex({ user }: ProductIndexProps) {
 
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between border-b border-[#E7E1D7]">
-                            <CardTitle className="text-base font-semibold text-[#1A1614]">Legal Documents (3)</CardTitle>
+                            <CardTitle className="text-base font-semibold text-[#1A1614]">
+                                Legal Documents <span className="text-[#6B635B]">({products.length})</span>
+                            </CardTitle>
                         </CardHeader>
 
                         <CardContent className="grid gap-6 p-6 md:grid-cols-2">
-                            {products.map((product, index) => (
-                                <div key={index} className="flex items-start gap-6 rounded-xl border border-[#E7E1D7] bg-white p-6">
+                            {paginatedProducts.map((product, index) => (
+                                <div
+                                    key={index}
+                                    className="flex flex-col gap-4 rounded-xl border border-[#E7E1D7] bg-white p-6 sm:flex-row sm:items-start sm:gap-6"
+                                >
                                     {/* Image */}
-                                    <div className="h-32 w-32 flex-shrink-0 overflow-hidden rounded-lg border border-[#E7E1D7] bg-[#F2EDE4]">
+                                    <div className="h-40 w-full overflow-hidden rounded-lg border border-[#E7E1D7] bg-[#F2EDE4] sm:h-32 sm:w-32 sm:flex-shrink-0">
                                         <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
                                     </div>
 
@@ -314,7 +374,7 @@ export default function ProductIndex({ user }: ProductIndexProps) {
                                     </div>
 
                                     {/* Vertical Actions */}
-                                    <div className="flex flex-col items-center justify-center gap-2">
+                                    <div className="flex items-center justify-end gap-2 sm:flex-col sm:items-center sm:justify-center">
                                         <Button variant="ghost" size="icon" onClick={() => setViewingProduct(product)}>
                                             <Eye className="h-4 w-4" />
                                         </Button>
@@ -333,21 +393,32 @@ export default function ProductIndex({ user }: ProductIndexProps) {
 
                         <div className="flex items-center justify-between border-t border-[#E7E1D7] px-6 py-4 text-sm text-[#6B635B]">
                             <span>
-                                Showing <span className="font-medium text-[#1A1614]">1</span> – <span className="font-medium text-[#1A1614]">3</span>{' '}
-                                of <span className="font-medium text-[#1A1614]">3</span> documents
+                                Showing <span className="font-medium text-[#1A1614]">{startIndex + 1}</span> –{' '}
+                                <span className="font-medium text-[#1A1614]">{Math.min(endIndex, products.length)}</span> of{' '}
+                                <span className="font-medium text-[#1A1614]">{products.length}</span> documents
                             </span>
 
                             <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                                >
                                     Prev
                                 </Button>
 
                                 <span className="text-sm text-[#6B635B]">
-                                    Page <span className="font-medium text-[#1A1614]">1</span> of{' '}
-                                    <span className="font-medium text-[#1A1614]">1</span>
+                                    Page <span className="font-medium text-[#1A1614]">{currentPage}</span> of{' '}
+                                    <span className="font-medium text-[#1A1614]">{totalPages}</span>
                                 </span>
 
-                                <Button variant="outline" size="sm">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={currentPage === totalPages}
+                                    onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                                >
                                     Next
                                 </Button>
                             </div>
