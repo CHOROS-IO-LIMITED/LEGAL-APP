@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Header from '@/components/web/Header';
 import Stepper from '@/components/web/Stepper';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { ArrowLeft, ArrowRight, Calendar, Settings } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -39,14 +39,13 @@ const QuestionAndAnswer: React.FC = () => {
             });
         }, 100);
 
-        // simulate backend completion
         setTimeout(() => {
             clearInterval(interval);
 
             setProgress(100);
 
             setTimeout(() => {
-                setLoading(false);
+                router.visit(route('user.dashboard'));
             }, 600);
         }, 4000);
     };

@@ -88,9 +88,9 @@ const Explore: React.FC = () => {
                 <div className="mt-12 flex justify-center">
                     <Link
                         href={route('product.details')}
-                        className="inline-block rounded-full bg-gradient-to-b from-[#FFB300] to-[#FF8C00] px-12 py-4 text-xl font-bold tracking-wider text-white shadow-[0_10px_25px_rgba(255,140,0,0.6)] transition-all duration-200 hover:scale-105"
+                        className="rounded-full bg-[#3D2B1F] px-8 py-3 font-semibold text-white transition-colors duration-200 hover:bg-[#5A4638]"
                     >
-                        PARTNERS
+                        More Product
                     </Link>
                 </div>
             </div>
