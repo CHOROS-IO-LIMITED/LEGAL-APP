@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, CheckCircle2, Clock, Eye, MessageSquare, ScaleIcon, SquarePen, UserRound, X, XCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Clock, Mail, MessageSquare, ScaleIcon, SquarePen, UserRound, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState, type ElementType } from 'react';
 import type { DocumentItem, DocumentStatus } from './Index';
 
@@ -8,39 +8,27 @@ type Props = {
     onBack: () => void;
     onChangeStatus: (status: DocumentStatus) => void;
     onSaveNote: (note: string) => void;
-    onApproveAndSign: () => void;
+    onApproveAndSend: () => void;
 };
 
-type DecisionState = 'rejected' | 'amendments' | 'locked' | null;
+type DecisionState = 'rejected' | 'amendments' | null;
 
 const STATUS_META: Record<
-    DocumentStatus,
+    Exclude<DocumentStatus, 'awaiting_signatures' | 'partially_signed' | 'completed'>,
     {
         label: string;
         badgeClassName: string;
         Icon: ElementType;
     }
 > = {
-    pending_review: {
-        label: 'Pending Review',
+    pending_lawyer_review: {
+        label: 'Waiting Review',
         badgeClassName:
             'inline-flex items-center gap-1.5 rounded-full border border-[#F6E4B5] bg-[#FFF7E6] px-3 py-1 text-xs font-medium text-[#B7791F]',
         Icon: Clock,
     },
-    in_review: {
-        label: 'In Review',
-        badgeClassName:
-            'inline-flex items-center gap-1.5 rounded-full border border-[#C7D2FE] bg-[#EEF2FF] px-3 py-1 text-xs font-medium text-[#4F46E5]',
-        Icon: Eye,
-    },
-    approved: {
-        label: 'Approved',
-        badgeClassName:
-            'inline-flex items-center gap-1.5 rounded-full border border-[#A7F3D0] bg-[#ECFDF5] px-3 py-1 text-xs font-medium text-[#059669]',
-        Icon: CheckCircle2,
-    },
-    request_amendments: {
-        label: 'Request Amendments',
+    changes_requested: {
+        label: 'Changes Requested',
         badgeClassName:
             'inline-flex items-center gap-1.5 rounded-full border border-[#F6E4B5] bg-[#FFF7E6] px-3 py-1 text-xs font-medium text-[#B7791F]',
         Icon: SquarePen,
@@ -57,7 +45,6 @@ function ContractSection({ title, lines = ['w-full', 'w-11/12', 'w-10/12'] }: { 
     return (
         <section className="space-y-3">
             <h3 className="text-[13px] font-semibold tracking-[0.14em] text-[#3B332E] uppercase">{title}</h3>
-
             <div className="space-y-2">
                 {lines.map((width, index) => (
                     <div key={`${title}-${index}`} className={`h-2 rounded-full bg-[#EFE9E0] ${width}`} />
@@ -69,38 +56,34 @@ function ContractSection({ title, lines = ['w-full', 'w-11/12', 'w-10/12'] }: { 
 
 function getDecisionFromStatus(status: DocumentStatus): DecisionState {
     if (status === 'rejected') return 'rejected';
-    if (status === 'request_amendments') return 'amendments';
-    if (status === 'approved') return 'locked';
+    if (status === 'changes_requested') return 'amendments';
     return null;
 }
 
-export default function ReviewDocumentView({ document, onBack, onChangeStatus, onSaveNote, onApproveAndSign }: Props) {
-    const [note, setNote] = useState(document.note ?? '');
+export default function ReviewDocumentView({ document, onBack, onChangeStatus, onSaveNote, onApproveAndSend }: Props) {
+    const [note, setNote] = useState(document.lawyerNote ?? '');
     const [decision, setDecision] = useState<DecisionState>(getDecisionFromStatus(document.status));
     const [noteSaved, setNoteSaved] = useState(false);
     const [noteError, setNoteError] = useState('');
 
     useEffect(() => {
-        setNote(document.note ?? '');
+        setNote(document.lawyerNote ?? '');
         setDecision(getDecisionFromStatus(document.status));
         setNoteError('');
-    }, [document.id, document.note, document.status]);
+    }, [document.id, document.lawyerNote, document.status]);
 
     useEffect(() => {
         setNoteSaved(false);
     }, [document.id]);
 
-    const statusMeta = STATUS_META[document.status];
+    const statusMeta = STATUS_META[document.status as keyof typeof STATUS_META] ?? STATUS_META.pending_lawyer_review;
     const StatusIcon = statusMeta.Icon;
-    const isLocked = document.status === 'approved';
 
-    const isNoteDirty = useMemo(() => {
-        return note.trim() !== (document.note ?? '').trim();
-    }, [note, document.note]);
+    const isNoteDirty = useMemo(() => note.trim() !== (document.lawyerNote ?? '').trim(), [note, document.lawyerNote]);
 
     const handleApprove = () => {
         setNoteError('');
-        onApproveAndSign();
+        onApproveAndSend();
     };
 
     const handleReject = () => {
@@ -125,7 +108,7 @@ export default function ReviewDocumentView({ document, onBack, onChangeStatus, o
         }
 
         onSaveNote(note.trim());
-        onChangeStatus('request_amendments');
+        onChangeStatus('changes_requested');
         setDecision('amendments');
         setNoteError('');
         setNoteSaved(true);
@@ -207,7 +190,7 @@ export default function ReviewDocumentView({ document, onBack, onChangeStatus, o
                                     onClick={handleApprove}
                                     className="group flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#CFEAD9] bg-white px-4 text-sm font-semibold text-[#1F9D6A] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#A9D8BC] hover:bg-[#F8FFFB] hover:shadow-md focus:ring-2 focus:ring-[#1F9D6A]/15 focus:outline-none active:translate-y-0"
                                 >
-                                    Approve And Sign
+                                    Approve & Send Signatures
                                     <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                                 </button>
 
@@ -228,32 +211,6 @@ export default function ReviewDocumentView({ document, onBack, onChangeStatus, o
                                     <X className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
                                     Reject Document
                                 </button>
-                            </div>
-                        )}
-
-                        {decision === 'locked' && (
-                            <div className="rounded-2xl border border-[#E7E1D7] bg-[#FCFAF6] p-5 shadow-sm">
-                                <div className="flex flex-col items-center text-center">
-                                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-inner ring-4 ring-[#F6F1E8]">
-                                        <CheckCircle2 className="h-7 w-7 text-[#1F9D6A]" />
-                                    </div>
-
-                                    <div className="mt-4 space-y-1.5">
-                                        <p className="text-sm font-semibold text-[#1A1614]">Document Approved</p>
-                                        <p className="text-xs leading-5 text-[#6B635B]">
-                                            This document has been reviewed, signed, and marked as complete.
-                                        </p>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={onBack}
-                                        className="group mt-5 inline-flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#3D2B1F] px-4 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#2E2017] hover:shadow-md focus:ring-2 focus:ring-[#3D2B1F]/20 focus:outline-none active:translate-y-0"
-                                    >
-                                        <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
-                                        Back to Dashboard
-                                    </button>
-                                </div>
                             </div>
                         )}
 
@@ -330,6 +287,25 @@ export default function ReviewDocumentView({ document, onBack, onChangeStatus, o
                             <p className="font-medium text-[#1A1614]">{document.clientEmail ?? '—'}</p>
                         </div>
 
+                        <div className="space-y-2">
+                            <p className="text-[11px] text-[#8A8178]">Recipients</p>
+                            {(document.recipients ?? []).map((recipient) => (
+                                <div key={recipient.id} className="rounded-lg px-2 py-2">
+                                    <div className="flex items-start gap-2">
+                                        <UserRound className="mt-0.5 h-4 w-4 text-[#7C7368]" />
+                                        <div className="min-w-0">
+                                            <p className="truncate text-[13px] font-medium text-[#1A1614]">{recipient.name}</p>
+                                            <p className="text-[10px] text-[#8A8178]">{recipient.role ?? 'Recipient'}</p>
+                                            <div className="mt-1 flex items-center gap-1.5 text-[11px] text-[#6B635B]">
+                                                <Mail className="h-3 w-3" />
+                                                <span className="truncate">{recipient.email}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
                         <div className="grid grid-cols-2 gap-3">
                             <div className="rounded-xl border border-[#EEE7DC] bg-[#FCFAF6] px-3 py-3">
                                 <p className="text-[11px] font-medium tracking-[0.08em] text-[#8A8178] uppercase">KYC</p>
@@ -362,21 +338,18 @@ export default function ReviewDocumentView({ document, onBack, onChangeStatus, o
                     <CardHeader className="border-b border-[#EFE7DB] px-4 pt-4 pb-3">
                         <CardTitle className="flex items-center gap-2 text-[12px] font-semibold tracking-[0.12em] text-[#4E463F] uppercase">
                             <MessageSquare className="h-3.5 w-3.5 text-[#7C7368]" />
-                            Add Note
+                            Lawyer Note
                         </CardTitle>
                     </CardHeader>
 
                     <CardContent className="space-y-3 px-4 pt-4 pb-4">
                         <textarea
                             value={note}
-                            disabled={isLocked}
                             onChange={(e) => {
                                 setNote(e.target.value);
                                 setNoteSaved(false);
 
-                                if (noteError) {
-                                    setNoteError('');
-                                }
+                                if (noteError) setNoteError('');
                             }}
                             placeholder="Leave a note for the client..."
                             className={`min-h-[110px] w-full rounded-xl border px-3.5 py-3 text-sm leading-5 text-[#1A1614] transition-all duration-200 outline-none placeholder:text-[#9B938A] ${
@@ -389,8 +362,8 @@ export default function ReviewDocumentView({ document, onBack, onChangeStatus, o
                         <button
                             type="button"
                             onClick={handleSaveNote}
-                            disabled={!isNoteDirty || isLocked}
-                            className="group flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#E2DBD2] bg-white px-4 text-sm font-semibold text-[#2F2A26] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#CDBBA4] hover:bg-[#FCFAF6] hover:shadow-md focus:ring-2 focus:ring-[#A68A64]/20 focus:outline-none active:translate-y-0 disabled:cursor-not-allowed disabled:border-[#E7E1D7] disabled:bg-[#F8F6F2] disabled:text-[#A39A90] disabled:shadow-none disabled:hover:translate-y-0 disabled:hover:border-[#E7E1D7] disabled:hover:bg-[#F8F6F2]"
+                            disabled={!isNoteDirty}
+                            className="group flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#E2DBD2] bg-white px-4 text-sm font-semibold text-[#2F2A26] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#CDBBA4] hover:bg-[#FCFAF6] hover:shadow-md focus:ring-2 focus:ring-[#A68A64]/20 focus:outline-none active:translate-y-0 disabled:cursor-not-allowed disabled:border-[#E7E1D7] disabled:bg-[#F8F6F2] disabled:text-[#A39A90] disabled:shadow-none"
                         >
                             {noteSaved && !isNoteDirty ? (
                                 <CheckCircle2 className="h-4 w-4 text-[#1F9D6A]" />
