@@ -49,6 +49,7 @@ export default function BillingIndex({ user }: BillingIndexProps) {
 
     const baseOrders = [
         {
+            invoice: 'INV-1001',
             customer: 'John Smith',
             email: 'john.smith@email.com',
             documents: ['Employment Contract', 'NDA Agreement', 'Partnership Agreement'],
@@ -57,6 +58,7 @@ export default function BillingIndex({ user }: BillingIndexProps) {
             status: 'Paid',
         },
         {
+            invoice: 'INV-1002',
             customer: 'Emily Johnson',
             email: 'emily.johnson@email.com',
             documents: ['NDA Agreement'],
@@ -65,6 +67,7 @@ export default function BillingIndex({ user }: BillingIndexProps) {
             status: 'Paid',
         },
         {
+            invoice: 'INV-1003',
             customer: 'Michael Brown',
             email: 'michael.brown@email.com',
             documents: ['Contractor Agreement', 'Lease Agreement', 'Service Agreement', 'Partnership Agreement'],
@@ -80,6 +83,7 @@ export default function BillingIndex({ user }: BillingIndexProps) {
         return {
             ...base,
             id: `DOC-${1000 + i}`,
+            invoice: `INV-${1000 + i}`,
         };
     });
 
@@ -369,10 +373,11 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-[#F8F4EC] hover:bg-[#F8F4EC]">
+                                        <TableHead className="w-[120px]">Invoice #</TableHead>
                                         <TableHead className="w-[120px]">Document #</TableHead>
                                         <TableHead>Customer</TableHead>
                                         <TableHead>Document</TableHead>
-                                        <TableHead className="text-center">Qty.</TableHead>
+                                        <TableHead className="text-center">Quantity</TableHead>
                                         <TableHead className="text-center">Price</TableHead>
                                         <TableHead className="text-center">Status</TableHead>
                                     </TableRow>
@@ -381,6 +386,7 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                                 <TableBody>
                                     {paginatedOrders.map((order) => (
                                         <TableRow key={order.id} className="hover:bg-[#FAF6EF]">
+                                            <TableCell className="font-medium text-[#1A1614]">{order.invoice}</TableCell>
                                             <TableCell className="font-medium text-[#1A1614]">{order.id}</TableCell>
 
                                             <TableCell>
@@ -399,7 +405,7 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                                                         ))}
 
                                                         {order.documents.length > 2 && (
-                                                            <button onClick={() => toggleRow(order.id)} className="text-xs text-[#6B635B] underline">
+                                                            <button onClick={() => toggleRow(order.id)} className="text-xs cursor-pointer text-[#6B635B] underline">
                                                                 Show less
                                                             </button>
                                                         )}

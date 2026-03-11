@@ -9,7 +9,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Link, usePage } from '@inertiajs/react';
-import { ChevronDown, LayoutDashboard, Settings } from 'lucide-react';
+import { ChevronDown, LayoutDashboard, Receipt, Settings } from 'lucide-react';
 
 interface User {
     name: string;
@@ -45,6 +45,15 @@ export default function UserLayout({ user, children }: UserLayoutProps) {
                             </Button>
                         </Link>
 
+                        <Link href={route('user.invoice')} className="w-full">
+                            <Button
+                                variant={isActive('/invoice') ? 'secondary' : 'ghost'}
+                                className="flex w-full items-center justify-start gap-3 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                            >
+                                <Receipt size={18} />
+                                Invoice
+                            </Button>
+                        </Link>
                         {/* <Button
                             variant="ghost"
                             className="flex w-full items-center justify-start gap-3 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"

@@ -26,6 +26,7 @@ require __DIR__ . '/Admin/admin-settings.php';
 require __DIR__ . '/User/user-auth.php';
 require __DIR__ . '/User/user-dashboard.php';
 require __DIR__ . '/User/user-settings.php';
+require __DIR__ . '/User/invoice.php';
 
 // load web routes
 require __DIR__ . '/Web/products.php';
