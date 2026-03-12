@@ -12,14 +12,15 @@ class StoreDocumentFiles
 {
     public function handle(array $data, ?Document $document = null): array
     {
+        $disk = config('filesystems.default');
         $payload = Arr::except($data, ['image', 'document']);
 
         if (isset($data['image']) && $data['image'] instanceof UploadedFile) {
             if ($document?->image_path) {
-                Storage::disk('public')->delete($document->image_path);
+                Storage::disk($disk)->delete($document->image_path);
             }
 
-            $payload['image_path'] = $data['image']->store('documents/images', 'public');
+            $payload['image_path'] = $data['image']->store('documents/images', $disk);
             $payload['image_original_name'] = $data['image']->getClientOriginalName();
             $payload['image_mime'] = $data['image']->getClientMimeType();
             $payload['image_size'] = $data['image']->getSize();
@@ -27,10 +28,10 @@ class StoreDocumentFiles
 
         if (isset($data['document']) && $data['document'] instanceof UploadedFile) {
             if ($document?->document_path) {
-                Storage::disk('public')->delete($document->document_path);
+                Storage::disk($disk)->delete($document->document_path);
             }
 
-            $payload['document_path'] = $data['document']->store('documents/files', 'public');
+            $payload['document_path'] = $data['document']->store('documents/files', $disk);
             $payload['document_original_name'] = $data['document']->getClientOriginalName();
             $payload['document_mime'] = $data['document']->getClientMimeType();
             $payload['document_size'] = $data['document']->getSize();

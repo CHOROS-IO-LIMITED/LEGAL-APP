@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Document;
-use App\Services\Documents\DocumentQueryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -12,15 +11,16 @@ use Inertia\Response;
 
 class AdminProductController extends Controller
 {
-    public function index(Request $request, DocumentQueryService $documentQueryService): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', Document::class);
 
         $user = Auth::user();
 
-        $filters = $request->only(['search', 'price', 'sort']);
-
-        $documents = $documentQueryService->paginateForAdmin($filters);
+        $documents = Document::query()
+            ->with('user:id,name,email')
+            ->latest()
+            ->get();
 
         return Inertia::render('Admin/AdminProduct/Index', [
             'user' => [
@@ -28,7 +28,6 @@ class AdminProductController extends Controller
                 'email' => $user->email,
             ],
             'documents' => $documents,
-            'filters' => $filters,
             'stats' => [
                 'total_documents' => Document::count(),
                 'active_products' => Document::whereNotNull('document_path')->count(),

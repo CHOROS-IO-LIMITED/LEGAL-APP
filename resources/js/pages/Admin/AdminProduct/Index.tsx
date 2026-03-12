@@ -49,32 +49,36 @@ function formatPrice(value: string | number | null | undefined) {
     }).format(amount);
 }
 
-function buildQuery(
-    filters: {
-        search?: string;
-        price?: string;
-        sort?: string;
-    },
-    overrides: Partial<{
-        search: string;
-        price: string;
-        sort: string;
-        page: number;
-    }> = {},
-) {
-    return {
-        search: overrides.search ?? filters.search ?? '',
-        price: overrides.price ?? filters.price ?? 'all',
-        sort: overrides.sort ?? filters.sort ?? 'az',
-        page: overrides.page ?? 1,
-    };
+function openFileInNewTab(url: string | null | undefined) {
+    if (!url) return;
+    window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-export default function ProductIndex({ user, documents, filters, stats, can }: ProductIndexProps) {
+export default function ProductIndex({ user, documents, stats, can }: ProductIndexProps) {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<DocumentItem | null>(null);
     const [viewingProduct, setViewingProduct] = useState<DocumentItem | null>(null);
-    const [search, setSearch] = useState(filters.search ?? '');
+
+    const [search, setSearch] = useState('');
+    const [priceFilter, setPriceFilter] = useState('all');
+    const [sortFilter, setSortFilter] = useState('az');
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const perPage = 8;
+
+    const [createImagePreview, setCreateImagePreview] = useState<string | null>(null);
+    const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+    const [createDocumentPreview, setCreateDocumentPreview] = useState<string | null>(null);
+    const [editDocumentPreview, setEditDocumentPreview] = useState<string | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (createImagePreview) URL.revokeObjectURL(createImagePreview);
+            if (editImagePreview) URL.revokeObjectURL(editImagePreview);
+            if (createDocumentPreview) URL.revokeObjectURL(createDocumentPreview);
+            if (editDocumentPreview) URL.revokeObjectURL(editDocumentPreview);
+        };
+    }, [createImagePreview, editImagePreview, createDocumentPreview, editDocumentPreview]);
 
     const createForm = useForm<CreateDocumentForm>({
         title: '',
@@ -96,6 +100,12 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
     useEffect(() => {
         if (!editingProduct) return;
 
+        if (editImagePreview) URL.revokeObjectURL(editImagePreview);
+        if (editDocumentPreview) URL.revokeObjectURL(editDocumentPreview);
+
+        setEditImagePreview(null);
+        setEditDocumentPreview(null);
+
         editForm.setData({
             title: editingProduct.title ?? '',
             price: editingProduct.price ? String(editingProduct.price) : '',
@@ -106,48 +116,112 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
         });
     }, [editingProduct]);
 
-    const startIndex = documents.total === 0 ? 0 : (documents.current_page - 1) * documents.per_page + 1;
-    const endIndex = documents.total === 0 ? 0 : startIndex + documents.data.length - 1;
-
-    const currentPriceFilter = filters.price ?? 'all';
-    const currentSortFilter = filters.sort ?? 'az';
-
     const selectedCreateImageName = useMemo(() => createForm.data.image?.name ?? null, [createForm.data.image]);
     const selectedCreateDocumentName = useMemo(() => createForm.data.document?.name ?? null, [createForm.data.document]);
     const selectedEditImageName = useMemo(() => editForm.data.image?.name ?? null, [editForm.data.image]);
     const selectedEditDocumentName = useMemo(() => editForm.data.document?.name ?? null, [editForm.data.document]);
 
-    const applyFilters = (overrides: Partial<{ search: string; price: string; sort: string; page: number }> = {}) => {
-        router.get(route('admin.my-products'), buildQuery(filters, overrides), {
-            preserveState: true,
-            replace: true,
-            preserveScroll: true,
-        });
-    };
+    const filteredDocuments = useMemo(() => {
+        let items = [...documents];
 
-    const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        applyFilters({ search, page: 1 });
-    };
+        if (search.trim()) {
+            const keyword = search.toLowerCase().trim();
+
+            items = items.filter((item) => {
+                return (
+                    item.title?.toLowerCase().includes(keyword) ||
+                    item.description?.toLowerCase().includes(keyword) ||
+                    item.document_original_name?.toLowerCase().includes(keyword)
+                );
+            });
+        }
+
+        if (priceFilter === 'highest') {
+            items.sort((a, b) => Number(b.price ?? 0) - Number(a.price ?? 0));
+        } else if (priceFilter === 'lowest') {
+            items.sort((a, b) => Number(a.price ?? 0) - Number(b.price ?? 0));
+        }
+
+        if (sortFilter === 'az') {
+            items.sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''));
+        } else if (sortFilter === 'za') {
+            items.sort((a, b) => (b.title ?? '').localeCompare(a.title ?? ''));
+        }
+
+        return items;
+    }, [documents, search, priceFilter, sortFilter]);
+
+    const totalDocuments = filteredDocuments.length;
+    const lastPage = Math.max(1, Math.ceil(totalDocuments / perPage));
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [search, priceFilter, sortFilter]);
+
+    useEffect(() => {
+        if (currentPage > lastPage) {
+            setCurrentPage(lastPage);
+        }
+    }, [currentPage, lastPage]);
+
+    const paginatedDocuments = useMemo(() => {
+        const start = (currentPage - 1) * perPage;
+        return filteredDocuments.slice(start, start + perPage);
+    }, [filteredDocuments, currentPage]);
+
+    const startIndex = totalDocuments === 0 ? 0 : (currentPage - 1) * perPage + 1;
+    const endIndex = totalDocuments === 0 ? 0 : startIndex + paginatedDocuments.length - 1;
 
     const handleCreateImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] ?? null;
         createForm.setData('image', file);
+
+        if (createImagePreview) URL.revokeObjectURL(createImagePreview);
+
+        if (file) {
+            setCreateImagePreview(URL.createObjectURL(file));
+        } else {
+            setCreateImagePreview(null);
+        }
     };
 
     const handleCreateDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] ?? null;
         createForm.setData('document', file);
+
+        if (createDocumentPreview) URL.revokeObjectURL(createDocumentPreview);
+
+        if (file) {
+            setCreateDocumentPreview(URL.createObjectURL(file));
+        } else {
+            setCreateDocumentPreview(null);
+        }
     };
 
     const handleEditImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] ?? null;
         editForm.setData('image', file);
+
+        if (editImagePreview) URL.revokeObjectURL(editImagePreview);
+
+        if (file) {
+            setEditImagePreview(URL.createObjectURL(file));
+        } else {
+            setEditImagePreview(null);
+        }
     };
 
     const handleEditDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] ?? null;
         editForm.setData('document', file);
+
+        if (editDocumentPreview) URL.revokeObjectURL(editDocumentPreview);
+
+        if (file) {
+            setEditDocumentPreview(URL.createObjectURL(file));
+        } else {
+            setEditDocumentPreview(null);
+        }
     };
 
     const handleCreateSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -158,6 +232,12 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
             preserveScroll: true,
             onSuccess: () => {
                 createForm.reset();
+
+                if (createImagePreview) URL.revokeObjectURL(createImagePreview);
+                if (createDocumentPreview) URL.revokeObjectURL(createDocumentPreview);
+
+                setCreateImagePreview(null);
+                setCreateDocumentPreview(null);
                 setIsCreateOpen(false);
             },
         });
@@ -174,6 +254,12 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
             onSuccess: () => {
                 editForm.reset();
                 editForm.setData('_method', 'put');
+
+                if (editImagePreview) URL.revokeObjectURL(editImagePreview);
+                if (editDocumentPreview) URL.revokeObjectURL(editDocumentPreview);
+
+                setEditImagePreview(null);
+                setEditDocumentPreview(null);
                 setEditingProduct(null);
             },
         });
@@ -181,7 +267,6 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
 
     const handleDelete = (product: DocumentItem) => {
         const confirmed = window.confirm(`Delete "${product.title}"? This action cannot be undone.`);
-
         if (!confirmed) return;
 
         router.delete(route('admin.documents.destroy', product.id), {
@@ -208,6 +293,12 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                     if (!open) {
                                         createForm.reset();
                                         createForm.clearErrors();
+
+                                        if (createImagePreview) URL.revokeObjectURL(createImagePreview);
+                                        if (createDocumentPreview) URL.revokeObjectURL(createDocumentPreview);
+
+                                        setCreateImagePreview(null);
+                                        setCreateDocumentPreview(null);
                                     }
                                 }}
                             >
@@ -235,7 +326,13 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                                     htmlFor="image"
                                                     className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#D6D0C4] bg-[#FCF9F2] text-center text-xs text-[#6B635B] transition hover:border-[#B8A893] hover:bg-[#F8F3EA]"
                                                 >
-                                                    {selectedCreateImageName ? (
+                                                    {createImagePreview ? (
+                                                        <img
+                                                            src={createImagePreview}
+                                                            alt="Selected preview"
+                                                            className="h-full w-full rounded-xl object-cover"
+                                                        />
+                                                    ) : selectedCreateImageName ? (
                                                         <div className="px-2 text-[#3D2B1F]">
                                                             <p className="font-medium">Selected</p>
                                                             <p className="mt-1 line-clamp-2 text-[11px] break-words">{selectedCreateImageName}</p>
@@ -274,13 +371,13 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                                 </div>
 
                                                 <div className="flex flex-col gap-2">
-                                                    <Label htmlFor="price">Price (₱)</Label>
+                                                    <Label htmlFor="price">Price (£)</Label>
                                                     <Input
                                                         id="price"
                                                         type="number"
                                                         step="0.01"
                                                         min="0"
-                                                        placeholder="500"
+                                                        placeholder="50"
                                                         value={createForm.data.price}
                                                         onChange={(e) => createForm.setData('price', e.target.value)}
                                                         className="[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
@@ -298,8 +395,8 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                                 className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#D6D0C4] bg-[#FCF9F2] px-4 py-6 text-sm text-[#6B635B] transition hover:border-[#B8A893] hover:bg-[#F8F3EA]"
                                             >
                                                 {selectedCreateDocumentName ? (
-                                                    <div className="flex items-center gap-2 text-[#1A1614]">
-                                                        <FileText className="h-4 w-4 text-[#A68A64]" />
+                                                    <div className="flex max-w-full items-center gap-2 text-[#1A1614]">
+                                                        <FileText className="h-4 w-4 shrink-0 text-[#A68A64]" />
                                                         <span className="max-w-[260px] truncate text-[#A68A64]">{selectedCreateDocumentName}</span>
                                                     </div>
                                                 ) : (
@@ -320,9 +417,34 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
 
                                             {createForm.errors.document && <p className="text-xs text-red-500">{createForm.errors.document}</p>}
 
-                                            <p className="text-xs text-[#9C9389]">
-                                                Upload the legal template the AI will use to generate documents from user responses.
-                                            </p>
+                                            {createDocumentPreview && (
+                                                <div className="rounded-2xl border border-[#E7E1D7] bg-white p-4 shadow-sm">
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <div className="flex min-w-0 items-center gap-3">
+                                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#E7E1D7] bg-[#F6F1E8]">
+                                                                <FileText className="h-4 w-4 text-[#A68A64]" />
+                                                            </div>
+
+                                                            <div className="min-w-0">
+                                                                <p className="text-sm font-medium text-[#1A1614]">Selected PDF</p>
+                                                                <p className="max-w-[220px] truncate text-xs text-[#6B635B]">
+                                                                    {selectedCreateDocumentName}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        <Button
+                                                            type="button"
+                                                            size="icon"
+                                                            variant="outline"
+                                                            className="h-10 w-10 shrink-0 rounded-xl border-[#D8CFC2] bg-[#FCF9F2] text-[#3D2B1F] hover:bg-[#F5EFE6]"
+                                                            onClick={() => openFileInNewTab(createDocumentPreview)}
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="flex flex-col gap-2">
@@ -366,7 +488,6 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                     <FileText className="h-4 w-4 text-[#A68A64]" />
                                 </div>
                             </CardHeader>
-
                             <CardContent>
                                 <div className="text-2xl font-bold text-[#1A1614]">{stats.total_documents}</div>
                                 <p className="text-xs text-[#6B635B]">Documents in catalog</p>
@@ -380,7 +501,6 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                     <Package className="h-4 w-4 text-[#A68A64]" />
                                 </div>
                             </CardHeader>
-
                             <CardContent>
                                 <div className="text-2xl font-bold text-[#1A1614]">{stats.active_products}</div>
                                 <p className="text-xs text-[#6B635B]">Available for purchase</p>
@@ -394,7 +514,6 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                     <FileClock className="h-4 w-4 text-[#A68A64]" />
                                 </div>
                             </CardHeader>
-
                             <CardContent>
                                 <div className="text-2xl font-bold text-[#1A1614]">{stats.draft_products}</div>
                                 <p className="text-xs text-[#6B635B]">Not yet published</p>
@@ -408,26 +527,25 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                     <TrendingUp className="h-4 w-4 text-[#A68A64]" />
                                 </div>
                             </CardHeader>
-
                             <CardContent>
-                                <div className="text-lg font-bold text-[#1A1614]">{stats.top_product ?? '—'}</div>
+                                <div className="truncate text-lg font-bold text-[#1A1614]">{stats.top_product ?? 'None'}</div>
                                 <p className="text-xs text-[#6B635B]">Most purchased document</p>
                             </CardContent>
                         </Card>
                     </div>
 
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                        <form onSubmit={handleSearchSubmit} className="w-full md:max-w-sm">
+                        <div className="w-full md:max-w-sm">
                             <Input
                                 placeholder="Search documents..."
                                 className="border-[#E7E1D7] bg-white"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
-                        </form>
+                        </div>
 
                         <div className="flex flex-wrap items-center gap-2">
-                            <Select value={currentPriceFilter} onValueChange={(value) => applyFilters({ price: value, page: 1 })}>
+                            <Select value={priceFilter} onValueChange={setPriceFilter}>
                                 <SelectTrigger className="w-[160px] border-[#E7E1D7] bg-white">
                                     <SelectValue placeholder="Price filter" />
                                 </SelectTrigger>
@@ -438,7 +556,7 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                 </SelectContent>
                             </Select>
 
-                            <Select value={currentSortFilter} onValueChange={(value) => applyFilters({ sort: value, page: 1 })}>
+                            <Select value={sortFilter} onValueChange={setSortFilter}>
                                 <SelectTrigger className="w-[140px] border-[#E7E1D7] bg-white">
                                     <SelectValue placeholder="Sort" />
                                 </SelectTrigger>
@@ -453,12 +571,12 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between border-b border-[#E7E1D7]">
                             <CardTitle className="text-base font-semibold text-[#1A1614]">
-                                Legal Documents <span className="text-[#6B635B]">({documents.total})</span>
+                                Legal Documents <span className="text-[#6B635B]">({totalDocuments})</span>
                             </CardTitle>
                         </CardHeader>
 
                         <CardContent className="p-6">
-                            {documents.data.length === 0 ? (
+                            {paginatedDocuments.length === 0 ? (
                                 <div className="rounded-xl border border-dashed border-[#E7E1D7] bg-[#FCF9F2] px-6 py-10 text-center">
                                     <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#F2EDE4]">
                                         <FileText className="h-5 w-5 text-[#A68A64]" />
@@ -468,7 +586,7 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                 </div>
                             ) : (
                                 <div className="grid gap-6 md:grid-cols-2">
-                                    {documents.data.map((product) => (
+                                    {paginatedDocuments.map((product) => (
                                         <div
                                             key={product.id}
                                             className="flex flex-col gap-4 rounded-xl border border-[#E7E1D7] bg-white p-6 sm:flex-row sm:items-start sm:gap-6"
@@ -490,7 +608,6 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                                                     {product.title}
                                                                 </h3>
                                                             </TooltipTrigger>
-
                                                             <TooltipContent>
                                                                 <p>{product.title}</p>
                                                             </TooltipContent>
@@ -505,14 +622,6 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                                 <p className="line-clamp-3 text-sm leading-relaxed text-[#6B635B]">
                                                     {product.description || 'No description provided.'}
                                                 </p>
-
-                                                <div className="pt-1 text-xs text-[#9C9389]">
-                                                    {product.document_original_name ? (
-                                                        <span>PDF: {product.document_original_name}</span>
-                                                    ) : (
-                                                        <span>No PDF uploaded</span>
-                                                    )}
-                                                </div>
                                             </div>
 
                                             <div className="flex items-center justify-end gap-2 sm:flex-col sm:items-center sm:justify-center">
@@ -538,29 +647,24 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                             <span>
                                 Showing <span className="font-medium text-[#1A1614]">{startIndex}</span> –{' '}
                                 <span className="font-medium text-[#1A1614]">{endIndex}</span> of{' '}
-                                <span className="font-medium text-[#1A1614]">{documents.total}</span> documents
+                                <span className="font-medium text-[#1A1614]">{totalDocuments}</span> documents
                             </span>
 
                             <div className="flex items-center gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={documents.current_page === 1}
-                                    onClick={() => applyFilters({ page: documents.current_page - 1 })}
-                                >
+                                <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage((prev) => prev - 1)}>
                                     Prev
                                 </Button>
 
                                 <span className="text-sm text-[#6B635B]">
-                                    Page <span className="font-medium text-[#1A1614]">{documents.current_page}</span> of{' '}
-                                    <span className="font-medium text-[#1A1614]">{documents.last_page}</span>
+                                    Page <span className="font-medium text-[#1A1614]">{currentPage}</span> of{' '}
+                                    <span className="font-medium text-[#1A1614]">{lastPage}</span>
                                 </span>
 
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    disabled={documents.current_page === documents.last_page}
-                                    onClick={() => applyFilters({ page: documents.current_page + 1 })}
+                                    disabled={currentPage === lastPage}
+                                    onClick={() => setCurrentPage((prev) => prev + 1)}
                                 >
                                     Next
                                 </Button>
@@ -576,6 +680,12 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                 editForm.reset();
                                 editForm.setData('_method', 'put');
                                 editForm.clearErrors();
+
+                                if (editImagePreview) URL.revokeObjectURL(editImagePreview);
+                                if (editDocumentPreview) URL.revokeObjectURL(editDocumentPreview);
+
+                                setEditImagePreview(null);
+                                setEditDocumentPreview(null);
                             }
                         }}
                     >
@@ -595,7 +705,13 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                                 htmlFor="edit-image"
                                                 className="flex h-32 w-32 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-[#D6D0C4] bg-[#FCF9F2]"
                                             >
-                                                {selectedEditImageName ? (
+                                                {editImagePreview ? (
+                                                    <img
+                                                        src={editImagePreview}
+                                                        alt="Selected preview"
+                                                        className="h-full w-full rounded-xl object-cover"
+                                                    />
+                                                ) : selectedEditImageName ? (
                                                     <div className="px-2 text-center text-[#3D2B1F]">
                                                         <p className="font-medium">Selected</p>
                                                         <p className="mt-1 line-clamp-2 text-[11px] break-words">{selectedEditImageName}</p>
@@ -657,17 +773,19 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
 
                                         <label
                                             htmlFor="edit-document"
-                                            className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#D6D0C4] bg-[#FCF9F2] px-4 py-6 text-sm text-[#6B635B]"
+                                            className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#D6D0C4] bg-[#FCF9F2] px-4 py-6 text-sm text-[#6B635B] transition hover:border-[#B8A893] hover:bg-[#F8F3EA]"
                                         >
                                             {selectedEditDocumentName ? (
-                                                <div className="flex items-center gap-2 text-[#1A1614]">
-                                                    <FileText className="h-4 w-4 text-[#A68A64]" />
+                                                <div className="flex max-w-full items-center gap-2 text-[#1A1614]">
+                                                    <FileText className="h-4 w-4 shrink-0 text-[#A68A64]" />
                                                     <span className="max-w-[260px] truncate text-[#A68A64]">{selectedEditDocumentName}</span>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center gap-2">
-                                                    <FileText className="h-4 w-4" />
-                                                    <span>{editingProduct.document_original_name || 'Replace PDF Template'}</span>
+                                                <div className="flex max-w-full items-center gap-2">
+                                                    <FileText className="h-4 w-4 shrink-0" />
+                                                    <span className="max-w-[260px] truncate">
+                                                        {editingProduct.document_original_name || 'Replace PDF Template'}
+                                                    </span>
                                                 </div>
                                             )}
                                         </label>
@@ -682,9 +800,36 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
 
                                         {editForm.errors.document && <p className="text-xs text-red-500">{editForm.errors.document}</p>}
 
-                                        <p className="text-xs text-[#9C9389]">
-                                            Upload a new template only if you want to replace the existing legal document PDF.
-                                        </p>
+                                        {(editDocumentPreview || editingProduct.document_url) && (
+                                            <div className="rounded-2xl border border-[#E7E1D7] bg-white p-4 shadow-sm">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div className="flex min-w-0 items-center gap-3">
+                                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#E7E1D7] bg-[#F6F1E8]">
+                                                            <FileText className="h-4 w-4 text-[#A68A64]" />
+                                                        </div>
+
+                                                        <div className="min-w-0">
+                                                            <p className="text-sm font-medium text-[#1A1614]">PDF Document</p>
+                                                            <p className="max-w-[220px] truncate text-xs text-[#6B635B]">
+                                                                {selectedEditDocumentName ||
+                                                                    editingProduct.document_original_name ||
+                                                                    'Current PDF file'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    <Button
+                                                        type="button"
+                                                        size="icon"
+                                                        variant="outline"
+                                                        className="h-10 w-10 shrink-0 rounded-xl border-[#D8CFC2] bg-[#FCF9F2] text-[#3D2B1F] hover:bg-[#F5EFE6]"
+                                                        onClick={() => openFileInNewTab(editDocumentPreview || editingProduct.document_url)}
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="flex flex-col gap-2">
@@ -716,9 +861,14 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
 
                     <Dialog open={!!viewingProduct} onOpenChange={() => setViewingProduct(null)}>
                         <DialogContent className="max-h-[85vh] max-w-4xl overflow-hidden p-0">
+                            <DialogHeader className="sr-only">
+                                <DialogTitle>Document Preview</DialogTitle>
+                                <DialogDescription>Preview the selected legal document and its uploaded file.</DialogDescription>
+                            </DialogHeader>
+
                             {viewingProduct && (
-                                <div className="flex max-h-[85vh] flex-col overflow-y-auto p-6">
-                                    <div className="flex flex-col gap-4 md:flex-row md:items-start">
+                                <div className="flex max-h-[85vh] min-w-0 flex-col overflow-y-auto p-6">
+                                    <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start">
                                         <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-[#E7E1D7] bg-[#F2EDE4]">
                                             <img
                                                 src={viewingProduct.image_url || '/images/products/placeholder.webp'}
@@ -727,8 +877,8 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                             />
                                         </div>
 
-                                        <div className="flex flex-1 flex-col gap-2">
-                                            <div className="flex items-center justify-between gap-3">
+                                        <div className="flex min-w-0 flex-1 flex-col gap-2 overflow-hidden">
+                                            <div className="flex min-w-0 items-start justify-between gap-3">
                                                 <TooltipProvider>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
@@ -743,38 +893,48 @@ export default function ProductIndex({ user, documents, filters, stats, can }: P
                                                     </Tooltip>
                                                 </TooltipProvider>
 
-                                                <span className="flex-shrink-0 text-sm font-semibold text-[#3D2B1F]">
+                                                <span className="shrink-0 text-sm font-semibold text-[#3D2B1F]">
                                                     {formatPrice(viewingProduct.price)}
                                                 </span>
                                             </div>
 
-                                            <p className="text-sm leading-relaxed text-[#6B635B]">
+                                            <p className="max-w-full text-sm leading-relaxed break-words text-[#6B635B]">
                                                 {viewingProduct.description || 'No description provided.'}
                                             </p>
-
-                                            <div className="text-xs text-[#9C9389]">
-                                                {viewingProduct.document_original_name ? (
-                                                    <span>PDF file: {viewingProduct.document_original_name}</span>
-                                                ) : (
-                                                    <span>No PDF file name available</span>
-                                                )}
-                                            </div>
                                         </div>
                                     </div>
 
                                     <div className="my-6 border-t border-[#E7E1D7]" />
 
-                                    <div className="flex flex-col gap-3">
+                                    <div className="flex min-w-0 flex-col gap-3">
                                         <h3 className="text-sm font-medium text-[#1A1614]">Legal Template Preview</h3>
 
-                                        <div className="overflow-hidden rounded-md border border-[#E7E1D7] bg-white">
-                                            {viewingProduct.document_url ? (
-                                                <iframe src={viewingProduct.document_url} title={viewingProduct.title} className="h-[560px] w-full" />
-                                            ) : (
-                                                <div className="flex h-[320px] items-center justify-center px-6 text-sm text-[#6B635B]">
-                                                    No PDF preview available for this document.
+                                        <div className="min-w-0 overflow-hidden rounded-2xl border border-[#E7E1D7] bg-gradient-to-br from-white to-[#FCF9F2] p-5 shadow-sm">
+                                            <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                                <div className="flex min-w-0 items-center gap-3 overflow-hidden">
+                                                    <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-[#E7E1D7] bg-[#F6F1E8]">
+                                                        <FileText className="h-5 w-5 text-[#A68A64]" />
+                                                    </div>
+
+                                                    <div className="min-w-0 overflow-hidden">
+                                                        <p className="text-sm font-semibold text-[#1A1614]">PDF Document</p>
+                                                        <p className="truncate text-xs text-[#6B635B]">
+                                                            {viewingProduct.document_original_name || 'No PDF file available'}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                            )}
+
+                                                <Button
+                                                    type="button"
+                                                    size="icon"
+                                                    variant="outline"
+                                                    disabled={!viewingProduct.document_url}
+                                                    onClick={() => openFileInNewTab(viewingProduct.document_url)}
+                                                    className="h-10 w-10 flex-shrink-0 rounded-xl border-[#D8CFC2] bg-[#FCF9F2] text-[#3D2B1F] hover:bg-[#F5EFE6] disabled:cursor-not-allowed disabled:border-[#E7E1D7] disabled:bg-[#F5F2EC] disabled:text-[#B7AEA2]"
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

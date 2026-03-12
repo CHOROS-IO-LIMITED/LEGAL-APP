@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Storage;
 
 class Document extends Model
@@ -44,14 +44,30 @@ class Document extends Model
     protected function imageUrl(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->image_path ? Storage::disk('public')->path($this->image_path) : null
+            get: function () {
+                if (!$this->image_path) {
+                    return null;
+                }
+
+                $disk = config('filesystems.default');
+
+                return Storage::disk($disk)->url($this->image_path);
+            }
         );
     }
 
     protected function documentUrl(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->document_path ? Storage::disk('public')->path($this->document_path) : null
+            get: function () {
+                if (!$this->document_path) {
+                    return null;
+                }
+
+                $disk = config('filesystems.default');
+
+                return Storage::disk($disk)->url($this->document_path);
+            }
         );
     }
 }

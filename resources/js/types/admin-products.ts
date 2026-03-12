@@ -7,26 +7,12 @@ export interface DocumentItem {
     id: number;
     title: string;
     description: string | null;
-    price: string;
+    price: string | number;
     image_url: string | null;
     document_url: string | null;
     image_original_name?: string | null;
     document_original_name?: string | null;
     created_at: string;
-}
-
-export interface PaginatedDocuments {
-    data: DocumentItem[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-}
-
-export interface DocumentFilters {
-    search?: string;
-    price?: string;
-    sort?: string;
 }
 
 export interface DocumentStats {
@@ -42,8 +28,7 @@ export interface DocumentPermissions {
 
 export interface ProductIndexProps {
     user: User;
-    documents: PaginatedDocuments;
-    filters: DocumentFilters;
+    documents: DocumentItem[];
     stats: DocumentStats;
     can: DocumentPermissions;
 }
