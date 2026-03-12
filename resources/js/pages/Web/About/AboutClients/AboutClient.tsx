@@ -35,13 +35,13 @@ const testimonials = [
 
 export default function AboutClient() {
     return (
-        <section className="bg-[#FCF9F2] py-24">
+        <section className="bg-[#F2EDE4] py-24">
             <div className="mx-auto max-w-6xl px-6">
                 {/* Header */}
                 <div className="grid items-center gap-10 md:grid-cols-2">
                     <h2 className="font-serif text-3xl text-[#2E2A26] md:text-4xl">What Our Clients Say</h2>
 
-                    <p className="border-l border-[#E8E2D6] pl-8 text-lg leading-relaxed text-[#70665E]">
+                    <p className="border-l border-[#E6DED2] pl-8 text-lg leading-relaxed text-[#70665E]">
                         Hear from individuals and businesses who use LegalDocs to simplify the way they create legal documents.
                     </p>
                 </div>
@@ -54,7 +54,7 @@ export default function AboutClient() {
 
                             <p className="text-lg leading-relaxed text-[#70665E] italic">{testimonial.quote}</p>
 
-                            <div className="mt-auto border-t border-[#E8E2D6] pt-6">
+                            <div className="mt-auto border-t border-[#E6DED2] pt-6">
                                 <p className="font-medium text-[#2E2A26]">{testimonial.name}</p>
 
                                 <p className="text-sm text-[#70665E]">{testimonial.role}</p>

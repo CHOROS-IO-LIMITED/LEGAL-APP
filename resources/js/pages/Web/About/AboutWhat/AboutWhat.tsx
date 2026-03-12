@@ -1,12 +1,71 @@
-export default function AboutClient() {
-    return (
-        <section className="bg-white py-24">
-            <div className="mx-auto max-w-6xl px-6 text-center">
-                <h2 className="mb-4 font-serif text-3xl text-[#2E2A26] md:text-4xl">What Our Clients Say</h2>
+import { ClipboardList, FileText, PenLine, ShieldCheck } from 'lucide-react';
 
-                <p className="mx-auto max-w-2xl text-lg leading-relaxed text-[#70665E]">
-                    Discover how individuals and businesses use LegalDocs to simplify their legal documentation and streamline their workflow.
-                </p>
+export default function AboutWhat() {
+    const features = [
+        {
+            title: 'Choose a Template',
+            description: 'Select the legal document you want to create from professionally structured templates.',
+            image: '/images/about/features/feature-1.webp',
+            icon: FileText,
+        },
+        {
+            title: 'Answer Simple Questions',
+            description: 'Complete a short Q&A so the system can understand the details of your agreement.',
+            image: '/images/about/features/feature-2.webp',
+            icon: ClipboardList,
+        },
+        {
+            title: 'Generate & Review',
+            description: 'Your document is generated based on your answers and reviewed by a lawyer.',
+            image: '/images/about/features/feature-3.webp',
+            icon: ShieldCheck,
+        },
+        {
+            title: 'Sign and Send',
+            description: 'Once approved, the document can be signed and securely shared with the other parties.',
+            image: '/images/about/features/feature-4.webp',
+            icon: PenLine,
+        },
+    ];
+
+    return (
+        <section className="bg-[#F2EDE4] py-24">
+            <div className="mx-auto max-w-6xl px-6">
+                <div className="max-w-3xl">
+                    <h2 className="font-serif text-3xl text-[#1A1614] md:text-4xl">What LegalDocs Does</h2>
+
+                    <p className="mt-4 text-lg leading-relaxed text-[#70665E]">
+                        LegalDocs helps you create professional legal documents quickly and easily, ready to be signed by both parties.
+                    </p>
+                </div>
+
+                <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                    {features.map((feature, index) => {
+                        const Icon = feature.icon;
+
+                        return (
+                            <div key={index} className="group bg-white shadow-sm">
+                                <div className="relative overflow-hidden">
+                                    <img
+                                        src={feature.image}
+                                        alt={feature.title}
+                                        className="h-40 w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                    />
+
+                                    <div className="absolute top-3 left-3 flex h-9 w-9 items-center justify-center bg-[#F2EDE4] text-[#A68A64] shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:text-[#3D2B1F]">
+                                        <Icon className="h-4 w-4" />
+                                    </div>
+                                </div>
+
+                                <div className="p-6">
+                                    <h3 className="border-b border-[#E6DED2] pb-2 font-medium text-[#1A1614]">{feature.title}</h3>
+
+                                    <p className="mt-2 text-sm leading-relaxed text-[#70665E]">{feature.description}</p>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
         </section>
     );
