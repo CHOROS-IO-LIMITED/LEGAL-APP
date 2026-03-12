@@ -13,15 +13,31 @@ return new class extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('user_id')
                 ->constrained('users')
                 ->cascadeOnDelete();
-            $table->string('name');
+
+            $table->string('title');
+            $table->string('slug')->unique()->nullable();
+
             $table->string('image_path')->nullable();
+            $table->string('image_original_name')->nullable();
+            $table->string('image_mime')->nullable();
+            $table->unsignedBigInteger('image_size')->nullable();
+
             $table->string('document_path')->nullable();
-            $table->integer('price');
-            $table->string('description')->nullable();
+            $table->string('document_original_name')->nullable();
+            $table->string('document_mime')->nullable();
+            $table->unsignedBigInteger('document_size')->nullable();
+
+            $table->decimal('price', 10, 2);
+            $table->text('description')->nullable();
+
             $table->timestamps();
+
+            $table->index(['title']);
+            $table->index(['created_at']);
         });
     }
 
