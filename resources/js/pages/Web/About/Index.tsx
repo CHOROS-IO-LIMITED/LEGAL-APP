@@ -1,9 +1,11 @@
 import Footer from '@/components/web/Footer';
 import Header from '@/components/web/Header';
 import AboutClient from './AboutClients/AboutClient';
+import AboutCTA from './AboutCTA/AboutCTA';
+import AboutFounder from './AboutFounders/AboutFounder';
 import AboutHero from './AboutHero/AboutHero';
 import AboutMission from './AboutMission/AboutMission';
-import AboutCTA from './AboutCTA/AboutCTA';
+import AboutWhat from './AboutWhat/AboutWhat';
 
 export default function Index() {
     return (
@@ -11,8 +13,10 @@ export default function Index() {
             <Header />
             <AboutHero />
             <AboutMission />
+            <AboutWhat />
+            <AboutFounder />
             <AboutClient />
-            <AboutCTA/>
+            <AboutCTA />
             <Footer />
         </div>
     );
