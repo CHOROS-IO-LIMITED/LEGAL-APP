@@ -1,71 +1,27 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import React from 'react';
 
-interface Product {
-    image: string;
+type Product = {
+    id: number;
     title: string;
+    slug: string;
     price: string;
-    description: string;
-}
+    description: string | null;
+    short_description: string | null;
+    image_url: string | null;
+    document_url: string | null;
+};
 
-const products: Product[] = [
-    {
-        image: '../../images/products/placeholder.webp',
-        title: 'NDA Agreement',
-        price: '£9.99',
-        description: 'Non-Disclosure Agreement, ready to customize for your business or project.',
-    },
-    {
-        image: '../../images/products/placeholder.webp',
-        title: 'Employment Contract',
-        price: '£14.99',
-        description: 'Standard employment contract, fully editable and lawyer-reviewed for compliance.',
-    },
-    {
-        image: '../../images/products/placeholder.webp',
-        title: 'Service Agreement',
-        price: '£12.99',
-        description: 'Professional service agreement, perfect for freelancers and agencies.',
-    },
-    {
-        image: '../../images/products/placeholder.webp',
-        title: 'Residential Lease',
-        price: '£19.99',
-        description: 'Customizable residential lease agreement for landlords and tenants.',
-    },
-    {
-        image: '../../images/products/placeholder.webp',
-        title: 'Marketing Partner',
-        price: '£11.99',
-        description: 'Agreement for marketing partnerships and collaborations.',
-    },
-    {
-        image: '../../images/products/placeholder.webp',
-        title: 'Business Sale',
-        price: '£24.99',
-        description: 'Comprehensive business sale contract, ready to use for transactions.',
-    },
-    {
-        image: '../../images/products/placeholder.webp',
-        title: 'Partnership Agreement',
-        price: '£15.99',
-        description: 'Agreement template for business partnerships and collaborations.',
-    },
-    {
-        image: '../../images/products/placeholder.webp',
-        title: 'Consulting Contract',
-        price: '£13.99',
-        description: 'Professional consulting contract for independent consultants.',
-    },
-    {
-        image: '../../images/products/placeholder.webp',
-        title: 'Vendor Agreement',
-        price: '£10.99',
-        description: 'Vendor supply agreement suitable for product or service vendors.',
-    },
-];
+type PageProps = {
+    products: Product[];
+};
 
 const Explore: React.FC = () => {
+    const { props } = usePage<PageProps>();
+    const products = props.products ?? [];
+
+    const visibleProducts = products.slice(0, 6);
+    const previewCards = Array.from({ length: 9 });
     return (
         <section className="bg-[#F2EDE4] py-24">
             <div className="mx-auto max-w-6xl px-6">
@@ -83,17 +39,15 @@ const Explore: React.FC = () => {
                 {/* Product Cards */}
                 <div className="relative mt-16 max-h-[1000px] overflow-hidden">
                     <div className="grid gap-8 md:grid-cols-3">
-                        {products.map((product, idx) => (
+                        {visibleProducts.map((product) => (
                             <Link
-                                key={idx}
-                                href={route('product.details', { index: idx })}
-                                className={`group block overflow-hidden bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${
-                                    idx >= products.length - 3 ? 'pointer-events-none opacity-70 blur-[2px] grayscale' : ''
-                                }`}
+                                key={product.id}
+                                href={route('product.details', { document: product.slug })}
+                                className="group block overflow-hidden bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
                             >
                                 <div className="overflow-hidden">
                                     <img
-                                        src={product.image}
+                                        src={product.image_url || '/images/products/placeholder.webp'}
                                         alt={product.title}
                                         className="h-60 w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                                     />
@@ -102,25 +56,48 @@ const Explore: React.FC = () => {
                                 <div className="p-6">
                                     <div className="mb-3 flex items-center justify-between border-b border-[#E6DED2] pb-3">
                                         <h3 className="text-xl font-semibold text-[#1A1614]">{product.title}</h3>
-
-                                        <span className="text-lg font-bold text-[#3D2B1F]">{product.price}</span>
+                                        <span className="text-lg font-bold text-[#3D2B1F]">£{product.price}</span>
                                     </div>
 
-                                    <p className="line-clamp-2 text-sm text-[#70665E]">{product.description}</p>
+                                    <p className="line-clamp-2 text-sm text-[#70665E]">
+                                        {product.short_description || product.description || 'No description available.'}
+                                    </p>
                                 </div>
                             </Link>
                         ))}
 
-                        <div className="absolute inset-x-0 bottom-20 z-20 flex justify-center">
-                            <Link
-                                href={route('product.details')}
-                                className="bg-[#3D2B1F] px-8 py-3 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-[#5A4638]"
+                        {previewCards.map((_, idx) => (
+                            <div
+                                key={`preview-${idx}`}
+                                aria-hidden="true"
+                                className="pointer-events-none overflow-hidden bg-white opacity-40 shadow-sm blur-[2px] grayscale select-none"
                             >
-                                More Products
-                            </Link>
-                        </div>
-                    </div>
+                                <div className="overflow-hidden">
+                                    <img src="/images/products/placeholder.webp" alt="" className="h-60 w-full object-cover object-center" />
+                                </div>
 
+                                <div className="p-6">
+                                    <div className="mb-3 flex items-center justify-between border-b border-[#E6DED2] pb-3">
+                                        <div className="h-6 w-32 rounded bg-[#E6DED2]" />
+                                        <div className="h-6 w-14 rounded bg-[#E6DED2]" />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <div className="h-4 w-full rounded bg-[#E6DED2]" />
+                                        <div className="h-4 w-5/6 rounded bg-[#E6DED2]" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="absolute inset-x-0 bottom-20 z-20 flex justify-center">
+                        <Link
+                            href={route('product.details.index')}
+                            className="bg-[#3D2B1F] px-8 py-3 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-[#5A4638]"
+                        >
+                            More Products
+                        </Link>
+                    </div>
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#F2EDE4] to-transparent"></div>
                 </div>
             </div>

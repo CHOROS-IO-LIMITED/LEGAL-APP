@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\Document;
 use Inertia\Inertia;
 
 class ProductController extends Controller
@@ -14,6 +15,23 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return Inertia::render('Web/Products/Index');
+        $products = Document::query()
+            ->active()
+            ->ordered()
+            ->get([
+                'id',
+                'title',
+                'slug',
+                'price',
+                'description',
+                'short_description',
+                'image_path',
+                'document_path',
+                'created_at',
+            ]);
+
+        return Inertia::render('Web/Products/Index', [
+            'products' => $products,
+        ]);
     }
 }

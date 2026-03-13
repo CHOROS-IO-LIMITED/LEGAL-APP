@@ -3,16 +3,56 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\Document;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 
 class ProductDetailsController extends Controller
 {
 
-    public function index($index = 0)
+    public function list()
     {
+        $products = Document::query()
+            ->active()
+            ->ordered()
+            ->get([
+                'id',
+                'title',
+                'slug',
+                'price',
+                'description',
+                'short_description',
+                'image_path',
+                'document_path',
+            ]);
+
         return Inertia::render('Web/Products/Explore/ProductDetails/Index', [
-            'selectedIndex' => $index
+            'products' => $products,
+            'selectedProductId' => null,
+        ]);
+    }
+
+    public function index(Document $document)
+    {
+        abort_unless($document->is_active, 404);
+
+        $products = Document::query()
+            ->active()
+            ->ordered()
+            ->get([
+                'id',
+                'title',
+                'slug',
+                'price',
+                'description',
+                'short_description',
+                'image_path',
+                'document_path',
+            ]);
+
+        return Inertia::render('Web/Products/Explore/ProductDetails/Index', [
+            'products' => $products,
+            'selectedProductId' => $document->id,
         ]);
     }
 }

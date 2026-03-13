@@ -3,7 +3,7 @@ import Header from '@/components/web/Header';
 import Stepper from '@/components/web/Stepper';
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 type User = {
     id: number;
@@ -12,82 +12,44 @@ type User = {
     role: 'admin' | 'user';
 };
 
+type Product = {
+    id: number;
+    title: string;
+    slug: string;
+    price: string;
+    description: string | null;
+    short_description: string | null;
+    image_url: string | null;
+};
+
 type PageProps = {
     auth: {
         user: User | null;
     };
-    selectedIndex?: number;
+    products: Product[];
+    selectedProductId?: number;
 } & Record<string, unknown>;
-
-interface Product {
-    image: string;
-    title: string;
-    price: string;
-    description: string;
-}
-
-const products: Product[] = [
-    {
-        image: '/images/products/placeholder.webp',
-        title: 'NDA Agreement',
-        price: '£9.99',
-        description: 'Non-Disclosure Agreement, ready to customize for your business or project.',
-    },
-    {
-        image: '/images/products/placeholder.webp',
-        title: 'Employment Contract',
-        price: '£14.99',
-        description: 'Standard employment contract, fully editable and lawyer-reviewed for compliance.',
-    },
-    {
-        image: '/images/products/placeholder.webp',
-        title: 'Service Agreement',
-        price: '£12.99',
-        description: 'Professional service agreement, perfect for freelancers and agencies.',
-    },
-    {
-        image: '/images/products/placeholder.webp',
-        title: 'Residential Lease',
-        price: '£19.99',
-        description: 'Customizable residential lease agreement for landlords and tenants.',
-    },
-    {
-        image: '/images/products/placeholder.webp',
-        title: 'Marketing Partner',
-        price: '£11.99',
-        description: 'Agreement for marketing partnerships and collaborations.',
-    },
-    {
-        image: '/images/products/placeholder.webp',
-        title: 'Business Sale',
-        price: '£24.99',
-        description: 'Comprehensive business sale contract, ready to use for transactions.',
-    },
-];
 
 const ProductDetails: React.FC = () => {
     const { props } = usePage<PageProps>();
-    const { auth } = props;
+    const { auth, products, selectedProductId } = props;
 
-    const initialIndex = Number(props.selectedIndex ?? 0);
+    const [selectedProducts, setSelectedProducts] = useState<number[]>(selectedProductId ? [selectedProductId] : []);
+    const [errorProductId, setErrorProductId] = useState<number | null>(null);
 
-    const [selectedProducts, setSelectedProducts] = useState<number[]>(props.selectedIndex !== undefined ? [initialIndex] : []);
-
-    const [errorIdx, setErrorIdx] = useState<number | null>(null);
-
-    const toggleProduct = (idx: number) => {
-        if (selectedProducts.includes(idx)) {
-            setSelectedProducts(selectedProducts.filter((i) => i !== idx));
+    const toggleProduct = (productId: number) => {
+        if (selectedProducts.includes(productId)) {
+            setSelectedProducts((prev) => prev.filter((id) => id !== productId));
             return;
         }
 
         if (selectedProducts.length >= 4) {
-            setErrorIdx(idx);
-            setTimeout(() => setErrorIdx(null), 400);
+            setErrorProductId(productId);
+            window.setTimeout(() => setErrorProductId(null), 400);
             return;
         }
 
-        setSelectedProducts([...selectedProducts, idx]);
+        setSelectedProducts((prev) => [...prev, productId]);
     };
 
     const rotateLeft = () => {
@@ -108,9 +70,13 @@ const ProductDetails: React.FC = () => {
 
     const steps = ['Products', 'KYC', 'Checkout', 'Verification', 'Q&A'];
 
-    const selectedProductObjects = selectedProducts.map((i) => products[i]);
+    const selectedProductObjects = useMemo(() => {
+        return selectedProducts.map((productId) => products.find((product) => product.id === productId)).filter(Boolean) as Product[];
+    }, [selectedProducts, products]);
 
-    const totalPrice = selectedProductObjects.reduce((sum, p) => sum + parseFloat(p.price.replace('£', '')), 0).toFixed(2);
+    const totalPrice = useMemo(() => {
+        return selectedProductObjects.reduce((sum, product) => sum + Number(product.price), 0).toFixed(2);
+    }, [selectedProductObjects]);
 
     return (
         <div className="min-h-screen bg-[#FCF9F2] font-sans">
@@ -139,26 +105,26 @@ const ProductDetails: React.FC = () => {
                     <div className="grid gap-12 md:grid-cols-2">
                         {/* LEFT */}
                         <div className="space-y-3">
-                            {products.map((p, idx) => {
-                                const checked = selectedProducts.includes(idx);
+                            {products.map((product) => {
+                                const checked = selectedProducts.includes(product.id);
 
                                 return (
                                     <label
-                                        key={idx}
+                                        key={product.id}
                                         className={`flex cursor-pointer items-center justify-between rounded-lg border bg-white p-4 transition-all duration-200 ${
-                                            errorIdx === idx
+                                            errorProductId === product.id
                                                 ? 'animate-shake border-red-500 ring-2 ring-red-300'
                                                 : checked
                                                   ? 'border-[#3D2B1F] ring-2 ring-[#A68A64]'
                                                   : 'border-[#E8E2D6]'
                                         } hover:-translate-y-1 hover:shadow-md`}
                                     >
-                                        <span className="font-medium text-[#1A1614]">{p.title}</span>
+                                        <span className="font-medium text-[#1A1614]">{product.title}</span>
 
                                         <input
                                             type="checkbox"
                                             checked={checked}
-                                            onChange={() => toggleProduct(idx)}
+                                            onChange={() => toggleProduct(product.id)}
                                             onClick={(e) => e.stopPropagation()}
                                             className="h-4 w-4 cursor-pointer accent-[#3D2B1F]"
                                         />
@@ -193,9 +159,8 @@ const ProductDetails: React.FC = () => {
                                         Select documents to preview
                                     </div>
                                 ) : (
-                                    selectedProducts.map((idx, stackIndex) => {
-                                        const product = products[idx];
-                                        const total = selectedProducts.length;
+                                    selectedProductObjects.map((product, stackIndex) => {
+                                        const total = selectedProductObjects.length;
                                         const middle = (total - 1) / 2;
 
                                         const offset = stackIndex - middle;
@@ -204,7 +169,7 @@ const ProductDetails: React.FC = () => {
 
                                         return (
                                             <div
-                                                key={idx}
+                                                key={product.id}
                                                 className="absolute w-full max-w-sm rounded-2xl bg-white shadow-md transition-all duration-500"
                                                 style={{
                                                     transform: `translateX(${translateX}px) rotate(${rotateDeg}deg)`,
@@ -212,15 +177,21 @@ const ProductDetails: React.FC = () => {
                                                     bottom: 0,
                                                 }}
                                             >
-                                                <img src={product.image} alt={product.title} className="h-60 w-full rounded-t-2xl object-cover" />
+                                                <img
+                                                    src={product.image_url ?? '/images/products/placeholder.webp'}
+                                                    alt={product.title}
+                                                    className="h-60 w-full rounded-t-2xl object-cover"
+                                                />
 
                                                 <div className="flex flex-col p-6">
                                                     <h3 className="text-xl font-semibold text-[#1A1614]">{product.title}</h3>
 
-                                                    <p className="mb-6 line-clamp-2 text-sm text-[#70665E]">{product.description}</p>
+                                                    <p className="mb-6 line-clamp-2 text-sm text-[#70665E]">
+                                                        {product.short_description || product.description || 'No description available.'}
+                                                    </p>
 
                                                     <div className="mb-4 flex items-center justify-between">
-                                                        <span className="text-lg font-bold text-[#3D2B1F]">{product.price}</span>
+                                                        <span className="text-lg font-bold text-[#3D2B1F]">£{product.price}</span>
 
                                                         <span className="inline-flex items-center gap-1 rounded-full border border-green-600 bg-green-100/70 px-3 py-1 text-xs font-semibold text-green-600">
                                                             <Check size={14} />
@@ -255,10 +226,10 @@ const ProductDetails: React.FC = () => {
                                                 </DialogHeader>
 
                                                 <div className="space-y-3">
-                                                    {selectedProductObjects.map((p, i) => (
-                                                        <div key={i} className="flex items-center justify-between rounded-md border p-3">
-                                                            <span className="font-medium">{p.title}</span>
-                                                            <span className="font-semibold">{p.price}</span>
+                                                    {selectedProductObjects.map((product) => (
+                                                        <div key={product.id} className="flex items-center justify-between rounded-md border p-3">
+                                                            <span className="font-medium">{product.title}</span>
+                                                            <span className="font-semibold">£{product.price}</span>
                                                         </div>
                                                     ))}
 
@@ -277,7 +248,7 @@ const ProductDetails: React.FC = () => {
 
                                                 <DialogFooter>
                                                     <Link
-                                                        href={route('product.kyc')}
+                                                        href={route('kyc.index')}
                                                         className="rounded-md bg-[#3D2B1F] px-4 py-2 text-white hover:bg-[#5A4638]"
                                                     >
                                                         Continue to KYC
