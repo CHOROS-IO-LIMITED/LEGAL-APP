@@ -24,4 +24,5 @@ Route::get('/products/details/verify', [EmailVerificationController::class, 'ind
 Route::get('/products/details/Q&A', [QuestionController::class, 'index'])->name('product.QnA');
 
 // step 1: product detail with optional index parameter
-Route::get('/products/details/{index?}', [ProductDetailsController::class, 'index'])->name('product.details');
+Route::get('/products/details', [ProductDetailsController::class, 'list'])->name('product.details.index');
+Route::get('/products/details/{document:slug}', [ProductDetailsController::class, 'index'])->name('product.details');

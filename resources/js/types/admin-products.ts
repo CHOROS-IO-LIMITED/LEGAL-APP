@@ -7,6 +7,7 @@ export interface DocumentItem {
     id: number;
     title: string;
     description: string | null;
+    short_description: string | null;
     price: string | number;
     image_url: string | null;
     document_url: string | null;
