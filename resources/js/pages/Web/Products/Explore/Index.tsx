@@ -19,6 +19,9 @@ type PageProps = {
 const Explore: React.FC = () => {
     const { props } = usePage<PageProps>();
     const products = props.products ?? [];
+
+    const visibleProducts = products.slice(0, 6);
+    const previewCards = Array.from({ length: 9 });
     return (
         <section className="bg-[#F2EDE4] py-24">
             <div className="mx-auto max-w-6xl px-6">
@@ -36,13 +39,11 @@ const Explore: React.FC = () => {
                 {/* Product Cards */}
                 <div className="relative mt-16 max-h-[1000px] overflow-hidden">
                     <div className="grid gap-8 md:grid-cols-3">
-                        {products.map((product, idx) => (
+                        {visibleProducts.map((product) => (
                             <Link
                                 key={product.id}
-                                href={route('product.details', product.slug)}
-                                className={`group block overflow-hidden bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${
-                                    idx >= products.length - 3 ? 'pointer-events-none opacity-70 blur-[2px] grayscale' : ''
-                                }`}
+                                href={route('product.details', { document: product.slug })}
+                                className="group block overflow-hidden bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
                             >
                                 <div className="overflow-hidden">
                                     <img
@@ -65,16 +66,38 @@ const Explore: React.FC = () => {
                             </Link>
                         ))}
 
-                        <div className="absolute inset-x-0 bottom-20 z-20 flex justify-center">
-                            <Link
-                                href={route('product.details.index')}
-                                className="bg-[#3D2B1F] px-8 py-3 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-[#5A4638]"
+                        {previewCards.map((_, idx) => (
+                            <div
+                                key={`preview-${idx}`}
+                                aria-hidden="true"
+                                className="pointer-events-none overflow-hidden bg-white opacity-40 shadow-sm blur-[2px] grayscale select-none"
                             >
-                                More Products
-                            </Link>
-                        </div>
-                    </div>
+                                <div className="overflow-hidden">
+                                    <img src="/images/products/placeholder.webp" alt="" className="h-60 w-full object-cover object-center" />
+                                </div>
 
+                                <div className="p-6">
+                                    <div className="mb-3 flex items-center justify-between border-b border-[#E6DED2] pb-3">
+                                        <div className="h-6 w-32 rounded bg-[#E6DED2]" />
+                                        <div className="h-6 w-14 rounded bg-[#E6DED2]" />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <div className="h-4 w-full rounded bg-[#E6DED2]" />
+                                        <div className="h-4 w-5/6 rounded bg-[#E6DED2]" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="absolute inset-x-0 bottom-20 z-20 flex justify-center">
+                        <Link
+                            href={route('product.details.index')}
+                            className="bg-[#3D2B1F] px-8 py-3 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-[#5A4638]"
+                        >
+                            More Products
+                        </Link>
+                    </div>
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#F2EDE4] to-transparent"></div>
                 </div>
             </div>

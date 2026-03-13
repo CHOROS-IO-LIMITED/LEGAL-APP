@@ -103,6 +103,7 @@ const ProductDetails: React.FC = () => {
                     </div>
 
                     <div className="grid gap-12 md:grid-cols-2">
+                        {/* LEFT */}
                         <div className="space-y-3">
                             {products.map((product) => {
                                 const checked = selectedProducts.includes(product.id);
@@ -132,12 +133,12 @@ const ProductDetails: React.FC = () => {
                             })}
                         </div>
 
+                        {/* RIGHT */}
                         <div className="flex flex-col items-center">
                             <div className="relative h-[400px] w-full max-w-sm">
                                 {selectedProducts.length > 1 && (
                                     <>
                                         <button
-                                            type="button"
                                             onClick={rotateLeft}
                                             className="absolute top-1/2 -left-12 z-30 -translate-y-1/2 cursor-pointer rounded-full bg-white/80 p-2 shadow-md backdrop-blur hover:bg-white"
                                         >
@@ -145,7 +146,6 @@ const ProductDetails: React.FC = () => {
                                         </button>
 
                                         <button
-                                            type="button"
                                             onClick={rotateRight}
                                             className="absolute top-1/2 -right-12 z-30 -translate-y-1/2 cursor-pointer rounded-full bg-white/80 p-2 shadow-md backdrop-blur hover:bg-white"
                                         >
@@ -170,10 +170,11 @@ const ProductDetails: React.FC = () => {
                                         return (
                                             <div
                                                 key={product.id}
-                                                className="absolute bottom-0 w-full max-w-sm rounded-2xl bg-white shadow-md transition-all duration-500"
+                                                className="absolute w-full max-w-sm rounded-2xl bg-white shadow-md transition-all duration-500"
                                                 style={{
                                                     transform: `translateX(${translateX}px) rotate(${rotateDeg}deg)`,
                                                     zIndex: stackIndex + 1,
+                                                    bottom: 0,
                                                 }}
                                             >
                                                 <img
@@ -204,15 +205,15 @@ const ProductDetails: React.FC = () => {
                                 )}
                             </div>
 
+                            {/* CHECKOUT AREA */}
+
                             {selectedProducts.length > 0 && (
                                 <>
+                                    {/* LOGGED IN */}
                                     {auth.user && (
                                         <Dialog>
                                             <DialogTrigger asChild>
-                                                <button
-                                                    type="button"
-                                                    className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]"
-                                                >
+                                                <button className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]">
                                                     Checkout ({selectedProducts.length})
                                                     <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                                                 </button>
@@ -257,13 +258,11 @@ const ProductDetails: React.FC = () => {
                                         </Dialog>
                                     )}
 
+                                    {/* GUEST */}
                                     {!auth.user && (
                                         <Dialog>
                                             <DialogTrigger asChild>
-                                                <button
-                                                    type="button"
-                                                    className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]"
-                                                >
+                                                <button className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]">
                                                     Checkout ({selectedProducts.length})
                                                     <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                                                 </button>
@@ -272,6 +271,7 @@ const ProductDetails: React.FC = () => {
                                             <DialogContent className="max-w-sm">
                                                 <DialogHeader>
                                                     <DialogTitle>Login Required</DialogTitle>
+
                                                     <DialogDescription>You must sign in before continuing to checkout.</DialogDescription>
                                                 </DialogHeader>
 
