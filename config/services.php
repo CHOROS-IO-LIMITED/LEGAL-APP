@@ -41,4 +41,9 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'complycube' => [
+        'key' => env('COMPLYCUBE_API_KEY'),
+        'url' => env('COMPLYCUBE_BASE_URL'),
+    ],
+
 ];
