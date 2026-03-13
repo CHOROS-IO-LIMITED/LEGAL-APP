@@ -5,12 +5,15 @@ export default function AboutMission() {
         <section className="bg-[#FCF9F2] py-24">
             <div className="mx-auto max-w-6xl">
                 <div
-                    className="bg-cover bg-fixed bg-center py-12"
+                    className="relative bg-cover bg-fixed bg-center py-12"
                     style={{
                         backgroundImage: "url('/images/about/mission/about-mission.webp')",
                     }}
                 >
-                    <div className="grid grid-cols-1 px-6 md:grid-cols-2 md:px-12 lg:px-12">
+                    {/* Dark overlay */}
+                    <div className="absolute inset-0 bg-black/20"></div>
+
+                    <div className="relative z-10 grid grid-cols-1 px-6 md:grid-cols-2 md:px-12 lg:px-12">
                         <div className="bg-white p-10">
                             <h2 className="mb-6 font-serif text-3xl text-[#2E2A26] md:text-4xl">Our Mission</h2>
 

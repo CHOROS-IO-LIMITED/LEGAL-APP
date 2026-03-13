@@ -1,9 +1,13 @@
 import Header from '@/components/web/Header';
 
-import Feature from './Feature/Index';
-import Hero from './HomeHero/Index';
 import Footer from '@/components/web/Footer';
 import CookieConsent from '../Legal/CookieConsent';
+import Feature from './Feature/HomeFeature';
+import HomeCTA from './HomeCTA/HomeCTA';
+import HomeFAQ from './HomeFAQ/HomeFAQ';
+import Hero from './HomeHero/Index';
+import HomeOffer from './HomeOffer/HomeOffer';
+import HomePowered from './HomePowered/HomePowered';
 
 export default function Index() {
     return (
@@ -11,6 +15,10 @@ export default function Index() {
             <Header />
             <Hero />
             <Feature />
+            <HomePowered />
+            <HomeOffer />
+            <HomeFAQ />
+            <HomeCTA />
             <Footer />
             <CookieConsent />
         </div>

@@ -2,13 +2,13 @@ import { Quote } from 'lucide-react';
 
 const founders = [
     {
-        name: '(Name) Denver',
+        name: '(Name) Danver',
         role: 'Founder of LegalDocs',
         image: '/images/about/founders/founder-1.webp',
         quote: 'I started LegalDocs with the belief that creating legal documents should not be complicated or intimidating. My goal was to build a platform that helps people generate clear, reliable documents quickly.',
     },
     {
-        name: '(Name) Denver',
+        name: '(Name) Danver',
         role: 'Co-Founder of LegalDocs',
         image: '/images/about/founders/founder-2.webp',
         quote: 'Our goal with LegalDocs was to remove the friction people often face when creating legal documents by providing structured templates and a simple workflow.',

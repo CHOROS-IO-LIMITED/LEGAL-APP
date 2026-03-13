@@ -48,10 +48,11 @@ export default function ProductProcess() {
                 </div>
 
                 <div
-                    className="flex min-h-[420px] items-center bg-cover bg-fixed bg-center py-12 md:min-h-[460px]"
+                    className="relative flex min-h-[420px] items-center bg-cover bg-fixed bg-center py-12 md:min-h-[460px]"
                     style={{ backgroundImage: `url('${step.image}')` }}
                 >
-                    <div className="grid grid-cols-1 px-6 md:grid-cols-2 md:px-12">
+                    <div className="absolute inset-0 bg-black/20"></div>
+                    <div className="relative z-10 grid grid-cols-1 px-6 md:grid-cols-2 md:px-12">
                         <div className="border border-[#E8E2D6] bg-white p-10 shadow-sm">
                             <h3 className="mb-6 font-serif text-3xl text-[#2E2A26]">{step.title}</h3>
 
@@ -64,7 +65,7 @@ export default function ProductProcess() {
                                     <button
                                         key={i}
                                         onClick={() => setStepIndex(i)}
-                                        className={`h-2 cursor-pointer rounded-full transition-all duration-300 ${
+                                        className={`h-2 cursor-pointer transition-all duration-300 ${
                                             stepIndex === i ? 'w-8 bg-white' : 'w-2 bg-white/60 hover:bg-white'
                                         }`}
                                     />
