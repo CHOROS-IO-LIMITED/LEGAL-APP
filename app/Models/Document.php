@@ -15,7 +15,6 @@ class Document extends Model
         'user_id',
         'title',
         'slug',
-        'document_category',
         'image_path',
         'image_original_name',
         'image_mime',
@@ -52,15 +51,15 @@ class Document extends Model
         return $this->belongsTo(User::class);
     }
 
-    // public function scopeActive(Builder $query): Builder
-    // {
-    //     return $query->where('is_active', true);
-    // }
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true);
+    }
 
-    // public function scopeOrdered(Builder $query): Builder
-    // {
-    //     return $query->orderBy('sort_order')->orderBy('title');
-    // }
+    public function scopeOrdered(Builder $query): Builder
+    {
+        return $query->orderBy('sort_order')->orderBy('title');
+    }
 
     protected function imageUrl(): Attribute
     {

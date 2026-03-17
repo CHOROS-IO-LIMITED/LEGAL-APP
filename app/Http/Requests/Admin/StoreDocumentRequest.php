@@ -18,7 +18,6 @@ class StoreDocumentRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'document_category' => ['nullable', 'string', 'max:100'],
             'price' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string', 'max:5000'],
             'ai_prompt' => ['required', 'string', 'max:20000'],
@@ -31,7 +30,6 @@ class StoreDocumentRequest extends FormRequest
     {
         return [
             'title' => 'document title',
-            'document_category' => 'document category',
             'price' => 'document price',
             'ai_prompt' => 'AI instructions',
             'image' => 'preview image',
