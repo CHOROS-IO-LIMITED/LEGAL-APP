@@ -42,7 +42,29 @@ const KYC: React.FC = () => {
                                     To continue, we need to verify your identity using our secure verification partner.
                                 </p>
 
-                                <Button className="w-full bg-[#3D2B1F] text-white hover:bg-[#5A4638]">Start Verification</Button>
+                                {/* Requirements note */}
+                                <div className="w-full rounded border border-[#D9D9D9] bg-[#F9F7F2] p-4 text-sm text-[#70665E]">
+                                    <strong>Before you start, please have ready:</strong>
+                                    <ul className="mt-2 list-inside list-disc space-y-1">
+                                        <li>A valid government-issued ID (passport, national ID, or driver’s license)</li>
+                                        <li>A clear selfie or live camera for facial verification</li>
+                                        <li>Your date of birth and personal information</li>
+                                    </ul>
+                                    <p className="mt-2">Make sure your documents are clear and readable. The process will take a few minutes.</p>
+                                </div>
+
+                                {/* Powered by ComplyCube */}
+                                <div className="flex items-center justify-center space-x-2 text-xs text-[#70665E]">
+                                    <span>Powered by</span>
+                                    <img src="/images/home/offers/comply-cube-logo.png" alt="ComplyCube Logo" className="h-4 object-contain" />
+                                </div>
+
+                                <Button
+                                    className="w-full bg-[#3D2B1F] text-white hover:bg-[#5A4638]"
+                                    onClick={() => (window.location.href = '/products/details/kyc/start')}
+                                >
+                                    Start Verification
+                                </Button>
                             </CardContent>
                         </Card>
                     </div>
