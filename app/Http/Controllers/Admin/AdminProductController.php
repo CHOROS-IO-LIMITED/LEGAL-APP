@@ -30,7 +30,7 @@ class AdminProductController extends Controller
             'documents' => $documents,
             'stats' => [
                 'total_documents' => Document::count(),
-                'active_products' => Document::whereNotNull('document_path')->count(),
+                'active_products' => Document::where('is_active', true)->count(),
                 'draft_products' => Document::whereNull('document_path')->count(),
                 'top_product' => Document::query()->latest()->value('title'),
             ],

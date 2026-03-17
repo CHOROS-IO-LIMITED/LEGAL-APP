@@ -15,6 +15,7 @@ class Document extends Model
         'user_id',
         'title',
         'slug',
+        'document_category',
         'image_path',
         'image_original_name',
         'image_mime',
@@ -26,6 +27,7 @@ class Document extends Model
         'price',
         'description',
         'short_description',
+        'ai_prompt',
         'is_active',
         'is_featured',
         'sort_order',
@@ -33,11 +35,11 @@ class Document extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
-        'image_size' => 'integer',
-        'document_size' => 'integer',
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
         'sort_order' => 'integer',
+        'image_size' => 'integer',
+        'document_size' => 'integer',
     ];
 
     protected $appends = [
@@ -50,26 +52,15 @@ class Document extends Model
         return $this->belongsTo(User::class);
     }
 
+    // public function scopeActive(Builder $query): Builder
+    // {
+    //     return $query->where('is_active', true);
+    // }
 
-    public function draftItems(): HasMany
-    {
-        return $this->hasMany(DocumentDraftItem::class);
-    }
-
-    public function userDocuments(): HasMany
-    {
-        return $this->hasMany(UserDocument::class);
-    }
-
-    public function scopeActive(Builder $query): Builder
-    {
-        return $query->where('is_active', true);
-    }
-
-    public function scopeOrdered(Builder $query): Builder
-    {
-        return $query->orderBy('sort_order')->orderBy('title');
-    }
+    // public function scopeOrdered(Builder $query): Builder
+    // {
+    //     return $query->orderBy('sort_order')->orderBy('title');
+    // }
 
     protected function imageUrl(): Attribute
     {

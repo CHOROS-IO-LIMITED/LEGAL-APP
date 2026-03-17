@@ -37,7 +37,8 @@ class StoreDocumentFiles
             $payload['document_size'] = $data['document']->getSize();
         }
 
-        $payload['slug'] = Str::slug($payload['title'] ?? $document?->title ?? Str::random(8));
+        $baseTitle = $payload['title'] ?? $document?->title ?? Str::random(8);
+        $payload['slug'] = Str::slug($baseTitle) . '-' . Str::lower(Str::random(6));
 
         return $payload;
     }
