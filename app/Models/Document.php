@@ -26,6 +26,7 @@ class Document extends Model
         'price',
         'description',
         'short_description',
+        'ai_prompt',
         'is_active',
         'is_featured',
         'sort_order',
@@ -33,11 +34,11 @@ class Document extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
-        'image_size' => 'integer',
-        'document_size' => 'integer',
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
         'sort_order' => 'integer',
+        'image_size' => 'integer',
+        'document_size' => 'integer',
     ];
 
     protected $appends = [
@@ -49,7 +50,6 @@ class Document extends Model
     {
         return $this->belongsTo(User::class);
     }
-
 
     public function scopeActive(Builder $query): Builder
     {

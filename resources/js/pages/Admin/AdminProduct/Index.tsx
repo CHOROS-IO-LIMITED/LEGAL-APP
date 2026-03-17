@@ -21,10 +21,14 @@ import { router, useForm } from '@inertiajs/react';
 import { Eye, FileClock, FileText, Package, Pencil, Plus, Trash2, TrendingUp, Upload } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
+type PriceFilter = 'all' | 'highest' | 'lowest';
+type SortFilter = 'az' | 'za';
+
 type CreateDocumentForm = {
     title: string;
     price: string;
     description: string;
+    ai_prompt: string;
     image: File | null;
     document: File | null;
 };
@@ -33,6 +37,7 @@ type EditDocumentForm = {
     title: string;
     price: string;
     description: string;
+    ai_prompt: string;
     image: File | null;
     document: File | null;
     _method: 'put';
@@ -46,6 +51,8 @@ function formatPrice(value: string | number | null | undefined) {
     return new Intl.NumberFormat('en-GB', {
         style: 'currency',
         currency: 'GBP',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
     }).format(amount);
 }
 
@@ -54,14 +61,18 @@ function openFileInNewTab(url: string | null | undefined) {
     window.open(url, '_blank', 'noopener,noreferrer');
 }
 
+function revokePreview(url: string | null) {
+    if (url) URL.revokeObjectURL(url);
+}
+
 export default function ProductIndex({ user, documents, stats, can }: ProductIndexProps) {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<DocumentItem | null>(null);
     const [viewingProduct, setViewingProduct] = useState<DocumentItem | null>(null);
 
     const [search, setSearch] = useState('');
-    const [priceFilter, setPriceFilter] = useState('all');
-    const [sortFilter, setSortFilter] = useState('az');
+    const [priceFilter, setPriceFilter] = useState<PriceFilter>('all');
+    const [sortFilter, setSortFilter] = useState<SortFilter>('az');
     const [currentPage, setCurrentPage] = useState(1);
 
     const perPage = 8;
@@ -71,19 +82,11 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
     const [createDocumentPreview, setCreateDocumentPreview] = useState<string | null>(null);
     const [editDocumentPreview, setEditDocumentPreview] = useState<string | null>(null);
 
-    useEffect(() => {
-        return () => {
-            if (createImagePreview) URL.revokeObjectURL(createImagePreview);
-            if (editImagePreview) URL.revokeObjectURL(editImagePreview);
-            if (createDocumentPreview) URL.revokeObjectURL(createDocumentPreview);
-            if (editDocumentPreview) URL.revokeObjectURL(editDocumentPreview);
-        };
-    }, [createImagePreview, editImagePreview, createDocumentPreview, editDocumentPreview]);
-
     const createForm = useForm<CreateDocumentForm>({
         title: '',
         price: '',
         description: '',
+        ai_prompt: '',
         image: null,
         document: null,
     });
@@ -92,16 +95,50 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
         title: '',
         price: '',
         description: '',
+        ai_prompt: '',
         image: null,
         document: null,
         _method: 'put',
     });
 
+    const resetCreateState = () => {
+        createForm.reset();
+        createForm.clearErrors();
+
+        revokePreview(createImagePreview);
+        revokePreview(createDocumentPreview);
+
+        setCreateImagePreview(null);
+        setCreateDocumentPreview(null);
+    };
+
+    const resetEditState = () => {
+        editForm.reset();
+        editForm.clearErrors();
+        editForm.setData('_method', 'put');
+
+        revokePreview(editImagePreview);
+        revokePreview(editDocumentPreview);
+
+        setEditImagePreview(null);
+        setEditDocumentPreview(null);
+        setEditingProduct(null);
+    };
+
+    useEffect(() => {
+        return () => {
+            revokePreview(createImagePreview);
+            revokePreview(editImagePreview);
+            revokePreview(createDocumentPreview);
+            revokePreview(editDocumentPreview);
+        };
+    }, [createImagePreview, editImagePreview, createDocumentPreview, editDocumentPreview]);
+
     useEffect(() => {
         if (!editingProduct) return;
 
-        if (editImagePreview) URL.revokeObjectURL(editImagePreview);
-        if (editDocumentPreview) URL.revokeObjectURL(editDocumentPreview);
+        revokePreview(editImagePreview);
+        revokePreview(editDocumentPreview);
 
         setEditImagePreview(null);
         setEditDocumentPreview(null);
@@ -110,6 +147,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
             title: editingProduct.title ?? '',
             price: editingProduct.price ? String(editingProduct.price) : '',
             description: editingProduct.description ?? '',
+            ai_prompt: editingProduct.ai_prompt ?? '',
             image: null,
             document: null,
             _method: 'put',
@@ -122,33 +160,33 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
     const selectedEditDocumentName = useMemo(() => editForm.data.document?.name ?? null, [editForm.data.document]);
 
     const filteredDocuments = useMemo(() => {
-        let items = [...documents];
+        const keyword = search.toLowerCase().trim();
 
-        if (search.trim()) {
-            const keyword = search.toLowerCase().trim();
+        const items = documents.filter((item) => {
+            if (!keyword) return true;
 
-            items = items.filter((item) => {
-                return (
-                    item.title?.toLowerCase().includes(keyword) ||
-                    item.description?.toLowerCase().includes(keyword) ||
-                    item.document_original_name?.toLowerCase().includes(keyword)
-                );
-            });
-        }
+            return [item.title, item.slug, item.description, item.document_original_name]
+                .filter(Boolean)
+                .some((value) => String(value).toLowerCase().includes(keyword));
+        });
 
-        if (priceFilter === 'highest') {
-            items.sort((a, b) => Number(b.price ?? 0) - Number(a.price ?? 0));
-        } else if (priceFilter === 'lowest') {
-            items.sort((a, b) => Number(a.price ?? 0) - Number(b.price ?? 0));
-        }
+        return items.sort((a, b) => {
+            if (priceFilter === 'highest') {
+                const priceDiff = Number(b.price ?? 0) - Number(a.price ?? 0);
+                if (priceDiff !== 0) return priceDiff;
+            }
 
-        if (sortFilter === 'az') {
-            items.sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''));
-        } else if (sortFilter === 'za') {
-            items.sort((a, b) => (b.title ?? '').localeCompare(a.title ?? ''));
-        }
+            if (priceFilter === 'lowest') {
+                const priceDiff = Number(a.price ?? 0) - Number(b.price ?? 0);
+                if (priceDiff !== 0) return priceDiff;
+            }
 
-        return items;
+            if (sortFilter === 'za') {
+                return (b.title ?? '').localeCompare(a.title ?? '');
+            }
+
+            return (a.title ?? '').localeCompare(b.title ?? '');
+        });
     }, [documents, search, priceFilter, sortFilter]);
 
     const totalDocuments = filteredDocuments.length;
@@ -176,7 +214,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
         const file = e.target.files?.[0] ?? null;
         createForm.setData('image', file);
 
-        if (createImagePreview) URL.revokeObjectURL(createImagePreview);
+        revokePreview(createImagePreview);
 
         if (file) {
             setCreateImagePreview(URL.createObjectURL(file));
@@ -189,7 +227,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
         const file = e.target.files?.[0] ?? null;
         createForm.setData('document', file);
 
-        if (createDocumentPreview) URL.revokeObjectURL(createDocumentPreview);
+        revokePreview(createDocumentPreview);
 
         if (file) {
             setCreateDocumentPreview(URL.createObjectURL(file));
@@ -202,7 +240,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
         const file = e.target.files?.[0] ?? null;
         editForm.setData('image', file);
 
-        if (editImagePreview) URL.revokeObjectURL(editImagePreview);
+        revokePreview(editImagePreview);
 
         if (file) {
             setEditImagePreview(URL.createObjectURL(file));
@@ -215,7 +253,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
         const file = e.target.files?.[0] ?? null;
         editForm.setData('document', file);
 
-        if (editDocumentPreview) URL.revokeObjectURL(editDocumentPreview);
+        revokePreview(editDocumentPreview);
 
         if (file) {
             setEditDocumentPreview(URL.createObjectURL(file));
@@ -231,13 +269,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
-                createForm.reset();
-
-                if (createImagePreview) URL.revokeObjectURL(createImagePreview);
-                if (createDocumentPreview) URL.revokeObjectURL(createDocumentPreview);
-
-                setCreateImagePreview(null);
-                setCreateDocumentPreview(null);
+                resetCreateState();
                 setIsCreateOpen(false);
             },
         });
@@ -252,15 +284,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
-                editForm.reset();
-                editForm.setData('_method', 'put');
-
-                if (editImagePreview) URL.revokeObjectURL(editImagePreview);
-                if (editDocumentPreview) URL.revokeObjectURL(editDocumentPreview);
-
-                setEditImagePreview(null);
-                setEditDocumentPreview(null);
-                setEditingProduct(null);
+                resetEditState();
             },
         });
     };
@@ -291,14 +315,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                     setIsCreateOpen(open);
 
                                     if (!open) {
-                                        createForm.reset();
-                                        createForm.clearErrors();
-
-                                        if (createImagePreview) URL.revokeObjectURL(createImagePreview);
-                                        if (createDocumentPreview) URL.revokeObjectURL(createDocumentPreview);
-
-                                        setCreateImagePreview(null);
-                                        setCreateDocumentPreview(null);
+                                        resetCreateState();
                                     }
                                 }}
                             >
@@ -309,7 +326,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                     </Button>
                                 </DialogTrigger>
 
-                                <DialogContent className="sm:max-w-2xl">
+                                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
                                     <DialogHeader>
                                         <DialogTitle>Add Document</DialogTitle>
                                         <DialogDescription>
@@ -324,14 +341,10 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
 
                                                 <label
                                                     htmlFor="image"
-                                                    className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#D6D0C4] bg-[#FCF9F2] text-center text-xs text-[#6B635B] transition hover:border-[#B8A893] hover:bg-[#F8F3EA]"
+                                                    className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-[#D6D0C4] bg-[#FCF9F2] text-center text-xs text-[#6B635B] transition hover:border-[#B8A893] hover:bg-[#F8F3EA]"
                                                 >
                                                     {createImagePreview ? (
-                                                        <img
-                                                            src={createImagePreview}
-                                                            alt="Selected preview"
-                                                            className="h-full w-full rounded-xl object-cover"
-                                                        />
+                                                        <img src={createImagePreview} alt="Selected preview" className="h-full w-full object-cover" />
                                                     ) : selectedCreateImageName ? (
                                                         <div className="px-2 text-[#3D2B1F]">
                                                             <p className="font-medium">Selected</p>
@@ -439,6 +452,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                             variant="outline"
                                                             className="h-10 w-10 shrink-0 rounded-xl border-[#D8CFC2] bg-[#FCF9F2] text-[#3D2B1F] hover:bg-[#F5EFE6]"
                                                             onClick={() => openFileInNewTab(createDocumentPreview)}
+                                                            aria-label="Preview selected PDF"
                                                         >
                                                             <Eye className="h-4 w-4" />
                                                         </Button>
@@ -457,6 +471,19 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                 onChange={(e) => createForm.setData('description', e.target.value)}
                                             />
                                             {createForm.errors.description && <p className="text-xs text-red-500">{createForm.errors.description}</p>}
+                                        </div>
+
+                                        <div className="flex flex-col gap-2">
+                                            <Label htmlFor="ai_prompt">AI Question Instructions</Label>
+                                            <Textarea
+                                                id="ai_prompt"
+                                                placeholder="Example:
+Ask for party names, recipient count, recipient names and emails, effectivity date, address, and other required fields for this document."
+                                                className="min-h-[160px]"
+                                                value={createForm.data.ai_prompt}
+                                                onChange={(e) => createForm.setData('ai_prompt', e.target.value)}
+                                            />
+                                            {createForm.errors.ai_prompt && <p className="text-xs text-red-500">{createForm.errors.ai_prompt}</p>}
                                         </div>
 
                                         <DialogFooter className="gap-2">
@@ -545,7 +572,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
-                            <Select value={priceFilter} onValueChange={setPriceFilter}>
+                            <Select value={priceFilter} onValueChange={(value) => setPriceFilter(value as PriceFilter)}>
                                 <SelectTrigger className="w-[160px] border-[#E7E1D7] bg-white">
                                     <SelectValue placeholder="Price filter" />
                                 </SelectTrigger>
@@ -556,7 +583,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                 </SelectContent>
                             </Select>
 
-                            <Select value={sortFilter} onValueChange={setSortFilter}>
+                            <Select value={sortFilter} onValueChange={(value) => setSortFilter(value as SortFilter)}>
                                 <SelectTrigger className="w-[140px] border-[#E7E1D7] bg-white">
                                     <SelectValue placeholder="Sort" />
                                 </SelectTrigger>
@@ -596,10 +623,13 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                     src={product.image_url || '/images/products/placeholder.webp'}
                                                     alt={product.title}
                                                     className="h-full w-full object-cover"
+                                                    onError={(e) => {
+                                                        e.currentTarget.src = '/images/products/placeholder.webp';
+                                                    }}
                                                 />
                                             </div>
 
-                                            <div className="flex flex-1 flex-col gap-2">
+                                            <div className="flex min-w-0 flex-1 flex-col gap-2">
                                                 <div className="flex items-center justify-between gap-3">
                                                     <TooltipProvider>
                                                         <Tooltip>
@@ -622,18 +652,43 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                 <p className="line-clamp-3 text-sm leading-relaxed text-[#6B635B]">
                                                     {product.description || 'No description provided.'}
                                                 </p>
+
+                                                <div className="flex flex-wrap items-center gap-2 pt-1">
+                                                    <span
+                                                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                                                            product.is_active ? 'bg-[#EAF7EE] text-[#1F7A3D]' : 'bg-[#F5EDED] text-[#A94442]'
+                                                        }`}
+                                                    >
+                                                        {product.is_active ? 'Active' : 'Draft'}
+                                                    </span>
+                                                </div>
                                             </div>
 
                                             <div className="flex items-center justify-end gap-2 sm:flex-col sm:items-center sm:justify-center">
-                                                <Button variant="ghost" size="icon" onClick={() => setViewingProduct(product)}>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => setViewingProduct(product)}
+                                                    aria-label={`View ${product.title}`}
+                                                >
                                                     <Eye className="h-4 w-4" />
                                                 </Button>
 
-                                                <Button variant="ghost" size="icon" onClick={() => setEditingProduct(product)}>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => setEditingProduct(product)}
+                                                    aria-label={`Edit ${product.title}`}
+                                                >
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
 
-                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(product)}>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => handleDelete(product)}
+                                                    aria-label={`Delete ${product.title}`}
+                                                >
                                                     <Trash2 className="h-4 w-4 text-red-500" />
                                                 </Button>
                                             </div>
@@ -676,20 +731,11 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                         open={!!editingProduct}
                         onOpenChange={(open) => {
                             if (!open) {
-                                setEditingProduct(null);
-                                editForm.reset();
-                                editForm.setData('_method', 'put');
-                                editForm.clearErrors();
-
-                                if (editImagePreview) URL.revokeObjectURL(editImagePreview);
-                                if (editDocumentPreview) URL.revokeObjectURL(editDocumentPreview);
-
-                                setEditImagePreview(null);
-                                setEditDocumentPreview(null);
+                                resetEditState();
                             }
                         }}
                     >
-                        <DialogContent className="sm:max-w-2xl">
+                        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
                             <DialogHeader>
                                 <DialogTitle>Edit Document</DialogTitle>
                                 <DialogDescription>Update the details of this legal document.</DialogDescription>
@@ -706,11 +752,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                 className="flex h-32 w-32 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-[#D6D0C4] bg-[#FCF9F2]"
                                             >
                                                 {editImagePreview ? (
-                                                    <img
-                                                        src={editImagePreview}
-                                                        alt="Selected preview"
-                                                        className="h-full w-full rounded-xl object-cover"
-                                                    />
+                                                    <img src={editImagePreview} alt="Selected preview" className="h-full w-full object-cover" />
                                                 ) : selectedEditImageName ? (
                                                     <div className="px-2 text-center text-[#3D2B1F]">
                                                         <p className="font-medium">Selected</p>
@@ -721,6 +763,9 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                         src={editingProduct.image_url}
                                                         alt={editingProduct.title}
                                                         className="h-full w-full object-cover"
+                                                        onError={(e) => {
+                                                            e.currentTarget.src = '/images/products/placeholder.webp';
+                                                        }}
                                                     />
                                                 ) : (
                                                     <div className="flex flex-col items-center gap-2 text-xs text-[#6B635B]">
@@ -824,6 +869,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                         variant="outline"
                                                         className="h-10 w-10 shrink-0 rounded-xl border-[#D8CFC2] bg-[#FCF9F2] text-[#3D2B1F] hover:bg-[#F5EFE6]"
                                                         onClick={() => openFileInNewTab(editDocumentPreview || editingProduct.document_url)}
+                                                        aria-label={`Preview PDF for ${editingProduct.title}`}
                                                     >
                                                         <Eye className="h-4 w-4" />
                                                     </Button>
@@ -843,7 +889,19 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                         {editForm.errors.description && <p className="text-xs text-red-500">{editForm.errors.description}</p>}
                                     </div>
 
-                                    <DialogFooter>
+                                    <div className="flex flex-col gap-2">
+                                        <Label htmlFor="edit-ai-prompt">AI Question Instructions</Label>
+                                        <Textarea
+                                            id="edit-ai-prompt"
+                                            value={editForm.data.ai_prompt}
+                                            onChange={(e) => editForm.setData('ai_prompt', e.target.value)}
+                                            className="min-h-[160px]"
+                                            placeholder="Describe what Gemini should ask the client for this legal document."
+                                        />
+                                        {editForm.errors.ai_prompt && <p className="text-xs text-red-500">{editForm.errors.ai_prompt}</p>}
+                                    </div>
+
+                                    <DialogFooter className="gap-2">
                                         <DialogClose asChild>
                                             <Button type="button" variant="outline" disabled={editForm.processing}>
                                                 Cancel
@@ -874,6 +932,9 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                 src={viewingProduct.image_url || '/images/products/placeholder.webp'}
                                                 alt={viewingProduct.title}
                                                 className="h-full w-full object-cover"
+                                                onError={(e) => {
+                                                    e.currentTarget.src = '/images/products/placeholder.webp';
+                                                }}
                                             />
                                         </div>
 
@@ -898,8 +959,28 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                 </span>
                                             </div>
 
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span
+                                                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                                                        viewingProduct.is_active ? 'bg-[#EAF7EE] text-[#1F7A3D]' : 'bg-[#F5EDED] text-[#A94442]'
+                                                    }`}
+                                                >
+                                                    {viewingProduct.is_active ? 'Active' : 'Draft'}
+                                                </span>
+                                            </div>
+
                                             <p className="max-w-full text-sm leading-relaxed break-words text-[#6B635B]">
                                                 {viewingProduct.description || 'No description provided.'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-6 flex min-w-0 flex-col gap-3">
+                                        <h3 className="text-sm font-medium text-[#1A1614]">AI Instructions</h3>
+
+                                        <div className="rounded-2xl border border-[#E7E1D7] bg-white p-4 shadow-sm">
+                                            <p className="text-sm leading-relaxed break-words text-[#6B635B]">
+                                                {viewingProduct.ai_prompt || 'No AI instructions provided.'}
                                             </p>
                                         </div>
                                     </div>
@@ -931,6 +1012,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                     disabled={!viewingProduct.document_url}
                                                     onClick={() => openFileInNewTab(viewingProduct.document_url)}
                                                     className="h-10 w-10 flex-shrink-0 rounded-xl border-[#D8CFC2] bg-[#FCF9F2] text-[#3D2B1F] hover:bg-[#F5EFE6] disabled:cursor-not-allowed disabled:border-[#E7E1D7] disabled:bg-[#F5F2EC] disabled:text-[#B7AEA2]"
+                                                    aria-label={`Open PDF for ${viewingProduct.title}`}
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </Button>
