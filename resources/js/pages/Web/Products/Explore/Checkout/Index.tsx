@@ -24,7 +24,7 @@ const Checkout: React.FC = () => {
                     {/* Title Block */}
                     <div className="flex flex-col items-center text-center">
                         <Link
-                            href={route('product.details')}
+                            href={route('product.details.index')}
                             className="group mb-4 inline-flex items-center font-medium text-[#3D2B1F] transition-colors duration-200 hover:text-[#5A4638]"
                         >
                             <ArrowLeft size={18} className="mr-2 transition-transform duration-200 group-hover:-translate-x-1" />

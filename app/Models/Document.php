@@ -51,16 +51,6 @@ class Document extends Model
     }
 
 
-    public function draftItems(): HasMany
-    {
-        return $this->hasMany(DocumentDraftItem::class);
-    }
-
-    public function userDocuments(): HasMany
-    {
-        return $this->hasMany(UserDocument::class);
-    }
-
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);

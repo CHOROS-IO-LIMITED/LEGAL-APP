@@ -12,12 +12,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/products', [ProductController::class, 'index'])->name('products');
 
 // step 2: kyc
-//  Route::get('/products/details/kyc', [KYCController::class, 'index'])->name('product.kyc');
-Route::middleware('auth')->group(function () {
-
-    Route::get('/kyc', [KYCController::class, 'index'])->name('kyc.index');
-
-    Route::post('/kyc/start', [KYCController::class, 'start']);
+Route::middleware(['auth'])->group(function () {
+    Route::get('/products/details/kyc', [KYCController::class, 'index'])->name('product.kyc');
+    Route::get('/products/details/kyc/start', [KYCController::class, 'startKyc'])->name('kyc.start');
+    Route::get('/products/details/kyc/success', [KYCController::class, 'success'])->name('kyc.success');
+    Route::get('/products/details/kyc/cancel/{document:slug?}', [KYCController::class, 'cancel'])->name('kyc.cancel');
 });
 
 // step 2:
