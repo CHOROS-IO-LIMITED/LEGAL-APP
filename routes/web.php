@@ -34,3 +34,4 @@ require __DIR__ . '/Web/contacts.php';
 require __DIR__ . '/Web/blogs.php';
 require __DIR__ . '/Web/about.php';
 require __DIR__ . '/Web/legal.php';
+require __DIR__ . '/Web/api.php';
