@@ -126,7 +126,7 @@ const QuestionAndAnswer: React.FC = () => {
                     {/* Title */}
                     <div className="flex flex-col items-center text-center">
                         <Link
-                            href={route('product.details')}
+                            href={route('product.details.index')}
                             className="group mb-4 inline-flex items-center font-medium text-[#3D2B1F] hover:text-[#5A4638]"
                         >
                             <ArrowLeft size={18} className="mr-2 transition group-hover:-translate-x-1" />
