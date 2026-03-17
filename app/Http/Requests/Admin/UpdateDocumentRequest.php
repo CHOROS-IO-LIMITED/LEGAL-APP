@@ -22,8 +22,21 @@ class UpdateDocumentRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string', 'max:5000'],
+            'ai_prompt' => ['required', 'string', 'max:20000'],
             'image' => ImageFileValidationRules::make(false),
             'document' => DocumentFileValidationRules::make(false),
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'title' => 'document title',
+            'price' => 'document price',
+            'description' => 'document description',
+            'ai_prompt' => 'AI instructions',
+            'image' => 'preview image',
+            'document' => 'PDF template',
         ];
     }
 }

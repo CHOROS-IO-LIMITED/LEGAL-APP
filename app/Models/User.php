@@ -54,14 +54,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(Document::class);
     }
-
-    // public function documentDrafts(): HasMany
-    // {
-    //     return $this->hasMany(DocumentDraft::class);
-    // }
-
-    // public function userDocuments(): HasMany
-    // {
-    //     return $this->hasMany(UserDocument::class);
-    // }
 }

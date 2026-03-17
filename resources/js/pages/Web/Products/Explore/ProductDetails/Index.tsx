@@ -248,7 +248,7 @@ const ProductDetails: React.FC = () => {
 
                                                 <DialogFooter>
                                                     <Link
-                                                        href={route('kyc.index')}
+                                                        href={route('product.kyc')}
                                                         className="rounded-md bg-[#3D2B1F] px-4 py-2 text-white hover:bg-[#5A4638]"
                                                     >
                                                         Continue to KYC
