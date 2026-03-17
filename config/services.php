@@ -41,14 +41,9 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
-    'complycube' => [
-        'key' => env('COMPLYCUBE_API_KEY'),
-        'url' => env('COMPLYCUBE_BASE_URL'),
-    ],
-
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
-        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+        'model' => env('GEMINI_MODEL', 'gemini-3-flash'),
     ],
 
 ];
