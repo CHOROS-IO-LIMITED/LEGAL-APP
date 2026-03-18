@@ -28,7 +28,6 @@ type CreateDocumentForm = {
     title: string;
     price: string;
     description: string;
-    ai_prompt: string;
     image: File | null;
     document: File | null;
 };
@@ -37,7 +36,6 @@ type EditDocumentForm = {
     title: string;
     price: string;
     description: string;
-    ai_prompt: string;
     image: File | null;
     document: File | null;
     _method: 'put';
@@ -86,7 +84,6 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
         title: '',
         price: '',
         description: '',
-        ai_prompt: '',
         image: null,
         document: null,
     });
@@ -95,7 +92,6 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
         title: '',
         price: '',
         description: '',
-        ai_prompt: '',
         image: null,
         document: null,
         _method: 'put',
@@ -147,7 +143,6 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
             title: editingProduct.title ?? '',
             price: editingProduct.price ? String(editingProduct.price) : '',
             description: editingProduct.description ?? '',
-            ai_prompt: editingProduct.ai_prompt ?? '',
             image: null,
             document: null,
             _method: 'put',
@@ -471,19 +466,6 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                 onChange={(e) => createForm.setData('description', e.target.value)}
                                             />
                                             {createForm.errors.description && <p className="text-xs text-red-500">{createForm.errors.description}</p>}
-                                        </div>
-
-                                        <div className="flex flex-col gap-2">
-                                            <Label htmlFor="ai_prompt">AI Question Instructions</Label>
-                                            <Textarea
-                                                id="ai_prompt"
-                                                placeholder="Example:
-Ask for party names, recipient count, recipient names and emails, effectivity date, address, and other required fields for this document."
-                                                className="min-h-[160px]"
-                                                value={createForm.data.ai_prompt}
-                                                onChange={(e) => createForm.setData('ai_prompt', e.target.value)}
-                                            />
-                                            {createForm.errors.ai_prompt && <p className="text-xs text-red-500">{createForm.errors.ai_prompt}</p>}
                                         </div>
 
                                         <DialogFooter className="gap-2">
@@ -889,18 +871,6 @@ Ask for party names, recipient count, recipient names and emails, effectivity da
                                         {editForm.errors.description && <p className="text-xs text-red-500">{editForm.errors.description}</p>}
                                     </div>
 
-                                    <div className="flex flex-col gap-2">
-                                        <Label htmlFor="edit-ai-prompt">AI Question Instructions</Label>
-                                        <Textarea
-                                            id="edit-ai-prompt"
-                                            value={editForm.data.ai_prompt}
-                                            onChange={(e) => editForm.setData('ai_prompt', e.target.value)}
-                                            className="min-h-[160px]"
-                                            placeholder="Describe what Gemini should ask the client for this legal document."
-                                        />
-                                        {editForm.errors.ai_prompt && <p className="text-xs text-red-500">{editForm.errors.ai_prompt}</p>}
-                                    </div>
-
                                     <DialogFooter className="gap-2">
                                         <DialogClose asChild>
                                             <Button type="button" variant="outline" disabled={editForm.processing}>
@@ -971,16 +941,6 @@ Ask for party names, recipient count, recipient names and emails, effectivity da
 
                                             <p className="max-w-full text-sm leading-relaxed break-words text-[#6B635B]">
                                                 {viewingProduct.description || 'No description provided.'}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-6 flex min-w-0 flex-col gap-3">
-                                        <h3 className="text-sm font-medium text-[#1A1614]">AI Instructions</h3>
-
-                                        <div className="rounded-2xl border border-[#E7E1D7] bg-white p-4 shadow-sm">
-                                            <p className="text-sm leading-relaxed break-words text-[#6B635B]">
-                                                {viewingProduct.ai_prompt || 'No AI instructions provided.'}
                                             </p>
                                         </div>
                                     </div>

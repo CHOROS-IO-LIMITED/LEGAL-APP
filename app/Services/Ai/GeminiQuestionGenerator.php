@@ -83,7 +83,6 @@ Rules:
 
 Document title: {$documentContext['title']}
 Document description: {$documentContext['description']}
-Admin AI instructions: {$documentContext['ai_prompt']}
 PROMPT;
 
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent";

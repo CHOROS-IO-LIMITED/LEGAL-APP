@@ -34,7 +34,6 @@ return new class extends Migration
             $table->decimal('price', 10, 2);
             $table->text('description')->nullable();
             $table->text('short_description')->nullable();
-            $table->longText('ai_prompt')->nullable();
 
             $table->boolean('is_active')->default(true);
             $table->boolean('is_featured')->default(false);
