@@ -20,7 +20,6 @@ class StoreDocumentRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string', 'max:5000'],
-            'ai_prompt' => ['required', 'string', 'max:20000'],
             'image' => ImageFileValidationRules::make(false),
             'document' => DocumentFileValidationRules::make(true),
         ];
@@ -31,7 +30,6 @@ class StoreDocumentRequest extends FormRequest
         return [
             'title' => 'document title',
             'price' => 'document price',
-            'ai_prompt' => 'AI instructions',
             'image' => 'preview image',
             'document' => 'PDF template',
         ];

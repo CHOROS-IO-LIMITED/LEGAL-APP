@@ -26,7 +26,6 @@ class Document extends Model
         'price',
         'description',
         'short_description',
-        'ai_prompt',
         'is_active',
         'is_featured',
         'sort_order',
