@@ -16,6 +16,10 @@ class UserDocument extends Model
     public const STATUS_SELECTED = 'selected';
     public const STATUS_KYC_PENDING = 'kyc_pending';
     public const STATUS_KYC_COMPLETED = 'kyc_completed';
+    public const STATUS_CHECKOUT_PENDING = 'checkout_pending';
+    public const STATUS_CHECKOUT_COMPLETED = 'checkout_completed';
+    public const STATUS_VERIFICATION_PENDING = 'verification_pending';
+    public const STATUS_VERIFICATION_COMPLETED = 'verification_completed';
     public const STATUS_QNA_PENDING = 'qna_pending';
     public const STATUS_QNA_COMPLETED = 'qna_completed';
     public const STATUS_PDF_GENERATED = 'pdf_generated';

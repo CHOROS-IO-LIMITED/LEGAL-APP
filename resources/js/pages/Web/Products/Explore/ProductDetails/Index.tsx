@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Header from '@/components/web/Header';
 import Stepper from '@/components/web/Stepper';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 
@@ -36,6 +36,7 @@ const ProductDetails: React.FC = () => {
 
     const [selectedProducts, setSelectedProducts] = useState<number[]>(selectedProductId ? [selectedProductId] : []);
     const [errorProductId, setErrorProductId] = useState<number | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const toggleProduct = (productId: number) => {
         if (selectedProducts.includes(productId)) {
@@ -66,6 +67,23 @@ const ProductDetails: React.FC = () => {
             const last = prev[prev.length - 1];
             return [last, ...prev.slice(0, -1)];
         });
+    };
+
+    const handleContinueToKyc = () => {
+        if (selectedProducts.length === 0 || isSubmitting) return;
+
+        setIsSubmitting(true);
+
+        router.post(
+            route('product.selection.store'),
+            {
+                document_ids: selectedProducts,
+            },
+            {
+                preserveScroll: true,
+                onFinish: () => setIsSubmitting(false),
+            },
+        );
     };
 
     const steps = ['Products', 'KYC', 'Checkout', 'Verification', 'Q&A'];
@@ -103,7 +121,6 @@ const ProductDetails: React.FC = () => {
                     </div>
 
                     <div className="grid gap-12 md:grid-cols-2">
-                        {/* LEFT */}
                         <div className="space-y-3">
                             {products.map((product) => {
                                 const checked = selectedProducts.includes(product.id);
@@ -133,12 +150,12 @@ const ProductDetails: React.FC = () => {
                             })}
                         </div>
 
-                        {/* RIGHT */}
                         <div className="flex flex-col items-center">
                             <div className="relative h-[400px] w-full max-w-sm">
                                 {selectedProducts.length > 1 && (
                                     <>
                                         <button
+                                            type="button"
                                             onClick={rotateLeft}
                                             className="absolute top-1/2 -left-12 z-30 -translate-y-1/2 cursor-pointer rounded-full bg-white/80 p-2 shadow-md backdrop-blur hover:bg-white"
                                         >
@@ -146,6 +163,7 @@ const ProductDetails: React.FC = () => {
                                         </button>
 
                                         <button
+                                            type="button"
                                             onClick={rotateRight}
                                             className="absolute top-1/2 -right-12 z-30 -translate-y-1/2 cursor-pointer rounded-full bg-white/80 p-2 shadow-md backdrop-blur hover:bg-white"
                                         >
@@ -205,15 +223,15 @@ const ProductDetails: React.FC = () => {
                                 )}
                             </div>
 
-                            {/* CHECKOUT AREA */}
-
                             {selectedProducts.length > 0 && (
                                 <>
-                                    {/* LOGGED IN */}
                                     {auth.user && (
                                         <Dialog>
                                             <DialogTrigger asChild>
-                                                <button className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]">
+                                                <button
+                                                    type="button"
+                                                    className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]"
+                                                >
                                                     Checkout ({selectedProducts.length})
                                                     <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                                                 </button>
@@ -247,22 +265,26 @@ const ProductDetails: React.FC = () => {
                                                 </div>
 
                                                 <DialogFooter>
-                                                    <Link
-                                                        href={route('product.kyc')}
-                                                        className="rounded-md bg-[#3D2B1F] px-4 py-2 text-white hover:bg-[#5A4638]"
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleContinueToKyc}
+                                                        disabled={isSubmitting}
+                                                        className="rounded-md bg-[#3D2B1F] px-4 py-2 text-white hover:bg-[#5A4638] disabled:cursor-not-allowed disabled:opacity-70"
                                                     >
-                                                        Continue to KYC
-                                                    </Link>
+                                                        {isSubmitting ? 'Processing...' : 'Continue to KYC'}
+                                                    </button>
                                                 </DialogFooter>
                                             </DialogContent>
                                         </Dialog>
                                     )}
 
-                                    {/* GUEST */}
                                     {!auth.user && (
                                         <Dialog>
                                             <DialogTrigger asChild>
-                                                <button className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]">
+                                                <button
+                                                    type="button"
+                                                    className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]"
+                                                >
                                                     Checkout ({selectedProducts.length})
                                                     <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                                                 </button>
@@ -271,7 +293,6 @@ const ProductDetails: React.FC = () => {
                                             <DialogContent className="max-w-sm">
                                                 <DialogHeader>
                                                     <DialogTitle>Login Required</DialogTitle>
-
                                                     <DialogDescription>You must sign in before continuing to checkout.</DialogDescription>
                                                 </DialogHeader>
 
