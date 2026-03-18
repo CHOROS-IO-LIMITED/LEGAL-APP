@@ -57,9 +57,11 @@ Route::middleware(['auth'])->group(function () {
 
     // step 3: checkout
     Route::get('/products/details/checkout', [PaymentController::class, 'index'])->name('product.checkout');
+    Route::post('/products/details/checkout/continue', [PaymentController::class, 'continue'])->name('product.checkout.continue');
 
     // step 4: verification
     Route::get('/products/details/verify', [EmailVerificationController::class, 'index'])->name('email.verify');
+    Route::post('/products/details/verify/continue', [EmailVerificationController::class, 'continue'])->name('email.verify.continue');
 
     // step 5: qna
     Route::get('/products/details/qna', [QuestionController::class, 'index'])->name('product.qna');
