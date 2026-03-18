@@ -5,12 +5,11 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Document;
 use Inertia\Inertia;
-use Illuminate\Http\Request;
+use Inertia\Response;
 
 class ProductDetailsController extends Controller
 {
-
-    public function list()
+    public function list(): Response
     {
         $products = Document::query()
             ->active()
@@ -32,7 +31,7 @@ class ProductDetailsController extends Controller
         ]);
     }
 
-    public function index(Document $document)
+    public function index(Document $document): Response
     {
         abort_unless($document->is_active, 404);
 

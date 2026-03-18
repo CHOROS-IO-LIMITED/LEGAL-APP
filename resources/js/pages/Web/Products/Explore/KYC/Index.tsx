@@ -2,12 +2,55 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Header from '@/components/web/Header';
 import Stepper from '@/components/web/Stepper';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
+
+type PageProps = {
+    batchUuid?: string;
+} & Record<string, unknown>;
 
 const KYC: React.FC = () => {
+    const { props } = usePage<PageProps>();
+
+    const batchUuid = props.batchUuid ?? '';
+    const [isStarting, setIsStarting] = useState(false);
+
     const steps = ['Products', 'KYC', 'Checkout', 'Verification', 'Q&A'];
+
+    const startVerification = () => {
+        if (!batchUuid || isStarting) return;
+
+        setIsStarting(true);
+
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+        if (!token) {
+            console.error('CSRF token not found.');
+            setIsStarting(false);
+            return;
+        }
+
+        const form = window.document.createElement('form');
+        form.method = 'GET';
+        form.action = route('kyc.start');
+        form.style.display = 'none';
+
+        const csrfInput = window.document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = token;
+        form.appendChild(csrfInput);
+
+        const batchInput = window.document.createElement('input');
+        batchInput.type = 'hidden';
+        batchInput.name = 'batch_uuid';
+        batchInput.value = batchUuid;
+        form.appendChild(batchInput);
+
+        window.document.body.appendChild(form);
+        form.submit();
+    };
 
     return (
         <div className="min-h-screen bg-[#FCF9F2] font-sans">
@@ -42,7 +85,6 @@ const KYC: React.FC = () => {
                                     To continue, we need to verify your identity using our secure verification partner.
                                 </p>
 
-                                {/* Requirements note */}
                                 <div className="w-full rounded border border-[#D9D9D9] bg-[#F9F7F2] p-4 text-sm text-[#70665E]">
                                     <strong>Before you start, please have ready:</strong>
                                     <ul className="mt-2 list-inside list-disc space-y-1">
@@ -53,17 +95,18 @@ const KYC: React.FC = () => {
                                     <p className="mt-2">Make sure your documents are clear and readable. The process will take a few minutes.</p>
                                 </div>
 
-                                {/* Powered by ComplyCube */}
                                 <div className="flex items-center justify-center space-x-2 text-xs text-[#70665E]">
                                     <span>Powered by</span>
                                     <img src="/images/home/offers/comply-cube-logo.png" alt="ComplyCube Logo" className="h-4 object-contain" />
                                 </div>
 
                                 <Button
+                                    type="button"
                                     className="w-full bg-[#3D2B1F] text-white hover:bg-[#5A4638]"
-                                    onClick={() => (window.location.href = '/products/details/kyc/start')}
+                                    onClick={startVerification}
+                                    disabled={isStarting || !batchUuid}
                                 >
-                                    Start Verification
+                                    {isStarting ? 'Redirecting...' : 'Start Verification'}
                                 </Button>
                             </CardContent>
                         </Card>

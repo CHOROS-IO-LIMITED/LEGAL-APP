@@ -44,6 +44,8 @@ return [
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
         'model' => env('GEMINI_MODEL', 'gemini-3-flash'),
+        'timeout' => env('GEMINI_TIMEOUT', 120),
+        'template_disk' => env('GEMINI_TEMPLATE_DISK', 'private'),
     ],
 
 ];
