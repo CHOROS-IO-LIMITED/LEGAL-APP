@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { FaFacebookF, FaInstagram, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6';
+import { FaFacebookF, FaGoogle, FaInstagram, FaLinkedinIn } from 'react-icons/fa6';
 
 export default function Footer() {
     return (
@@ -9,10 +9,10 @@ export default function Footer() {
                     {/* Brand */}
                     <div>
                         <div className="flex items-center gap-3">
-                            <img src="/images/logo/logo.png" alt="LegalDocs" className="h-9 w-auto object-contain" />
+                            <img src="/images/logo/dd-logo.png" alt="LegalDocs" className="h-9 w-auto object-contain" />
 
                             <span className="bg-gradient-to-r from-[#3D2B1F] to-[#A68A64] bg-clip-text text-lg font-semibold text-transparent">
-                                LegalDocs
+                                Daver & Daver
                             </span>
                         </div>
 
@@ -27,12 +27,12 @@ export default function Footer() {
 
                         <ul className="space-y-2 text-sm text-[#70665E]">
                             <li>
-                                <Link href="/products" className="hover:text-[#1A1614]">
+                                <Link href="/products#templates" className="hover:text-[#1A1614]">
                                     Templates
                                 </Link>
                             </li>
                             <li>
-                                <Link href="#" className="hover:text-[#1A1614]">
+                                <Link href="products/details" className="hover:text-[#1A1614]">
                                     Pricing
                                 </Link>
                             </li>
@@ -50,7 +50,7 @@ export default function Footer() {
 
                         <ul className="space-y-2 text-sm text-[#70665E]">
                             <li>
-                                <Link href="/#about" className="hover:text-[#1A1614]">
+                                <Link href="/about" className="hover:text-[#1A1614]">
                                     About
                                 </Link>
                             </li>
@@ -95,7 +95,7 @@ export default function Footer() {
 
                 {/* Bottom Bar */}
                 <div className="mt-12 flex flex-col items-center justify-between gap-6 border-t border-[#E8E2D6] pt-6 md:flex-row">
-                    <p className="text-sm text-[#70665E]">© {new Date().getFullYear()} LegalDocs. All rights reserved.</p>
+                    <p className="text-sm text-[#70665E]">© {new Date().getFullYear()} Daver & Daver. All rights reserved.</p>
 
                     <div className="flex items-center gap-4">
                         <a className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E8E2D6] bg-white text-[#3D2B1F] transition hover:bg-[#F6F2EA]">
@@ -110,8 +110,13 @@ export default function Footer() {
                             <FaLinkedinIn size={14} />
                         </a>
 
-                        <a className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E8E2D6] bg-white text-[#3D2B1F] transition hover:bg-[#F6F2EA]">
-                            <FaXTwitter size={14} />
+                        <a
+                            href="https://mail.google.com/mail/?view=cm&fs=1&to=phiroze@davercorp.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E8E2D6] bg-white text-[#3D2B1F] transition hover:bg-[#F6F2EA]"
+                        >
+                            <FaGoogle size={14} />
                         </a>
                     </div>
                 </div>

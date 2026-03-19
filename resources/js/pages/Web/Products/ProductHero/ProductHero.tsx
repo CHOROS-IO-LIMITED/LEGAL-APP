@@ -1,3 +1,5 @@
+import { motion } from 'framer-motion';
+
 export default function ProductHero() {
     return (
         <div className="bg-[#FCF9F2] font-sans">
@@ -7,12 +9,26 @@ export default function ProductHero() {
 
                 {/* Content */}
                 <div className="relative mx-auto max-w-4xl px-8 text-center">
-                    <h1 className="mb-4 font-serif text-4xl text-white md:text-5xl">Legal Document Templates</h1>
+                    {/* Headline */}
+                    <motion.h1
+                        className="signature mb-4 font-serif text-4xl text-white md:text-5xl"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, ease: 'easeOut' }}
+                    >
+                        Legal Document Templates.
+                    </motion.h1>
 
-                    <p className="text-lg text-white/90">
+                    {/* Description */}
+                    <motion.p
+                        className="text-base text-white/90"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
+                    >
                         Browse professionally structured legal document templates. Answer a few guided questions and generate ready-to-use agreements
                         in minutes.
-                    </p>
+                    </motion.p>
                 </div>
             </section>
         </div>
