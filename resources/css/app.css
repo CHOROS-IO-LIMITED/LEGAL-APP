@@ -201,3 +201,25 @@
         stroke-dashoffset: -125;
     }
 }
+
+@font-face {
+    font-family: 'Neue Montreal';
+    src: url('/fonts/NeueMontreal-Regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Aristiq Signature';
+    src: url('/fonts/AristiqSignature.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body p {
+    font-family: 'Neue Montreal', sans-serif !important;
+}
+
+.signature {
+    font-family: 'Aristiq Signature', cursive;
+}

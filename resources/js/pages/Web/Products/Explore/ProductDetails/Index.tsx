@@ -128,7 +128,7 @@ const ProductDetails: React.FC = () => {
                                 return (
                                     <label
                                         key={product.id}
-                                        className={`flex cursor-pointer items-center justify-between rounded-lg border bg-white p-4 transition-all duration-200 ${
+                                        className={`flex cursor-pointer items-center justify-between rounded-none border bg-white p-4 transition-all duration-200 ${
                                             errorProductId === product.id
                                                 ? 'animate-shake border-red-500 ring-2 ring-red-300'
                                                 : checked
@@ -157,7 +157,7 @@ const ProductDetails: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={rotateLeft}
-                                            className="absolute top-1/2 -left-12 z-30 -translate-y-1/2 cursor-pointer rounded-full bg-white/80 p-2 shadow-md backdrop-blur hover:bg-white"
+                                            className="absolute top-1/2 -left-12 z-30 -translate-y-1/2 cursor-pointer rounded-none bg-white/80 p-2 shadow-md backdrop-blur hover:bg-white"
                                         >
                                             <ChevronLeft size={20} />
                                         </button>
@@ -165,7 +165,7 @@ const ProductDetails: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={rotateRight}
-                                            className="absolute top-1/2 -right-12 z-30 -translate-y-1/2 cursor-pointer rounded-full bg-white/80 p-2 shadow-md backdrop-blur hover:bg-white"
+                                            className="absolute top-1/2 -right-12 z-30 -translate-y-1/2 cursor-pointer rounded-none bg-white/80 p-2 shadow-md backdrop-blur hover:bg-white"
                                         >
                                             <ChevronRight size={20} />
                                         </button>
@@ -173,7 +173,7 @@ const ProductDetails: React.FC = () => {
                                 )}
 
                                 {selectedProducts.length === 0 ? (
-                                    <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-[#E8E2D6] bg-white text-[#70665E]">
+                                    <div className="flex h-full items-center justify-center rounded-none border border-dashed border-[#E8E2D6] bg-white text-[#70665E]">
                                         Select documents to preview
                                     </div>
                                 ) : (
@@ -188,7 +188,7 @@ const ProductDetails: React.FC = () => {
                                         return (
                                             <div
                                                 key={product.id}
-                                                className="absolute w-full max-w-sm rounded-2xl bg-white shadow-md transition-all duration-500"
+                                                className="absolute w-full max-w-sm rounded-none bg-white shadow-md transition-all duration-500"
                                                 style={{
                                                     transform: `translateX(${translateX}px) rotate(${rotateDeg}deg)`,
                                                     zIndex: stackIndex + 1,
@@ -198,7 +198,7 @@ const ProductDetails: React.FC = () => {
                                                 <img
                                                     src={product.image_url ?? '/images/products/placeholder.webp'}
                                                     alt={product.title}
-                                                    className="h-60 w-full rounded-t-2xl object-cover"
+                                                    className="h-60 w-full rounded-none object-cover"
                                                 />
 
                                                 <div className="flex flex-col p-6">
@@ -211,7 +211,7 @@ const ProductDetails: React.FC = () => {
                                                     <div className="mb-4 flex items-center justify-between">
                                                         <span className="text-lg font-bold text-[#3D2B1F]">£{product.price}</span>
 
-                                                        <span className="inline-flex items-center gap-1 rounded-full border border-green-600 bg-green-100/70 px-3 py-1 text-xs font-semibold text-green-600">
+                                                        <span className="inline-flex items-center gap-1 rounded-none border border-green-600 bg-green-100/70 px-3 py-1 text-xs font-semibold text-green-600">
                                                             <Check size={14} />
                                                             Lawyer Included
                                                         </span>
@@ -230,14 +230,14 @@ const ProductDetails: React.FC = () => {
                                             <DialogTrigger asChild>
                                                 <button
                                                     type="button"
-                                                    className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]"
+                                                    className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-none bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]"
                                                 >
                                                     Checkout ({selectedProducts.length})
                                                     <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                                                 </button>
                                             </DialogTrigger>
 
-                                            <DialogContent>
+                                            <DialogContent className="rounded-none">
                                                 <DialogHeader>
                                                     <DialogTitle>Confirm Your Purchase</DialogTitle>
                                                     <DialogDescription>You're about to purchase the following documents.</DialogDescription>
@@ -245,18 +245,18 @@ const ProductDetails: React.FC = () => {
 
                                                 <div className="space-y-3">
                                                     {selectedProductObjects.map((product) => (
-                                                        <div key={product.id} className="flex items-center justify-between rounded-md border p-3">
+                                                        <div key={product.id} className="flex items-center justify-between rounded-none border p-3">
                                                             <span className="font-medium">{product.title}</span>
                                                             <span className="font-semibold">£{product.price}</span>
                                                         </div>
                                                     ))}
 
-                                                    <div className="flex items-center justify-between border-t pt-3 font-semibold">
+                                                    <div className="mt-3 flex items-center justify-between rounded-none border border-[#A68A64] bg-[#FFF8E5] px-4 py-3 font-semibold">
                                                         <span>Total</span>
                                                         <span>£{totalPrice}</span>
                                                     </div>
 
-                                                    <div className="bg-muted flex items-start gap-2 rounded-md p-3 text-sm">
+                                                    <div className="bg-muted flex items-start gap-2 p-3 text-sm">
                                                         <ShieldCheck className="mt-0.5 h-4 w-4 text-green-600" />
                                                         <p className="text-muted-foreground">
                                                             We need to verify your identity before completing your purchase.
@@ -269,7 +269,7 @@ const ProductDetails: React.FC = () => {
                                                         type="button"
                                                         onClick={handleContinueToKyc}
                                                         disabled={isSubmitting}
-                                                        className="rounded-md bg-[#3D2B1F] px-4 py-2 text-white hover:bg-[#5A4638] disabled:cursor-not-allowed disabled:opacity-70"
+                                                        className="cursor-pointer rounded-none bg-[#3D2B1F] px-4 py-2 text-white hover:bg-[#5A4638] disabled:cursor-not-allowed disabled:opacity-70"
                                                     >
                                                         {isSubmitting ? 'Processing...' : 'Continue to KYC'}
                                                     </button>
@@ -283,14 +283,14 @@ const ProductDetails: React.FC = () => {
                                             <DialogTrigger asChild>
                                                 <button
                                                     type="button"
-                                                    className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]"
+                                                    className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-none bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]"
                                                 >
                                                     Checkout ({selectedProducts.length})
                                                     <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                                                 </button>
                                             </DialogTrigger>
 
-                                            <DialogContent className="max-w-sm">
+                                            <DialogContent className="max-w-sm rounded-none">
                                                 <DialogHeader>
                                                     <DialogTitle>Login Required</DialogTitle>
                                                     <DialogDescription>You must sign in before continuing to checkout.</DialogDescription>
@@ -299,7 +299,7 @@ const ProductDetails: React.FC = () => {
                                                 <DialogFooter>
                                                     <Link
                                                         href={route('auth.login')}
-                                                        className="w-full rounded-md bg-[#3D2B1F] px-4 py-2 text-center text-white hover:bg-[#5A4638]"
+                                                        className="w-full rounded-none bg-[#3D2B1F] px-4 py-2 text-center text-white hover:bg-[#5A4638]"
                                                     >
                                                         Sign In
                                                     </Link>
