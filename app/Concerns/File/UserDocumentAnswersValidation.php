@@ -64,9 +64,29 @@ class UserDocumentAnswersValidation implements ValidationRule
             return;
         }
 
-        if ($type === 'checkbox' && ! is_bool($answer) && ! in_array($answer, [0, 1, '0', '1'], true)) {
-            $fail("{$label} must be true or false.");
-            return;
+        if ($type === 'checkbox') {
+            $options = $question['options'] ?? [];
+
+            if (count($options) === 1) {
+                if (! is_bool($answer)) {
+                    $fail("{$label} must be true or false.");
+                    return;
+                }
+            }
+
+            if (count($options) > 1) {
+                if (! is_array($answer)) {
+                    $fail("{$label} must be a list.");
+                    return;
+                }
+
+                foreach ($answer as $value) {
+                    if (! in_array($value, $options, true)) {
+                        $fail("{$label} contains an invalid option.");
+                        return;
+                    }
+                }
+            }
         }
 
         if ($type === 'select') {

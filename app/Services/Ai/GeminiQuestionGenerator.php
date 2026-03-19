@@ -12,7 +12,7 @@ class GeminiQuestionGenerator
     public function generateFromDocument(Document $document): array
     {
         $apiKey = config('services.gemini.api_key');
-        $model = config('services.gemini.model', 'gemini-3-flash-preview');
+        $model = config('services.gemini.model', 'gemini-2.5-flash');
         $timeout = (int) config('services.gemini.timeout', 120);
         $disk = config('services.gemini.template_disk', 'public_documents');
 
@@ -245,20 +245,19 @@ PROMPT;
                     ],
                 ],
             ],
+
             'contents' => [
                 [
-                    'contents' => [
+                    'role' => 'user',
+                    'parts' => array_merge(
+                        $parts,
                         [
-                            'parts' => array_merge(
-                                $parts,
-                                [
-                                    ['text' => $prompt],
-                                ]
-                            ),
-                        ],
-                    ],
+                            ['text' => $prompt],
+                        ]
+                    ),
                 ],
             ],
+
             'generationConfig' => [
                 'responseMimeType' => 'application/json',
                 'responseSchema' => $schema,
