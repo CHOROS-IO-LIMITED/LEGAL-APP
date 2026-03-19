@@ -50,7 +50,35 @@ class UserDocumentAnswersValidation implements ValidationRule
             return;
         }
 
-        if ($type === 'repeatable_group' && ! $this->isEmpty($answer)) {
+        if ($this->isEmpty($answer)) {
+            return;
+        }
+
+        if ($type === 'email' && ! filter_var($answer, FILTER_VALIDATE_EMAIL)) {
+            $fail("{$label} must be a valid email address.");
+            return;
+        }
+
+        if ($type === 'number' && ! is_numeric($answer)) {
+            $fail("{$label} must be a valid number.");
+            return;
+        }
+
+        if ($type === 'checkbox' && ! is_bool($answer) && ! in_array($answer, [0, 1, '0', '1'], true)) {
+            $fail("{$label} must be true or false.");
+            return;
+        }
+
+        if ($type === 'select') {
+            $options = $question['options'] ?? [];
+
+            if (is_array($options) && count($options) > 0 && ! in_array($answer, $options, true)) {
+                $fail("{$label} contains an invalid option.");
+                return;
+            }
+        }
+
+        if ($type === 'repeatable_group') {
             if (! is_array($answer)) {
                 $fail("{$label} must be a list.");
                 return;

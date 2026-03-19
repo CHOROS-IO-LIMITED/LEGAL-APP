@@ -7,14 +7,29 @@ use App\Actions\UserDocuments\GenerateUserDocumentQuestionSchemaAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Web\UpdateUserDocumentAnswersRequest;
 use App\Models\UserDocument;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\RedirectResponse;
 
 class UserDocumentQuestionController extends Controller
 {
-    public function show(UserDocument $userDocument, GenerateUserDocumentQuestionSchemaAction $generateSchema): Response
-    {
+    public function show(
+        Request $request,
+        GenerateUserDocumentQuestionSchemaAction $generateSchema
+    ): Response {
+        $batchUuid = $request->string('batch_uuid')->toString();
+
+        abort_if(blank($batchUuid), 404);
+
+        $userDocument = UserDocument::query()
+            ->with('document')
+            ->ownedBy($request->user()->id)
+            ->batch($batchUuid)
+            ->first();
+
+        abort_if(!$userDocument, 404);
+
         $this->authorize('answerQuestions', $userDocument);
 
         if (
@@ -51,6 +66,8 @@ class UserDocumentQuestionController extends Controller
 
         $action->handle($userDocument, $request->validated('answers'));
 
-        return redirect()->route('user.dashboard')->with('success', 'Questions completed successfully.');
+        return redirect()
+            ->route('user.dashboard')
+            ->with('success', 'Questions completed successfully.');
     }
 }

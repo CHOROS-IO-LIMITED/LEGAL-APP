@@ -17,6 +17,13 @@ class GenerateUserDocumentQuestionSchemaAction
             abort(404, 'Document template not found.');
         }
 
+        if (
+            is_array($userDocument->question_schema_json) &&
+            ! empty($userDocument->question_schema_json['questions'])
+        ) {
+            return $userDocument->question_schema_json;
+        }
+
         $schema = $this->generator->generateFromDocument($userDocument->document);
 
         $userDocument->update([

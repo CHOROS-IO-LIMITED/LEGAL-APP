@@ -38,6 +38,7 @@ use App\Http\Controllers\Web\Payment\PaymentController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\ProductDetailsController;
 use App\Http\Controllers\Web\QnA\QuestionController;
+use App\Http\Controllers\Web\UserDocumentQuestionController;
 use App\Http\Controllers\Web\UserDocumentSelectionController;
 use Illuminate\Support\Facades\Route;
 
@@ -65,6 +66,12 @@ Route::middleware(['auth'])->group(function () {
 
     // step 5: qna
     Route::get('/products/details/qna', [QuestionController::class, 'index'])->name('product.qna');
+
+    Route::get('/products/details/qna', [UserDocumentQuestionController::class, 'show'])
+        ->name('product.qna.show');
+
+    Route::put('/products/details/qna/{userDocument}', [UserDocumentQuestionController::class, 'update'])
+        ->name('product.qna.update');
 });
 
 // step 1: product detail

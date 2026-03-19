@@ -60,6 +60,11 @@ class Document extends Model
         return $query->orderBy('sort_order')->orderBy('title');
     }
 
+    public function userDocuments(): HasMany
+    {
+        return $this->hasMany(UserDocument::class);
+    }
+
     protected function imageUrl(): Attribute
     {
         return Attribute::make(

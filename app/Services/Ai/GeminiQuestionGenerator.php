@@ -12,25 +12,41 @@ class GeminiQuestionGenerator
     public function generateFromDocument(Document $document): array
     {
         $apiKey = config('services.gemini.api_key');
-        $model = config('services.gemini.model', env('GEMINI_MODEL', 'gemini-3-flash'));
-        $timeout = (int) config('services.gemini.timeout', env('GEMINI_TIMEOUT', 120));
-        $disk = config('services.gemini.template_disk', env('GEMINI_TEMPLATE_DISK', 'private'));
+        $model = config('services.gemini.model', 'gemini-3-flash-preview');
+        $timeout = (int) config('services.gemini.timeout', 120);
+        $disk = config('services.gemini.template_disk', 'public_documents');
 
         if (! $apiKey) {
             throw new RuntimeException('Gemini API key is not configured.');
         }
 
-        if (! $document->document_path) {
-            throw new RuntimeException('Document template file is missing.');
+        $templatePath = null;
+        $templates = config('services.gemini.templates', []);
+        $documentTitle = strtolower($document->title);
+
+        foreach ($templates as $key => $path) {
+            if (str_contains($documentTitle, $key)) {
+                $templatePath = $path;
+                break;
+            }
         }
 
-        if (! Storage::disk($disk)->exists($document->document_path)) {
-            throw new RuntimeException("Document template file was not found in disk [{$disk}].");
+        $finalPath = $templatePath ?: Storage::disk($disk)->path($document->document_path);
+
+        if (! file_exists($finalPath)) {
+            throw new RuntimeException("Template file not found: {$finalPath}");
         }
 
-        $fileContent = Storage::disk($disk)->get($document->document_path);
+        $fileContent = file_get_contents($finalPath);
         $mimeType = $document->document_mime ?: 'application/pdf';
         $base64File = base64_encode($fileContent);
+
+        $templateBase64 = null;
+
+        if ($templatePath && file_exists($templatePath)) {
+            $templateContent = file_get_contents($templatePath);
+            $templateBase64 = base64_encode($templateContent);
+        }
 
         $schema = [
             'type' => 'object',
@@ -66,6 +82,10 @@ class GeminiQuestionGenerator
                                         'required' => ['type' => 'boolean'],
                                         'placeholder' => ['type' => 'string'],
                                         'help_text' => ['type' => 'string'],
+                                        'options' => [
+                                            'type' => 'array',
+                                            'items' => ['type' => 'string'],
+                                        ],
                                     ],
                                     'required' => ['key', 'label', 'type', 'required'],
                                 ],
@@ -80,6 +100,9 @@ class GeminiQuestionGenerator
                                             'properties' => [
                                                 'field' => ['type' => 'string'],
                                                 'operator' => ['type' => 'string'],
+                                                'value' => [
+                                                    'nullable' => true,
+                                                ],
                                             ],
                                             'required' => ['field', 'operator'],
                                         ],
@@ -94,6 +117,8 @@ class GeminiQuestionGenerator
                                                     'required' => ['type' => 'boolean'],
                                                     'placeholder' => ['type' => 'string'],
                                                     'help_text' => ['type' => 'string'],
+                                                    'min' => ['type' => 'number'],
+                                                    'max' => ['type' => 'number'],
                                                     'options' => [
                                                         'type' => 'array',
                                                         'items' => ['type' => 'string'],
@@ -115,29 +140,24 @@ class GeminiQuestionGenerator
         ];
 
         $prompt = <<<PROMPT
-You are generating a legal intake questionnaire from a private legal document template.
+You are generating a legal intake questionnaire.
 
-Analyze the uploaded legal template and extract only the information the client must answer to complete the document later.
+You are given:
+1. A document template (target document)
+2. A reference questionnaire template (if provided)
 
-Return JSON only.
-No markdown.
-No explanations.
-No extra text.
-
-Allowed field types:
-text, email, number, date, textarea, select, checkbox, repeatable_group
+Instructions:
+- If a reference questionnaire is provided, use it as the PRIMARY structure.
+- Adapt it to match the target document.
+- Preserve follow-up logic, repeatable groups, and conditions from the reference.
+- If no reference is provided, analyze the document normally.
 
 Rules:
-- Base everything on the uploaded file content.
-- The uploaded template may already contain questions, branching, conditions, schedules, clauses, repeating parties, or follow-up logic.
-- Preserve important follow-up logic whenever a previous answer changes the next required question.
-- Use repeatable_group for repeated entities such as borrowers, lenders, directors, recipients, signatories, witnesses, partners, shareholders, trustees, etc.
-- Use snake_case keys.
-- Labels must be user-friendly.
-- Ask only for information required to complete the document.
-- Do not ask for internal law firm notes.
-- Keep the structure frontend-friendly and ready for conditional rendering.
-- Prefer complete and accurate legal intake logic over overly short output.
+- Return JSON only
+- No explanations
+- Follow the schema strictly
+- Use snake_case keys
+- Only include questions needed to complete the document
 
 Document title: {$document->title}
 Document description: {$document->description}
@@ -155,17 +175,25 @@ PROMPT;
             ],
             'contents' => [
                 [
-                    'parts' => [
+                    'parts' => array_filter([
                         [
                             'inlineData' => [
                                 'mimeType' => $mimeType,
                                 'data' => $base64File,
                             ],
                         ],
+
+                        $templateBase64 ? [
+                            'inlineData' => [
+                                'mimeType' => 'application/pdf',
+                                'data' => $templateBase64,
+                            ],
+                        ] : null,
+
                         [
                             'text' => $prompt,
                         ],
-                    ],
+                    ]),
                 ],
             ],
             'generationConfig' => [
@@ -191,6 +219,14 @@ PROMPT;
 
         if (! is_string($text) || trim($text) === '') {
             throw new RuntimeException('Gemini returned an empty response.');
+        }
+
+        $text = trim($text);
+
+        if (str_starts_with($text, '```')) {
+            $text = preg_replace('/^```(?:json)?\s*/', '', $text) ?? $text;
+            $text = preg_replace('/\s*```$/', '', $text) ?? $text;
+            $text = trim($text);
         }
 
         $decoded = json_decode($text, true);

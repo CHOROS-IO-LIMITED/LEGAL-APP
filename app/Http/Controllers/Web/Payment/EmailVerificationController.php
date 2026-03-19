@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Payment;
 
 use App\Http\Controllers\Controller;
 use App\Models\UserDocument;
+use App\Services\Ai\GeminiQuestionGenerator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -32,25 +33,39 @@ class EmailVerificationController extends Controller
 
     public function continue(Request $request): RedirectResponse
     {
+
         $batchUuid = (string) $request->input('batch_uuid');
 
         abort_if(blank($batchUuid), 404);
 
         $userDocuments = UserDocument::query()
+            ->with('document')
             ->ownedBy($request->user()->id)
             ->batch($batchUuid)
             ->get();
 
         abort_if($userDocuments->isEmpty(), 404);
 
-        UserDocument::query()
-            ->ownedBy($request->user()->id)
-            ->batch($batchUuid)
-            ->update([
-                'status' => UserDocument::STATUS_QNA_PENDING,
-            ]);
+        $generator = app(GeminiQuestionGenerator::class);
 
-        return redirect()->route('product.qna', [
+        /** @var \App\Models\UserDocument $userDocument */
+        foreach ($userDocuments as $userDocument) {
+            if (!$userDocument->question_schema_json) {
+
+                if (!$userDocument->document) {
+                    continue;
+                }
+
+                $schema = $generator->generateFromDocument($userDocument->document);
+
+                $userDocument->update([
+                    'question_schema_json' => $schema,
+                    'status' => UserDocument::STATUS_QNA_PENDING,
+                ]);
+            }
+        }
+
+        return redirect()->route('product.qna.show', [
             'batch_uuid' => $batchUuid,
         ]);
     }
