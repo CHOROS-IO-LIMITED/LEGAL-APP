@@ -20,32 +20,40 @@ class GeminiQuestionGenerator
             throw new RuntimeException('Gemini API key is not configured.');
         }
 
-        $templatePath = null;
-        $templates = config('services.gemini.templates', []);
         $documentTitle = strtolower($document->title);
 
-        foreach ($templates as $key => $path) {
-            if (str_contains($documentTitle, $key)) {
-                $templatePath = $path;
-                break;
-            }
+        // MAIN DOCUMENT (always used)
+        $mainPath = Storage::disk($disk)->path($document->document_path);
+
+        // OPTIONAL REFERENCE (ONLY for loan agreement)
+        $referencePath = null;
+
+        if (str_contains($documentTitle, 'loan agreement')) {
+            $referencePath = base_path('private/documents/Loan Agreement questions.pdf');
         }
 
-        $finalPath = $templatePath ?: Storage::disk($disk)->path($document->document_path);
+        $parts = [];
 
-        if (! file_exists($finalPath)) {
-            throw new RuntimeException("Template file not found: {$finalPath}");
+        // Main document (always)
+        if (!file_exists($mainPath)) {
+            throw new RuntimeException("Main document not found: {$mainPath}");
         }
 
-        $fileContent = file_get_contents($finalPath);
-        $mimeType = $document->document_mime ?: 'application/pdf';
-        $base64File = base64_encode($fileContent);
+        $parts[] = [
+            'inlineData' => [
+                'mimeType' => $document->document_mime ?: 'application/pdf',
+                'data' => base64_encode(file_get_contents($mainPath)),
+            ],
+        ];
 
-        $templateBase64 = null;
-
-        if ($templatePath && file_exists($templatePath)) {
-            $templateContent = file_get_contents($templatePath);
-            $templateBase64 = base64_encode($templateContent);
+        // Reference (only if loan agreement)
+        if ($referencePath && file_exists($referencePath)) {
+            $parts[] = [
+                'inlineData' => [
+                    'mimeType' => 'application/pdf',
+                    'data' => base64_encode(file_get_contents($referencePath)),
+                ],
+            ];
         }
 
         $schema = [
@@ -138,29 +146,93 @@ class GeminiQuestionGenerator
             ],
             'required' => ['document_type', 'questions'],
         ];
-
         $prompt = <<<PROMPT
-You are generating a legal intake questionnaire.
+You are a legal intake questionnaire generator.
+
+You will generate a structured JSON schema for a document.
 
 You are given:
-1. A document template (target document)
-2. A reference questionnaire template (if provided)
+1. A MAIN document (the actual template)
+2. OPTIONAL reference questionnaire (ONLY for Loan Agreement)
 
-Instructions:
-- If a reference questionnaire is provided, use it as the PRIMARY structure.
-- Adapt it to match the target document.
-- Preserve follow-up logic, repeatable groups, and conditions from the reference.
-- If no reference is provided, analyze the document normally.
+---
 
-Rules:
-- Return JSON only
-- No explanations
-- Follow the schema strictly
-- Use snake_case keys
-- Only include questions needed to complete the document
+CRITICAL BEHAVIOR:
+
+- You MUST generate a DECISION TREE (not a flat list)
+- Questions must be asked ONE at a time in logical order
+- Use "follow_ups" for ALL conditional logic
+- Do NOT flatten questions
+- Do NOT repeat questions
+- Do NOT ask irrelevant questions
+
+---
+
+LOAN AGREEMENT SPECIAL RULES (ONLY IF REFERENCE IS PROVIDED):
+
+- STRICTLY follow the structure of the reference PDF
+- FIRST QUESTION MUST BE:
+  "Who is the lender or borrower?"
+
+- Build flow like this:
+  Answer → Next question → Follow-up → Next
+
+- Example:
+  lender/borrower → individual/company → company details → director → signatory
+
+- Include:
+  ✔ security logic
+  ✔ personal guarantee logic
+  ✔ property charge logic
+  ✔ interest structure
+  ✔ jurisdiction
+  ✔ explanations via help_text
+
+---
+
+FOLLOW-UP RULES:
+
+- Use follow_ups for:
+  ✔ company vs individual
+  ✔ security types
+  ✔ interest types
+  ✔ jurisdiction
+  ✔ guarantees
+
+- Deep nesting is REQUIRED
+
+---
+
+FIELD RULES:
+
+- key → snake_case
+- type → text | number | select | checkbox
+- required → true/false
+- options → required for select/checkbox
+- help_text → REQUIRED when legal explanation needed
+
+---
+
+OUTPUT FORMAT (STRICT JSON ONLY):
+
+{
+  "document_type": "string",
+  "questions": [...]
+}
+
+---
+
+IMPORTANT:
+
+- DO NOT generate all questions flat
+- DO NOT skip logical flow
+- DO NOT return explanations outside JSON
+
+---
 
 Document title: {$document->title}
 Document description: {$document->description}
+
 PROMPT;
 
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent";
@@ -175,25 +247,16 @@ PROMPT;
             ],
             'contents' => [
                 [
-                    'parts' => array_filter([
+                    'contents' => [
                         [
-                            'inlineData' => [
-                                'mimeType' => $mimeType,
-                                'data' => $base64File,
-                            ],
+                            'parts' => array_merge(
+                                $parts,
+                                [
+                                    ['text' => $prompt],
+                                ]
+                            ),
                         ],
-
-                        $templateBase64 ? [
-                            'inlineData' => [
-                                'mimeType' => 'application/pdf',
-                                'data' => $templateBase64,
-                            ],
-                        ] : null,
-
-                        [
-                            'text' => $prompt,
-                        ],
-                    ]),
+                    ],
                 ],
             ],
             'generationConfig' => [
