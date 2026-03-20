@@ -63,7 +63,7 @@ const Hero: React.FC = () => {
                         </Link>
 
                         {/* Secondary Button */}
-                        <Link href="/products">
+                        <Link href="/products#templates">
                             <Button
                                 size="lg"
                                 variant="outline"
@@ -84,7 +84,7 @@ const Hero: React.FC = () => {
                     transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
                 >
                     <div className="flex h-[400px] w-full max-w-md items-center justify-center rounded-xl border-2 border-dashed border-[#E8E2D6] bg-white/20 text-lg font-semibold text-[#70665E]">
-                        Demo video will be place here...
+                        Demo video will be placed here...
                     </div>
                 </motion.div>
             </div>

@@ -223,3 +223,19 @@ body p {
 .signature {
     font-family: 'Aristiq Signature', cursive;
 }
+
+.scrollable-products::-webkit-scrollbar {
+    width: 8px; /* width of the scrollbar */
+}
+
+.scrollable-products::-webkit-scrollbar-track {
+    background: #f5f0e5; /* track color */
+}
+
+.scrollable-products::-webkit-scrollbar-thumb {
+    background-color: #3d2b1f; /* thumb color */
+}
+
+.scrollable-products::-webkit-scrollbar-thumb:hover {
+    background-color: #2f2118; /* darker on hover */
+}

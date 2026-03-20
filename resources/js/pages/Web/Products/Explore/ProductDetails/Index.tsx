@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import Header from '@/components/web/Header';
 import Stepper from '@/components/web/Stepper';
 import { Link, router, usePage } from '@inertiajs/react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 
@@ -121,33 +122,41 @@ const ProductDetails: React.FC = () => {
                     </div>
 
                     <div className="grid gap-12 md:grid-cols-2">
-                        <div className="space-y-3">
-                            {products.map((product) => {
-                                const checked = selectedProducts.includes(product.id);
+                        <div className="scrollable-products max-h-[475px] space-y-3 overflow-y-auto pr-2">
+                            <div className="scrollable-products max-h-[475px] space-y-3 overflow-y-auto pr-2">
+                                <AnimatePresence>
+                                    {products.map((product) => {
+                                        const checked = selectedProducts.includes(product.id);
 
-                                return (
-                                    <label
-                                        key={product.id}
-                                        className={`flex cursor-pointer items-center justify-between rounded-none border bg-white p-4 transition-all duration-200 ${
-                                            errorProductId === product.id
-                                                ? 'animate-shake border-red-500 ring-2 ring-red-300'
-                                                : checked
-                                                  ? 'border-[#3D2B1F] ring-2 ring-[#A68A64]'
-                                                  : 'border-[#E8E2D6]'
-                                        } hover:-translate-y-1 hover:shadow-md`}
-                                    >
-                                        <span className="font-medium text-[#1A1614]">{product.title}</span>
-
-                                        <input
-                                            type="checkbox"
-                                            checked={checked}
-                                            onChange={() => toggleProduct(product.id)}
-                                            onClick={(e) => e.stopPropagation()}
-                                            className="h-4 w-4 cursor-pointer accent-[#3D2B1F]"
-                                        />
-                                    </label>
-                                );
-                            })}
+                                        return (
+                                            <motion.label
+                                                key={product.id}
+                                                layout
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: -20 }}
+                                                transition={{ duration: 0.3 }}
+                                                className={`flex cursor-pointer items-center justify-between rounded-none border bg-white p-4 transition-all duration-200 ${
+                                                    errorProductId === product.id
+                                                        ? 'animate-shake border-red-500 ring-2 ring-red-300'
+                                                        : checked
+                                                          ? 'border-[#3D2B1F] ring-2 ring-[#A68A64]'
+                                                          : 'border-[#E8E2D6]'
+                                                } hover:-translate-y-1 hover:shadow-md`}
+                                            >
+                                                <span className="font-medium text-[#1A1614]">{product.title}</span>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={checked}
+                                                    onChange={() => toggleProduct(product.id)}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="h-4 w-4 cursor-pointer accent-[#3D2B1F]"
+                                                />
+                                            </motion.label>
+                                        );
+                                    })}
+                                </AnimatePresence>
+                            </div>
                         </div>
 
                         <div className="flex flex-col items-center">
@@ -186,14 +195,20 @@ const ProductDetails: React.FC = () => {
                                         const translateX = offset * 28;
 
                                         return (
-                                            <div
+                                            <motion.div
                                                 key={product.id}
-                                                className="absolute w-full max-w-sm rounded-none bg-white shadow-md transition-all duration-500"
-                                                style={{
-                                                    transform: `translateX(${translateX}px) rotate(${rotateDeg}deg)`,
-                                                    zIndex: stackIndex + 1,
-                                                    bottom: 0,
+                                                layout
+                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                animate={{
+                                                    opacity: 1,
+                                                    scale: 1,
+                                                    x: translateX,
+                                                    rotate: rotateDeg,
                                                 }}
+                                                exit={{ opacity: 0, scale: 0.95 }}
+                                                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                                className="absolute bottom-0 w-full max-w-sm rounded-none bg-white shadow-md"
+                                                style={{ zIndex: stackIndex + 1 }}
                                             >
                                                 <img
                                                     src={product.image_url ?? '/images/products/placeholder.webp'}
@@ -217,7 +232,7 @@ const ProductDetails: React.FC = () => {
                                                         </span>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </motion.div>
                                         );
                                     })
                                 )}
@@ -230,7 +245,7 @@ const ProductDetails: React.FC = () => {
                                             <DialogTrigger asChild>
                                                 <button
                                                     type="button"
-                                                    className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-none bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#5A4638]"
+                                                    className="group mt-6 flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-none bg-[#3D2B1F] px-4 py-3 font-semibold text-white hover:bg-[#2F2118]"
                                                 >
                                                     Checkout ({selectedProducts.length})
                                                     <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
@@ -269,7 +284,7 @@ const ProductDetails: React.FC = () => {
                                                         type="button"
                                                         onClick={handleContinueToKyc}
                                                         disabled={isSubmitting}
-                                                        className="cursor-pointer rounded-none bg-[#3D2B1F] px-4 py-2 text-white hover:bg-[#5A4638] disabled:cursor-not-allowed disabled:opacity-70"
+                                                        className="cursor-pointer rounded-none bg-[#3D2B1F] px-4 py-2 text-white hover:bg-[#2F2118] disabled:cursor-not-allowed disabled:opacity-70"
                                                     >
                                                         {isSubmitting ? 'Processing...' : 'Continue to KYC'}
                                                     </button>

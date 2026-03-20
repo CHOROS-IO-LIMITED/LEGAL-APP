@@ -24,7 +24,7 @@ export default function Register() {
             <Head title="Register" />
 
             <div className="flex min-h-screen items-center justify-center p-6" style={{ background: '#FCF9F2' }}>
-                <div className="flex w-full max-w-5xl overflow-hidden rounded-lg bg-white shadow-xl">
+                <div className="flex w-full max-w-5xl overflow-hidden rounded-none bg-white shadow-xl">
                     {/* LEFT PANEL */}
                     <div
                         className="relative hidden flex-1 flex-col p-8 text-white md:flex"
@@ -35,7 +35,7 @@ export default function Register() {
                         <div className="mb-6">
                             <a
                                 href="/"
-                                className="group inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 font-semibold text-white transition hover:bg-white/30"
+                                className="group inline-flex items-center gap-2 rounded-none bg-white/20 px-4 py-2 font-semibold text-white transition hover:bg-white/30"
                             >
                                 <span className="transition-transform duration-200 group-hover:-translate-x-1">
                                     <MoveLeft size={18} />
@@ -44,9 +44,9 @@ export default function Register() {
                             </a>
                         </div>
 
-                        <div className="flex flex-1 items-center justify-center mb-15">
+                        <div className="mb-15 flex flex-1 items-center justify-center">
                             <div className="flex flex-col items-center gap-4 text-center">
-                                <img src="/images/logo/logo.png" alt="LegalDocs Logo" className="h-40 w-40 object-contain" />
+                                <img src="/images/logo/dd-logo.png" alt="Daver & Daver Logo" className="h-40 w-40 object-contain" />
 
                                 <p className="max-w-sm text-base leading-relaxed">
                                     Create an account to access legal documents, manage purchases, and complete verification securely.
@@ -54,19 +54,26 @@ export default function Register() {
                             </div>
                         </div>
 
-                        <div className="mt-auto text-center text-sm tracking-wide">© 2026 LegalDocs</div>
+                        <div className="mt-auto text-center text-sm tracking-wide">© 2026 Daver & Daver</div>
                     </div>
 
                     {/* RIGHT PANEL */}
                     <div className="flex flex-1 items-center justify-center p-8" style={{ background: '#F2EDE4' }}>
-                        <div className="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow-xl">
+                        <div className="flex w-full max-w-md flex-col overflow-hidden rounded-none bg-white shadow-xl">
                             {/* HEADER */}
-                            <div className="border-b p-5 text-center" style={{ borderColor: '#E8E2D6' }}>
-                                <h2 className="text-2xl font-bold tracking-tight" style={{ color: '#1A1614' }}>
+                            <div className="relative flex flex-col items-center border-b p-5" style={{ borderColor: '#E8E2D6' }}>
+                                <a
+                                    href="/"
+                                    className="absolute top-5 left-5 flex items-center gap-1 text-sm text-[#3D2B1F] hover:underline md:hidden"
+                                >
+                                    <MoveLeft size={18} />
+                                </a>
+
+                                <h2 className="text-center text-2xl font-bold tracking-tight" style={{ color: '#1A1614' }}>
                                     Register
                                 </h2>
 
-                                <p className="mt-1 text-sm text-[#6B5E55]">Create your account to get started.</p>
+                                <p className="mt-1 text-center text-sm text-[#6B5E55]">Create your account to get started.</p>
                             </div>
 
                             {/* BODY */}
@@ -81,7 +88,7 @@ export default function Register() {
                                             value={data.name}
                                             onChange={(e) => setData('name', e.target.value)}
                                             placeholder="Enter your name"
-                                            className="rounded border-[#E8E2D6] focus:ring-2 focus:ring-[#A68A64]"
+                                            className="rounded-none border-[#E8E2D6] focus:ring-2 focus:ring-[#A68A64]"
                                         />
 
                                         {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
@@ -96,7 +103,7 @@ export default function Register() {
                                             value={data.email}
                                             onChange={(e) => setData('email', e.target.value)}
                                             placeholder="Enter your email"
-                                            className="rounded border-[#E8E2D6] focus:ring-2 focus:ring-[#A68A64]"
+                                            className="rounded-none border-[#E8E2D6] focus:ring-2 focus:ring-[#A68A64]"
                                         />
 
                                         {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
@@ -111,7 +118,7 @@ export default function Register() {
                                             value={data.password}
                                             onChange={(e) => setData('password', e.target.value)}
                                             placeholder="Enter your password"
-                                            className="rounded border-[#E8E2D6] focus:ring-2 focus:ring-[#A68A64]"
+                                            className="rounded-none border-[#E8E2D6] focus:ring-2 focus:ring-[#A68A64]"
                                         />
 
                                         {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
@@ -126,7 +133,7 @@ export default function Register() {
                                             value={data.password_confirmation}
                                             onChange={(e) => setData('password_confirmation', e.target.value)}
                                             placeholder="Confirm your password"
-                                            className="rounded border-[#E8E2D6] focus:ring-2 focus:ring-[#A68A64]"
+                                            className="rounded-none border-[#E8E2D6] focus:ring-2 focus:ring-[#A68A64]"
                                         />
                                     </div>
 
@@ -134,7 +141,7 @@ export default function Register() {
                                     <Button
                                         type="submit"
                                         disabled={processing}
-                                        className="w-full cursor-pointer rounded bg-[#3D2B1F] py-3 font-semibold tracking-wide text-white hover:bg-[#2f2117]"
+                                        className="w-full cursor-pointer rounded-none bg-[#3D2B1F] py-3 font-semibold tracking-wide text-white hover:bg-[#2f2117]"
                                     >
                                         {processing ? 'Creating Account...' : 'Register'}
                                     </Button>

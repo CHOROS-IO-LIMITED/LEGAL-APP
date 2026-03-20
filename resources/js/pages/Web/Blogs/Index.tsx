@@ -11,7 +11,7 @@ export default function Index() {
                 <div className="max-w-xl text-center">
                     {/* Logo */}
                     <div className="mb-5 flex justify-center">
-                        <img src="/images/logo/logo.png" alt="LegalDocs" className="h-14 w-auto object-contain" />
+                        <img src="/images/logo/dd-logo.png" alt="Daver & Daver" className="h-14 w-auto object-contain" />
                     </div>
 
                     {/* Title */}
@@ -19,7 +19,7 @@ export default function Index() {
 
                     {/* Description */}
                     <p className="mt-3 text-lg text-[#70665E]">
-                        We're currently improving LegalDocs to deliver a better experience. Our platform will be available again shortly.
+                        We're currently improving Daver & Daver to deliver a better experience. Our platform will be available again shortly.
                     </p>
 
                     {/* Spinner */}
@@ -33,7 +33,7 @@ export default function Index() {
 
                     <div className="mt-2 flex items-center justify-center gap-2 text-[#3D2B1F]">
                         <Mail size={18} />
-                        <span className="font-medium">support@legaldocs.co.uk</span>
+                        <span className="font-medium">phiroze@davercorp.com</span>
                     </div>
 
                     <div className="mt-8">
@@ -46,7 +46,7 @@ export default function Index() {
                     </div>
 
                     {/* Address */}
-                    <p className="mt-8 text-xs text-[#70665E]">LegalDocs Ltd • 71–75 Shelton Street • London WC2H 9JQ • United Kingdom</p>
+                    <p className="mt-8 text-xs text-[#70665E]">Daver & Daver Ltd • 71–75 Shelton Street • London WC2H 9JQ • United Kingdom</p>
                 </div>
             </div>
             <Footer />
