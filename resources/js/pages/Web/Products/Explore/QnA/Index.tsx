@@ -3,12 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Header from '@/components/web/Header';
 import Stepper from '@/components/web/Stepper';
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { Settings } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Primitive = string | number | boolean | null;
-type FormValue = Primitive | File | Date | FormValue[] | { [key: string]: FormValue };
+type FormValue = Primitive | string[] | File | Date | { [key: string]: FormValue };
 
 type FormData = {
     answers: Record<string, FormValue>;
@@ -33,6 +33,8 @@ type Question = {
     options?: string[];
     help_text?: string;
     placeholder?: string;
+    action_trigger?: string;
+    is_upsell?: boolean;
     min?: number;
     max?: number;
     follow_ups?: FollowUp[];
@@ -72,47 +74,64 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
         return (userDocument.answers_json as Record<string, FormValue>) ?? {};
     }, [userDocument.answers_json]);
 
-    const { put, processing, setData } = useForm<FormData>({
+    const { data, processing, setData } = useForm<FormData>({
         answers: initialAnswers,
     });
 
-    const [answers, setAnswers] = useState<Record<string, FormValue>>(initialAnswers);
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [history, setHistory] = useState<string[]>([]);
     const [currentValue, setCurrentValue] = useState<FormValue>('');
     const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
+    const answers = data.answers;
+
+    const isTruthy = (value: FormValue | undefined) => {
+        if (Array.isArray(value)) return value.length > 0;
+        if (typeof value === 'boolean') return value;
+        if (typeof value === 'number') return value !== 0;
+        if (typeof value === 'string') {
+            const normalized = value.trim().toLowerCase();
+            return ['1', 'true', 'yes', 'on', 'checked'].includes(normalized);
+        }
+
+        return Boolean(value);
+    };
+
     const matchesCondition = (when: FollowUpCondition, allAnswers: Record<string, FormValue>) => {
         const actual = allAnswers[when.field];
 
         switch (when.operator) {
             case 'equals':
-                return Array.isArray(actual) ? actual.includes(when.value ?? '') : String(actual ?? '') === String(when.value ?? '');
+                return Array.isArray(actual)
+                    ? actual.map(String).includes(String(when.value ?? ''))
+                    : String(actual ?? '') === String(when.value ?? '');
 
             case 'not_equals':
-                return Array.isArray(actual) ? !actual.includes(when.value ?? '') : String(actual ?? '') !== String(when.value ?? '');
+                return Array.isArray(actual)
+                    ? !actual.map(String).includes(String(when.value ?? ''))
+                    : String(actual ?? '') !== String(when.value ?? '');
 
             case 'truthy':
-                return Boolean(actual) === true;
+                return isTruthy(actual);
 
             case 'falsy':
-                return Boolean(actual) === false;
+                return !isTruthy(actual);
 
             default:
                 return false;
         }
     };
 
-    const isEmptyValue = (value: FormValue) => {
-        if (value === null || value === '') return true;
+    const isEmptyValue = (value: FormValue | undefined) => {
+        if (value === null || value === undefined || value === '') return true;
         if (Array.isArray(value) && value.length === 0) return true;
         return false;
     };
 
-    const isQuestionAnswered = (question: Question, value: FormValue) => {
+    const isQuestionAnswered = (question: Question, value: FormValue | undefined) => {
         if (!question.required) {
-            return true;
+            return !isEmptyValue(value) || value === undefined || value === null || value === '';
         }
 
         if (question.type === 'checkbox') {
@@ -126,37 +145,39 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
         return !isEmptyValue(value);
     };
 
-    const getNextQuestion = (questions: Question[], allAnswers: Record<string, FormValue>): Question | null => {
+    const getVisibleQuestions = (questions: Question[], allAnswers: Record<string, FormValue>): Question[] => {
+        const result: Question[] = [];
+
         for (const question of questions) {
-            const value = allAnswers[question.key];
-
-            if (value === undefined || !isQuestionAnswered({ ...question, required: true }, value)) {
-                if (value === undefined || isEmptyValue(value)) {
-                    return question;
-                }
-
-                if (question.type === 'checkbox' && question.required && question.options?.length === 1 && value !== true) {
-                    return question;
-                }
-            }
+            result.push(question);
 
             if (question.follow_ups?.length) {
                 for (const followUp of question.follow_ups) {
                     if (matchesCondition(followUp.when, allAnswers)) {
-                        const nested = getNextQuestion(followUp.questions, allAnswers);
-
-                        if (nested) {
-                            return nested;
-                        }
+                        result.push(...getVisibleQuestions(followUp.questions, allAnswers));
                     }
                 }
             }
         }
 
-        return null;
+        return result;
     };
 
-    const currentQuestion = getNextQuestion(schema.questions, answers);
+    const visibleQuestions = useMemo(() => {
+        return getVisibleQuestions(schema.questions, answers);
+    }, [schema.questions, answers]);
+
+    const currentQuestion = useMemo(() => {
+        for (const question of visibleQuestions) {
+            const value = answers[question.key];
+
+            if (!isQuestionAnswered(question, value)) {
+                return question;
+            }
+        }
+
+        return null;
+    }, [visibleQuestions, answers]);
 
     useEffect(() => {
         if (!currentQuestion) return;
@@ -187,45 +208,48 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
         setTimeout(() => inputRef.current?.focus(), 0);
     }, [currentQuestion, answers]);
 
+    const persistAnswers = (updated: Record<string, FormValue>) => {
+        setData('answers', updated);
+    };
+
     const setAnswer = (key: string, value: FormValue) => {
-        setAnswers((prev) => {
-            const updated = { ...prev, [key]: value };
-            setData('answers', updated);
-            return updated;
-        });
+        const updated = { ...answers, [key]: value };
+        persistAnswers(updated);
 
         setHistory((prev) => (prev[prev.length - 1] === key ? prev : [...prev, key]));
     };
 
-    const handleGenerate = () => {
+    const handleGenerate = (finalAnswers: Record<string, FormValue>) => {
         setLoading(true);
         setProgress(0);
 
         const interval = setInterval(() => {
             setProgress((prev) => {
                 if (prev >= 90) return prev;
-
                 const next = prev + Math.random() * (prev > 70 ? 2 : 5);
-
                 return next > 90 ? 90 : next;
             });
         }, 100);
 
-        put(route('product.qna.update', userDocument.id), {
-            preserveScroll: true,
-            onSuccess: () => {
-                clearInterval(interval);
-                setProgress(100);
+        router.put(
+            route('product.qna.update', userDocument.id),
+            { answers: finalAnswers },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    clearInterval(interval);
+                    setProgress(100);
+                },
+                onError: (errors) => {
+                    console.error('Q&A update errors:', errors);
+                    clearInterval(interval);
+                },
+                onFinish: () => {
+                    clearInterval(interval);
+                    setLoading(false);
+                },
             },
-            onError: (errors) => {
-                console.error('Q&A update errors:', errors);
-                clearInterval(interval);
-            },
-            onFinish: () => {
-                clearInterval(interval);
-                setLoading(false);
-            },
-        });
+        );
     };
 
     const handleNext = () => {
@@ -237,37 +261,30 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
             [currentQuestion.key]: currentValue,
         };
 
-        setAnswer(currentQuestion.key, currentValue);
+        persistAnswers(nextAnswers);
+        setHistory((prev) => (prev[prev.length - 1] === currentQuestion.key ? prev : [...prev, currentQuestion.key]));
 
-        const next = getNextQuestion(schema.questions, nextAnswers);
+        const remainingVisible = getVisibleQuestions(schema.questions, nextAnswers);
+        const nextQuestion = remainingVisible.find((question) => !isQuestionAnswered(question, nextAnswers[question.key]));
 
-        if (!next) {
-            handleGenerate();
+        if (!nextQuestion) {
+            handleGenerate(nextAnswers);
         }
     };
 
     const handleBack = () => {
-        setHistory((prevHistory) => {
-            if (prevHistory.length === 0) {
-                return prevHistory;
-            }
+        if (history.length === 0) {
+            return;
+        }
 
-            const copy = [...prevHistory];
-            const lastKey = copy.pop();
+        const previousKey = history[history.length - 1];
+        const updatedHistory = history.slice(0, -1);
+        const updatedAnswers = { ...answers };
 
-            if (!lastKey) {
-                return prevHistory;
-            }
+        delete updatedAnswers[previousKey];
 
-            setAnswers((currentAnswers) => {
-                const updated = { ...currentAnswers };
-                delete updated[lastKey];
-                setData('answers', updated);
-                return updated;
-            });
-
-            return copy;
-        });
+        persistAnswers(updatedAnswers);
+        setHistory(updatedHistory);
     };
 
     const normalizeInputValue = (value: FormValue) => {
@@ -322,7 +339,7 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
                 if ((q.options?.length ?? 0) <= 1) {
                     return (
                         <label className="flex items-center gap-2">
-                            <input type="checkbox" checked={Boolean(value)} onChange={(e) => setCurrentValue(e.target.checked)} />
+                            <input type="checkbox" checked={value === true} onChange={(e) => setCurrentValue(e.target.checked)} />
                             {(q.options?.[0] ?? q.label).replaceAll('_', ' ')}
                         </label>
                     );
@@ -451,7 +468,19 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
                 {currentQuestion ? (
                     <Card>
                         <CardHeader>
-                            <CardTitle>{currentQuestion.label}</CardTitle>
+                            <div className="flex items-center gap-2">
+                                <CardTitle>{currentQuestion.label}</CardTitle>
+
+                                {currentQuestion.is_upsell && (
+                                    <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">Add-on</span>
+                                )}
+
+                                {currentQuestion.action_trigger && (
+                                    <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+                                        Action: {currentQuestion.action_trigger}
+                                    </span>
+                                )}
+                            </div>
                         </CardHeader>
 
                         <CardContent>

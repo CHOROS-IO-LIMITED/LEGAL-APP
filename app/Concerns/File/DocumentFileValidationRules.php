@@ -9,7 +9,7 @@ class DocumentFileValidationRules
     public static function make(bool $required = false): array
     {
         $base = [
-            File::types(['pdf'])
+            File::types(['pdf', 'doc', 'docx'])
                 ->max(10 * 1024),
         ];
 
