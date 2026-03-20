@@ -11,13 +11,16 @@ class GenerateUserDocumentQuestionSchemaAction
         protected GeminiQuestionGenerator $generator
     ) {}
 
-    public function handle(UserDocument $userDocument): array
+    public function handle(UserDocument $userDocument, bool $force = false): array
     {
+        $userDocument->loadMissing('document');
+
         if (! $userDocument->document) {
             abort(404, 'Document template not found.');
         }
 
         if (
+            ! $force &&
             is_array($userDocument->question_schema_json) &&
             ! empty($userDocument->question_schema_json['questions'])
         ) {

@@ -46,7 +46,7 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-3-flash-preview'),
         'timeout' => env('GEMINI_TIMEOUT', 120),
         'template_disk' => env('GEMINI_TEMPLATE_DISK', 'public_documents'),
-        'templates' => [
+        'references' => [
             'loan agreement' => base_path('private/documents/Loan Agreement questions.pdf'),
             // 'nda' => '> base_path(documents/training/nda_questions.pdf)',
         ],
