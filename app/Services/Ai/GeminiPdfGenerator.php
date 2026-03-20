@@ -19,7 +19,7 @@ class GeminiPdfGenerator
     public function generate(UserDocument $userDocument): array
     {
         $apiKey = config('services.gemini.api_key');
-        $model = config('services.gemini.pdf_model', 'gemini-2.5-flash');
+        $model = config('services.gemini.pdf_model', 'gemini-3-flash-preview');
         $timeout = (int) config('services.gemini.timeout', 180);
         $disk = config('services.gemini.template_disk', 'public_documents');
 

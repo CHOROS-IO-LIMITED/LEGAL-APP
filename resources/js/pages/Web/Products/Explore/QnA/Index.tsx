@@ -40,6 +40,19 @@ type Question = {
     follow_ups?: FollowUp[];
 };
 
+// type UserDocument = {
+//     id: number;
+//     answers_json: Record<string, unknown> | null;
+//     question_schema_json: {
+//         document_type: string;
+//         questions: Question[];
+//     } | null;
+//     document: {
+//         title: string | null;
+//         description: string | null;
+//     };
+// };
+
 type UserDocument = {
     id: number;
     answers_json: Record<string, unknown> | null;
@@ -47,6 +60,7 @@ type UserDocument = {
         document_type: string;
         questions: Question[];
     } | null;
+    generated_pdf_url?: string | null;
     document: {
         title: string | null;
         description: string | null;

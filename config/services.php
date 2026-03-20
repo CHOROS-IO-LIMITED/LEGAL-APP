@@ -46,7 +46,7 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-3-flash-preview'),
         'fallback_model' => env('GEMINI_FALLBACK_MODEL', 'gemini-3-flash-preview'),
         'pdf_model' => env('GEMINI_PDF_MODEL', 'gemini-2.5-flash'),
-        'timeout' => env('GEMINI_TIMEOUT', 60),
+        'timeout' => env('GEMINI_TIMEOUT', 240),
         'template_disk' => env('GEMINI_TEMPLATE_DISK', 'public_documents'),
         'question_references' => [
             'loan agreement' => base_path('private/documents/Loan Agreement 2.0.docx'),

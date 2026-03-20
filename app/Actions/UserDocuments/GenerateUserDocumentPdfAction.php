@@ -3,55 +3,48 @@
 namespace App\Actions\UserDocuments;
 
 use App\Models\UserDocument;
-use App\Services\Ai\GeminiPdfGenerator;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use App\Services\Ai\GeminiLegalDocumentComposer;
+use App\Services\Documents\Shared\PdfDocumentStorage;
 use RuntimeException;
 
 class GenerateUserDocumentPdfAction
 {
     public function __construct(
-        protected GeminiPdfGenerator $generator
+        protected GeminiLegalDocumentComposer $composer,
+        protected PdfDocumentStorage $pdfStorage
     ) {}
 
     public function handle(UserDocument $userDocument): UserDocument
     {
-        $userDocument->loadMissing('document', 'user');
+        $userDocument->loadMissing('document');
 
-        $generated = $this->generator->generate($userDocument);
-
-        $safeTitle = Str::slug($generated['document_title'] ?: ($userDocument->document?->title ?? 'document'));
-        $fileName = $safeTitle . '-' . $userDocument->id . '.pdf';
-        $relativePath = 'generated/user-documents/' . $userDocument->id . '/' . $fileName;
-
-        $pdf = Pdf::loadView('pdf.user-document', [
-            'title' => $generated['document_title'],
-            'documentDate' => $generated['document_date'],
-            'body' => $generated['filled_document_text'],
-            'userDocument' => $userDocument,
-        ])->setPaper('a4');
-
-        $binary = $pdf->output();
-
-        if (! $binary) {
-            throw new RuntimeException('Failed to render PDF.');
+        if (! $userDocument->document) {
+            throw new RuntimeException('User document has no related document.');
         }
 
-        Storage::disk(config('filesystems.default'))->put($relativePath, $binary);
+        $templateSchema = $userDocument->document->template_schema_json;
 
-        DB::transaction(function () use ($userDocument, $relativePath, $fileName, $binary) {
-            $userDocument->forceFill([
-                'generated_pdf_path' => $relativePath,
-                'generated_pdf_original_name' => $fileName,
-                'generated_pdf_mime' => 'application/pdf',
-                'generated_pdf_size' => strlen($binary),
-                'status' => UserDocument::STATUS_PDF_GENERATED,
-                'pdf_generated_at' => now(),
-            ])->save();
-        });
+        if (! is_array($templateSchema)) {
+            throw new RuntimeException('Template schema is missing or invalid.');
+        }
 
-        return $userDocument->fresh(['document']);
+        $composed = $this->composer->compose(
+            document: $userDocument->document,
+            templateSchema: $templateSchema,
+            answers: $userDocument->answers_json ?? [],
+        );
+
+        $stored = $this->pdfStorage->store($userDocument, $composed['html']);
+
+        $userDocument->update([
+            'generated_pdf_path' => $stored['path'],
+            'generated_pdf_original_name' => $stored['original_name'],
+            'generated_pdf_mime' => $stored['mime'],
+            'generated_pdf_size' => $stored['size'],
+            'status' => UserDocument::STATUS_PDF_GENERATED,
+            'pdf_generated_at' => now(),
+        ]);
+
+        return $userDocument->refresh();
     }
 }

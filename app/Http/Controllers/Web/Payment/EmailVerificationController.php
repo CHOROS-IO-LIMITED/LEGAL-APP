@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Web\Payment;
 
+use App\Actions\UserDocuments\GenerateUserDocumentQuestionSchemaAction;
 use App\Http\Controllers\Controller;
 use App\Models\UserDocument;
-use App\Services\Ai\GeminiQuestionGenerator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -31,9 +31,10 @@ class EmailVerificationController extends Controller
         ]);
     }
 
-    public function continue(Request $request): RedirectResponse
-    {
-
+    public function continue(
+        Request $request,
+        GenerateUserDocumentQuestionSchemaAction $generateSchema
+    ): RedirectResponse {
         $batchUuid = (string) $request->input('batch_uuid');
 
         abort_if(blank($batchUuid), 404);
@@ -46,20 +47,22 @@ class EmailVerificationController extends Controller
 
         abort_if($userDocuments->isEmpty(), 404);
 
-        $generator = app(GeminiQuestionGenerator::class);
-
         /** @var \App\Models\UserDocument $userDocument */
         foreach ($userDocuments as $userDocument) {
-            if (!$userDocument->question_schema_json) {
+            if (! $userDocument->document) {
+                continue;
+            }
 
-                if (!$userDocument->document) {
-                    continue;
-                }
+            if (
+                empty($userDocument->question_schema_json)
+                || ! is_array($userDocument->question_schema_json)
+                || empty($userDocument->question_schema_json['questions'])
+            ) {
+                $generateSchema->handle($userDocument, force: true);
+            }
 
-                $schema = $generator->generateFromDocument($userDocument->document);
-
+            if ($userDocument->status === UserDocument::STATUS_VERIFICATION_COMPLETED) {
                 $userDocument->update([
-                    'question_schema_json' => $schema,
                     'status' => UserDocument::STATUS_QNA_PENDING,
                 ]);
             }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Actions\UserDocuments\CompleteUserDocumentAnswersAction;
-use App\Actions\UserDocuments\GenerateUserDocumentDocxAction;
+use App\Actions\UserDocuments\GenerateUserDocumentPdfAction;
 use App\Actions\UserDocuments\GenerateUserDocumentQuestionSchemaAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Web\UpdateUserDocumentAnswersRequest;
@@ -50,7 +50,6 @@ class UserDocumentQuestionController extends Controller
                 'answers_json' => $userDocument->answers_json,
                 'question_schema_json' => $userDocument->question_schema_json,
                 'generated_pdf_url' => $userDocument->generated_pdf_url,
-                'generated_docx_url' => $userDocument->generated_docx_url ?? null,
                 'document' => [
                     'id' => $userDocument->document?->id,
                     'title' => $userDocument->document?->title,
@@ -64,7 +63,7 @@ class UserDocumentQuestionController extends Controller
         UpdateUserDocumentAnswersRequest $request,
         UserDocument $userDocument,
         CompleteUserDocumentAnswersAction $completeAnswers,
-        GenerateUserDocumentDocxAction $generateDocx
+        GenerateUserDocumentPdfAction $generatePdf
     ): RedirectResponse {
         $this->authorize('answerQuestions', $userDocument);
 
@@ -72,10 +71,10 @@ class UserDocumentQuestionController extends Controller
 
         $userDocument->refresh();
 
-        $generateDocx->handle($userDocument);
+        $generatePdf->handle($userDocument);
 
         return redirect()
             ->route('user.dashboard')
-            ->with('success', 'Questions completed and DOCX generated successfully.');
+            ->with('success', 'Questions completed and PDF generated successfully.');
     }
 }

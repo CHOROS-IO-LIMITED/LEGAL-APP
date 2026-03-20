@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Actions\Documents\DeleteDocumentFiles;
 use App\Actions\Documents\StoreDocumentFiles;
+use App\Actions\Documents\Shared\SyncDocumentSchemasAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreDocumentRequest;
 use App\Http\Requests\Admin\UpdateDocumentRequest;
@@ -15,17 +16,20 @@ class AdminDocumentController extends Controller
 {
     public function store(
         StoreDocumentRequest $request,
-        StoreDocumentFiles $storeDocumentFiles
+        StoreDocumentFiles $storeDocumentFiles,
+        SyncDocumentSchemasAction $syncDocumentSchemas
     ): RedirectResponse {
         $this->authorize('create', Document::class);
 
-        DB::transaction(function () use ($request, $storeDocumentFiles) {
+        DB::transaction(function () use ($request, $storeDocumentFiles, $syncDocumentSchemas) {
             $payload = $storeDocumentFiles->handle($request->validated());
 
-            Document::create([
+            $document = Document::create([
                 ...$payload,
                 'user_id' => $request->user()->id,
             ]);
+
+            $syncDocumentSchemas->handle($document);
         });
 
         return back()->with('success', 'Document created successfully.');
@@ -34,13 +38,17 @@ class AdminDocumentController extends Controller
     public function update(
         UpdateDocumentRequest $request,
         Document $document,
-        StoreDocumentFiles $storeDocumentFiles
+        StoreDocumentFiles $storeDocumentFiles,
+        SyncDocumentSchemasAction $syncDocumentSchemas
     ): RedirectResponse {
         $this->authorize('update', $document);
 
-        DB::transaction(function () use ($request, $document, $storeDocumentFiles) {
+        DB::transaction(function () use ($request, $document, $storeDocumentFiles, $syncDocumentSchemas) {
             $payload = $storeDocumentFiles->handle($request->validated(), $document);
             $document->update($payload);
+            $document->refresh();
+
+            $syncDocumentSchemas->handle($document);
         });
 
         return back()->with('success', 'Document updated successfully.');

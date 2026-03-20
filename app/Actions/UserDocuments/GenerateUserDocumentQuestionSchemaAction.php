@@ -3,20 +3,16 @@
 namespace App\Actions\UserDocuments;
 
 use App\Models\UserDocument;
-use App\Services\Ai\GeminiQuestionGenerator;
+use RuntimeException;
 
 class GenerateUserDocumentQuestionSchemaAction
 {
-    public function __construct(
-        protected GeminiQuestionGenerator $generator
-    ) {}
-
     public function handle(UserDocument $userDocument, bool $force = false): array
     {
         $userDocument->loadMissing('document');
 
         if (! $userDocument->document) {
-            abort(404, 'Document template not found.');
+            throw new RuntimeException('Document template not found.');
         }
 
         if (
@@ -27,7 +23,11 @@ class GenerateUserDocumentQuestionSchemaAction
             return $userDocument->question_schema_json;
         }
 
-        $schema = $this->generator->generateFromDocument($userDocument->document);
+        $schema = $userDocument->document->default_question_schema_json;
+
+        if (! is_array($schema) || empty($schema['questions'])) {
+            throw new RuntimeException('No default question schema is configured for this document.');
+        }
 
         $userDocument->update([
             'question_schema_json' => $schema,
