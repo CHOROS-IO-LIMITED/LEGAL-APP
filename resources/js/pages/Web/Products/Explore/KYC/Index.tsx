@@ -75,17 +75,15 @@ const KYC: React.FC = () => {
                     </div>
 
                     <div className="mx-auto w-full max-w-lg">
-                        <Card>
+                        <Card className="rounded-none">
                             <CardHeader className="text-center">
                                 <CardTitle>KYC Verification</CardTitle>
                             </CardHeader>
 
                             <CardContent className="flex flex-col items-center gap-6">
-                                <p className="text-center text-sm text-[#70665E]">
-                                    To continue, we need to verify your identity using our secure verification partner.
-                                </p>
+                                <p className="text-center text-sm text-[#70665E]">To continue, please verify your identity.</p>
 
-                                <div className="w-full rounded border border-[#D9D9D9] bg-[#F9F7F2] p-4 text-sm text-[#70665E]">
+                                <div className="w-full rounded-none border border-[#D9D9D9] bg-[#F9F7F2] p-4 text-sm text-[#70665E]">
                                     <strong>Before you start, please have ready:</strong>
                                     <ul className="mt-2 list-inside list-disc space-y-1">
                                         <li>A valid government-issued ID (passport, national ID, or driver’s license)</li>
@@ -102,7 +100,7 @@ const KYC: React.FC = () => {
 
                                 <Button
                                     type="button"
-                                    className="w-full bg-[#3D2B1F] text-white hover:bg-[#5A4638]"
+                                    className="h-10 w-full cursor-pointer rounded-none bg-[#3D2B1F] text-white hover:bg-[#2F2118]"
                                     onClick={startVerification}
                                     disabled={isStarting || !batchUuid}
                                 >

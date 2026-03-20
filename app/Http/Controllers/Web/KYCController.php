@@ -140,9 +140,6 @@ class KYCController extends Controller
         ]);
     }
 
-    /**
-     * Handle KYC cancellation.
-     */
     public function cancel(Request $request): RedirectResponse
     {
         $batchUuid = session('kyc_batch_uuid');
