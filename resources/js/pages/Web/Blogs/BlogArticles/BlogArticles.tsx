@@ -96,12 +96,15 @@ const BlogArticles: React.FC = () => {
                             transition={{ duration: 0.6, ease: 'easeOut' }}
                             whileHover={{ scale: 1.03, y: -4, transition: { duration: 0.3, ease: 'easeOut' } }}
                         >
-                            <motion.img
-                                src={article.image}
-                                alt={article.title}
-                                className="h-48 w-full object-cover"
-                                whileHover={{ scale: 1.05, transition: { duration: 0.3, ease: 'easeOut' } }}
-                            />
+                            <div className="h-48 w-full overflow-hidden">
+                                <motion.img
+                                    src={article.image}
+                                    alt={article.title}
+                                    className="h-full w-full scale-111 object-cover"
+                                    whileHover={{ scale: 1.1 }}
+                                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                                />
+                            </div>
 
                             <div className="flex flex-1 flex-col p-6">
                                 <h3 className="mb-2 font-medium text-[#1A1614]">{article.title}</h3>
