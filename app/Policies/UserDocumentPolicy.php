@@ -58,7 +58,7 @@ class UserDocumentPolicy
             && in_array($userDocument->status, [
                 UserDocument::STATUS_QNA_PENDING,
                 UserDocument::STATUS_QNA_COMPLETED,
-                UserDocument::STATUS_VERIFICATION_PENDING,
+                // UserDocument::STATUS_VERIFICATION_PENDING,
             ], true);
     }
 

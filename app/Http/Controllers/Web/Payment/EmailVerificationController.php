@@ -61,7 +61,10 @@ class EmailVerificationController extends Controller
                 $generateSchema->handle($userDocument, force: true);
             }
 
-            if ($userDocument->status === UserDocument::STATUS_VERIFICATION_COMPLETED) {
+            if (in_array($userDocument->status, [
+                UserDocument::STATUS_VERIFICATION_PENDING,
+                UserDocument::STATUS_VERIFICATION_COMPLETED,
+            ], true)) {
                 $userDocument->update([
                     'status' => UserDocument::STATUS_QNA_PENDING,
                 ]);
