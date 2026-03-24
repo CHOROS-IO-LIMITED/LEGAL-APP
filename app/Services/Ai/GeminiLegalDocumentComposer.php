@@ -24,18 +24,17 @@ class GeminiLegalDocumentComposer
             'generationConfig' => [
                 'responseMimeType' => 'application/json',
                 'temperature' => 0.0,
-                'topP' => 0.8,
-                'topK' => 20,
-                'maxOutputTokens' => 12000,
             ],
             'contents' => [[
-                'parts' => [[
-                    'text' => $this->prompt(
-                        documentTitle: (string) $document->title,
-                        templateSchema: $templateSchema,
-                        answers: $answers,
-                    ),
-                ]],
+                'parts' => [
+                    [
+                        'text' => $this->prompt(
+                            documentTitle: (string) $document->title,
+                            templateSchema: $templateSchema,
+                            answers: $answers,
+                        ),
+                    ],
+                ],
             ]],
         ];
 
@@ -67,7 +66,7 @@ class GeminiLegalDocumentComposer
         $text = data_get($response->json(), 'candidates.0.content.parts.0.text');
 
         if (! is_string($text) || trim($text) === '') {
-            throw new RuntimeException('Gemini returned an empty assembly plan.');
+            throw new RuntimeException('Gemini returned an empty document composition.');
         }
 
         $decoded = json_decode(trim($text), true);
@@ -78,16 +77,11 @@ class GeminiLegalDocumentComposer
                 'raw_text' => $text,
             ]);
 
-            throw new RuntimeException('Gemini returned invalid JSON for document assembly.');
+            throw new RuntimeException('Gemini returned invalid JSON for composed document.');
         }
 
-        if (
-            ! isset($decoded['title']) ||
-            ! isset($decoded['placeholder_values']) ||
-            ! isset($decoded['selections']) ||
-            ! isset($decoded['remove_tokens'])
-        ) {
-            throw new RuntimeException('Gemini returned an invalid assembly structure.');
+        if (empty($decoded['html'])) {
+            throw new RuntimeException('Gemini did not return composed HTML.');
         }
 
         return $decoded;
@@ -96,38 +90,25 @@ class GeminiLegalDocumentComposer
     protected function prompt(string $documentTitle, array $templateSchema, array $answers): string
     {
         return <<<PROMPT
-You are a legal document assembly planner.
+You are assembling a final legal document from a template schema and client answers.
 
-Your job is NOT to rewrite the legal document.
-Your job is to decide:
-1. which placeholders must be filled,
-2. which optional clauses / schedules / OR branches must be kept,
-3. which unused alternatives must be removed.
-
-Return JSON only with this exact structure:
+Return JSON only with this exact shape:
 {
   "title": "string",
-  "placeholder_values": {
-    "placeholder_key": "value"
-  },
-  "selections": {
-    "flag_name": true,
-    "other_flag_name": false,
-    "mode_name": "string"
-  },
-  "remove_tokens": ["TOKEN_1", "TOKEN_2"]
+  "html": "full valid HTML for PDF rendering"
 }
 
 Rules:
-- The final generated document must preserve the original legal wording and formatting of the template.
-- Do not rewrite clauses.
-- Do not paraphrase the legal text.
-- Only resolve choices and placeholders based on the supplied answers.
-- If an answer is missing, put "[MISSING: field_name]" as the placeholder value.
-- Remove unused OR branches and unused optional blocks.
-- Preserve clause order and numbering.
-- Preserve schedules and execution/signature sections when applicable.
-- Return JSON only, with no markdown fences.
+- Preserve the legal order, headings, numbering, schedules, and signature sections.
+- Use the template schema as the source of truth.
+- Replace all placeholders with supplied answers.
+- Resolve all OR options and conditions.
+- Remove drafting notes and internal instructions.
+- Do not leave unresolved placeholders.
+- Output complete HTML suitable for PDF rendering.
+- Use a conservative legal style with serif font and black text.
+- Do not include markdown fences.
+- Do not explain anything outside the JSON object.
 
 DOCUMENT TITLE:
 {$documentTitle}
