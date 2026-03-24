@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Actions\Documents\DeleteDocumentFiles;
-use App\Actions\Documents\StoreDocumentFiles;
-use App\Actions\Documents\Shared\SyncDocumentSchemasAction;
+use App\Actions\Admin\Documents\DeleteDocumentFiles;
+use App\Actions\Admin\Documents\StoreDocumentFiles;
+use App\Actions\Admin\Documents\SyncDocumentSchemasAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreDocumentRequest;
 use App\Http\Requests\Admin\UpdateDocumentRequest;

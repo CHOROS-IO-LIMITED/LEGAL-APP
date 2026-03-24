@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Actions\Documents\Shared;
+namespace App\Actions\Admin\Documents;
 
 use App\Models\Document;
 use App\Services\Documents\Shared\DocumentSchemaRegistry;
