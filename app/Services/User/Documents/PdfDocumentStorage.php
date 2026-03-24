@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Documents\Shared;
+namespace App\Services\User\Documents;
 
 use App\Models\UserDocument;
 use Barryvdh\DomPDF\Facade\Pdf;

@@ -38,8 +38,7 @@ use App\Http\Controllers\Web\Payment\PaymentController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\ProductDetailsController;
 use App\Http\Controllers\Web\QnA\QuestionController;
-use App\Http\Controllers\Web\UserDocumentQuestionController;
-use App\Http\Controllers\Web\UserDocumentSelectionController;
+use App\Http\Controllers\User\UserDocumentSelectionController;
 use Illuminate\Support\Facades\Route;
 
 // public route

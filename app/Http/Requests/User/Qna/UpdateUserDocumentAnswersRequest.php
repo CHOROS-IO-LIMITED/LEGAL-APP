@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Web;
+namespace App\Http\Requests\User\Qna;
 
 use App\Concerns\File\UserDocuments\UserDocumentAnswersValidation;
 use App\Models\UserDocument;

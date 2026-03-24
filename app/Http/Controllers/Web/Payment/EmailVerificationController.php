@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Web\Payment;
 
-use App\Actions\UserDocuments\GenerateUserDocumentQuestionSchemaAction;
+use App\Actions\User\QnA\GenerateUserDocumentQuestionSchemaAction;
 use App\Http\Controllers\Controller;
 use App\Models\UserDocument;
 use Illuminate\Http\RedirectResponse;

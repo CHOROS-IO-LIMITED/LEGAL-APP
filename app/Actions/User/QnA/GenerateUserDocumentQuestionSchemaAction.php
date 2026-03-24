@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Actions\UserDocuments;
+namespace App\Actions\User\QnA;
 
 use App\Models\UserDocument;
 use RuntimeException;

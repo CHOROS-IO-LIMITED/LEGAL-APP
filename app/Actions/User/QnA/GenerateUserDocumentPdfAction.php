@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Actions\UserDocuments;
+namespace App\Actions\User\QnA;
 
 use App\Models\UserDocument;
 use App\Services\Ai\GeminiLegalDocumentComposer;
-use App\Services\Documents\Shared\PdfDocumentStorage;
+use App\Services\User\Documents\PdfDocumentStorage;
 use RuntimeException;
 
 class GenerateUserDocumentPdfAction

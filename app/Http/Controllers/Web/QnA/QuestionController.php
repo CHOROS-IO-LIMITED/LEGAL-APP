@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Web\QnA;
 
-use App\Actions\UserDocuments\CompleteUserDocumentAnswersAction;
-use App\Actions\UserDocuments\GenerateUserDocumentPdfAction;
-use App\Actions\UserDocuments\GenerateUserDocumentQuestionSchemaAction;
+use App\Actions\User\QnA\CompleteUserDocumentAnswersAction;
+use App\Actions\User\QnA\GenerateUserDocumentPdfAction;
+use App\Actions\User\QnA\GenerateUserDocumentQuestionSchemaAction;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Web\UpdateUserDocumentAnswersRequest;
+use App\Http\Requests\User\Qna\UpdateUserDocumentAnswersRequest;
 use App\Models\UserDocument;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

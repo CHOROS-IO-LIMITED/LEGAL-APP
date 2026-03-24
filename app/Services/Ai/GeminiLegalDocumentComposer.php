@@ -13,8 +13,8 @@ class GeminiLegalDocumentComposer
     public function compose(Document $document, array $templateSchema, array $answers): array
     {
         $apiKey = config('services.gemini.api_key');
-        $model = config('services.gemini.model', 'gemini-2.5-flash');
-        $timeout = (int) config('services.gemini.timeout', 180);
+        $model = config('services.gemini.model', 'gemini-3-preview');
+        $timeout = (int) config('services.gemini.timeout', 240);
 
         if (! $apiKey) {
             throw new RuntimeException('Gemini API key is not configured.');
