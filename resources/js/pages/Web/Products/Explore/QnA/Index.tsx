@@ -3,113 +3,466 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Header from '@/components/web/Header';
 import Stepper from '@/components/web/Stepper';
-import { Link, router } from '@inertiajs/react';
-import { ArrowLeft, ArrowRight, Calendar, Settings } from 'lucide-react';
-import React, { useState } from 'react';
+import { router, useForm } from '@inertiajs/react';
+import { Settings } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-const QuestionAndAnswer: React.FC = () => {
-    const steps = ['Products', 'KYC', 'Checkout', 'Verification', 'Q&A'];
+type Primitive = string | number | boolean | null;
+type FormValue = Primitive | string[] | File | Date | { [key: string]: FormValue };
+
+type FormData = {
+    answers: Record<string, FormValue>;
+};
+
+type FollowUpCondition = {
+    field: string;
+    operator: 'equals' | 'not_equals' | 'truthy' | 'falsy';
+    value?: string;
+};
+
+type FollowUp = {
+    when: FollowUpCondition;
+    questions: Question[];
+};
+
+type Question = {
+    key: string;
+    label: string;
+    type: 'text' | 'textarea' | 'number' | 'select' | 'checkbox' | 'date';
+    required: boolean;
+    options?: string[];
+    help_text?: string;
+    placeholder?: string;
+    action_trigger?: string;
+    is_upsell?: boolean;
+    min?: number;
+    max?: number;
+    follow_ups?: FollowUp[];
+};
+
+// type UserDocument = {
+//     id: number;
+//     answers_json: Record<string, unknown> | null;
+//     question_schema_json: {
+//         document_type: string;
+//         questions: Question[];
+//     } | null;
+//     document: {
+//         title: string | null;
+//         description: string | null;
+//     };
+// };
+
+type UserDocument = {
+    id: number;
+    answers_json: Record<string, unknown> | null;
+    question_schema_json: {
+        document_type: string;
+        questions: Question[];
+    } | null;
+    generated_pdf_url?: string | null;
+    document: {
+        title: string | null;
+        description: string | null;
+    };
+};
+
+type Props = {
+    userDocument: UserDocument | null;
+};
+
+const steps = ['Products', 'KYC', 'Checkout', 'Verification', 'Q&A'];
+
+export default function QuestionAndAnswer({ userDocument }: Props) {
+    if (!userDocument) {
+        return <div className="p-10 text-center text-gray-500">User document not found.</div>;
+    }
+
+    const schema = userDocument.question_schema_json;
+
+    if (!schema) {
+        return <div className="p-10 text-center text-gray-500">No question schema available.</div>;
+    }
+
+    const initialAnswers = useMemo(() => {
+        return (userDocument.answers_json as Record<string, FormValue>) ?? {};
+    }, [userDocument.answers_json]);
+
+    const { data, processing, setData } = useForm<FormData>({
+        answers: initialAnswers,
+    });
 
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [history, setHistory] = useState<string[]>([]);
+    const [currentValue, setCurrentValue] = useState<FormValue>('');
+    const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
-    const statusMessages = [
-        { limit: 20, text: 'Analyzing your answers...' },
-        { limit: 40, text: 'Drafting clauses...' },
-        { limit: 60, text: 'Applying legal requirements...' },
-        { limit: 80, text: 'Validating agreement structure...' },
-        { limit: 99, text: 'Preparing final document...' },
-        { limit: 100, text: 'Finalizing your document...' },
-    ];
+    const answers = data.answers;
 
-    const getStatusMessage = (progress: number) => {
-        return statusMessages.find((s) => progress <= s.limit)?.text;
+    const isTruthy = (value: FormValue | undefined) => {
+        if (Array.isArray(value)) return value.length > 0;
+        if (typeof value === 'boolean') return value;
+        if (typeof value === 'number') return value !== 0;
+        if (typeof value === 'string') {
+            const normalized = value.trim().toLowerCase();
+            return ['1', 'true', 'yes', 'on', 'checked'].includes(normalized);
+        }
+
+        return Boolean(value);
     };
 
-    const handleGenerate = () => {
+    const matchesCondition = (when: FollowUpCondition, allAnswers: Record<string, FormValue>) => {
+        const actual = allAnswers[when.field];
+
+        switch (when.operator) {
+            case 'equals':
+                return Array.isArray(actual)
+                    ? actual.map(String).includes(String(when.value ?? ''))
+                    : String(actual ?? '') === String(when.value ?? '');
+
+            case 'not_equals':
+                return Array.isArray(actual)
+                    ? !actual.map(String).includes(String(when.value ?? ''))
+                    : String(actual ?? '') !== String(when.value ?? '');
+
+            case 'truthy':
+                return isTruthy(actual);
+
+            case 'falsy':
+                return !isTruthy(actual);
+
+            default:
+                return false;
+        }
+    };
+
+    const isEmptyValue = (value: FormValue | undefined) => {
+        if (value === null || value === undefined || value === '') return true;
+        if (Array.isArray(value) && value.length === 0) return true;
+        return false;
+    };
+
+    const isQuestionAnswered = (question: Question, value: FormValue | undefined) => {
+        if (!question.required) {
+            return !isEmptyValue(value) || value === undefined || value === null || value === '';
+        }
+
+        if (question.type === 'checkbox') {
+            if ((question.options?.length ?? 0) <= 1) {
+                return value === true;
+            }
+
+            return Array.isArray(value) && value.length > 0;
+        }
+
+        return !isEmptyValue(value);
+    };
+
+    const getVisibleQuestions = (questions: Question[], allAnswers: Record<string, FormValue>): Question[] => {
+        const result: Question[] = [];
+
+        for (const question of questions) {
+            result.push(question);
+
+            if (question.follow_ups?.length) {
+                for (const followUp of question.follow_ups) {
+                    if (matchesCondition(followUp.when, allAnswers)) {
+                        result.push(...getVisibleQuestions(followUp.questions, allAnswers));
+                    }
+                }
+            }
+        }
+
+        return result;
+    };
+
+    const visibleQuestions = useMemo(() => {
+        return getVisibleQuestions(schema.questions, answers);
+    }, [schema.questions, answers]);
+
+    const currentQuestion = useMemo(() => {
+        for (const question of visibleQuestions) {
+            const value = answers[question.key];
+
+            if (!isQuestionAnswered(question, value)) {
+                return question;
+            }
+        }
+
+        return null;
+    }, [visibleQuestions, answers]);
+
+    useEffect(() => {
+        if (!currentQuestion) return;
+
+        const existing = answers[currentQuestion.key];
+
+        if (existing !== undefined) {
+            setCurrentValue(existing);
+            setTimeout(() => inputRef.current?.focus(), 0);
+            return;
+        }
+
+        switch (currentQuestion.type) {
+            case 'checkbox':
+                setCurrentValue((currentQuestion.options?.length ?? 0) <= 1 ? false : []);
+                break;
+
+            case 'number':
+            case 'date':
+            case 'textarea':
+            case 'text':
+            case 'select':
+            default:
+                setCurrentValue('');
+                break;
+        }
+
+        setTimeout(() => inputRef.current?.focus(), 0);
+    }, [currentQuestion, answers]);
+
+    const persistAnswers = (updated: Record<string, FormValue>) => {
+        setData('answers', updated);
+    };
+
+    const setAnswer = (key: string, value: FormValue) => {
+        const updated = { ...answers, [key]: value };
+        persistAnswers(updated);
+
+        setHistory((prev) => (prev[prev.length - 1] === key ? prev : [...prev, key]));
+    };
+
+    const handleGenerate = (finalAnswers: Record<string, FormValue>) => {
         setLoading(true);
         setProgress(0);
 
         const interval = setInterval(() => {
             setProgress((prev) => {
                 if (prev >= 90) return prev;
-
                 const next = prev + Math.random() * (prev > 70 ? 2 : 5);
                 return next > 90 ? 90 : next;
             });
         }, 100);
 
-        setTimeout(() => {
-            clearInterval(interval);
-
-            setProgress(100);
-
-            setTimeout(() => {
-                router.visit(route('user.dashboard'));
-            }, 600);
-        }, 4000);
+        router.put(
+            route('product.qna.update', userDocument.id),
+            { answers: finalAnswers },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    clearInterval(interval);
+                    setProgress(100);
+                },
+                onError: (errors) => {
+                    console.error('Q&A update errors:', errors);
+                    clearInterval(interval);
+                },
+                onFinish: () => {
+                    clearInterval(interval);
+                    setLoading(false);
+                },
+            },
+        );
     };
+
+    const handleNext = () => {
+        if (!currentQuestion) return;
+        if (!isQuestionAnswered(currentQuestion, currentValue)) return;
+
+        const nextAnswers = {
+            ...answers,
+            [currentQuestion.key]: currentValue,
+        };
+
+        persistAnswers(nextAnswers);
+        setHistory((prev) => (prev[prev.length - 1] === currentQuestion.key ? prev : [...prev, currentQuestion.key]));
+
+        const remainingVisible = getVisibleQuestions(schema.questions, nextAnswers);
+        const nextQuestion = remainingVisible.find((question) => !isQuestionAnswered(question, nextAnswers[question.key]));
+
+        if (!nextQuestion) {
+            handleGenerate(nextAnswers);
+        }
+    };
+
+    const handleBack = () => {
+        if (history.length === 0) {
+            return;
+        }
+
+        const previousKey = history[history.length - 1];
+        const updatedHistory = history.slice(0, -1);
+        const updatedAnswers = { ...answers };
+
+        delete updatedAnswers[previousKey];
+
+        persistAnswers(updatedAnswers);
+        setHistory(updatedHistory);
+    };
+
+    const normalizeInputValue = (value: FormValue) => {
+        if (typeof value === 'string' || typeof value === 'number') {
+            return value;
+        }
+
+        return '';
+    };
+
+    const normalizeSelectValue = (value: FormValue) => {
+        if (typeof value === 'string' || typeof value === 'number') {
+            return value;
+        }
+
+        return '';
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && currentQuestion?.type !== 'textarea') {
+            e.preventDefault();
+
+            if (currentQuestion && isQuestionAnswered(currentQuestion, currentValue)) {
+                handleNext();
+            }
+        }
+    };
+
+    const renderInput = (q: Question) => {
+        const value = currentValue;
+        const placeholder = q.placeholder ?? q.help_text ?? `Enter ${q.label.toLowerCase()}`;
+
+        switch (q.type) {
+            case 'select':
+                return (
+                    <select
+                        value={normalizeSelectValue(value)}
+                        onChange={(e) => setCurrentValue(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        className="w-full appearance-none rounded-lg border border-gray-300 bg-white p-2 outline-none focus:border-gray-300 focus:ring-0"
+                    >
+                        <option value="">Select...</option>
+                        {q.options?.map((opt) => (
+                            <option key={opt} value={opt}>
+                                {opt.replaceAll('_', ' ')}
+                            </option>
+                        ))}
+                    </select>
+                );
+
+            case 'checkbox':
+                if ((q.options?.length ?? 0) <= 1) {
+                    return (
+                        <label className="flex items-center gap-2">
+                            <input type="checkbox" checked={value === true} onChange={(e) => setCurrentValue(e.target.checked)} />
+                            {(q.options?.[0] ?? q.label).replaceAll('_', ' ')}
+                        </label>
+                    );
+                }
+
+                return (
+                    <div className="space-y-2">
+                        {q.options?.map((opt) => {
+                            const arr = Array.isArray(value) ? (value as string[]) : [];
+
+                            return (
+                                <label key={opt} className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={arr.includes(opt)}
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setCurrentValue([...arr, opt]);
+                                            } else {
+                                                setCurrentValue(arr.filter((v) => v !== opt));
+                                            }
+                                        }}
+                                    />
+                                    {opt.replaceAll('_', ' ')}
+                                </label>
+                            );
+                        })}
+                    </div>
+                );
+
+            case 'number':
+                return (
+                    <Input
+                        ref={inputRef as React.RefObject<HTMLInputElement>}
+                        type="number"
+                        min={q.min}
+                        max={q.max}
+                        placeholder={placeholder}
+                        value={typeof value === 'number' ? value : typeof value === 'string' ? value : ''}
+                        onChange={(e) => {
+                            const raw = e.target.value;
+                            setCurrentValue(raw === '' ? '' : Number(raw));
+                        }}
+                        onKeyDown={handleKeyDown}
+                    />
+                );
+
+            case 'date':
+                return (
+                    <Input
+                        ref={inputRef as React.RefObject<HTMLInputElement>}
+                        type="date"
+                        value={typeof value === 'string' ? value : ''}
+                        onChange={(e) => setCurrentValue(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                    />
+                );
+
+            case 'textarea':
+                return (
+                    <textarea
+                        ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+                        value={typeof value === 'string' ? value : ''}
+                        placeholder={placeholder}
+                        onChange={(e) => setCurrentValue(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        rows={5}
+                        className="w-full rounded-lg border border-gray-300 bg-white p-3 outline-none focus:border-gray-300 focus:ring-0"
+                    />
+                );
+
+            case 'text':
+            default:
+                return (
+                    <Input
+                        ref={inputRef as React.RefObject<HTMLInputElement>}
+                        type="text"
+                        placeholder={placeholder}
+                        value={normalizeInputValue(value)}
+                        onChange={(e) => setCurrentValue(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                    />
+                );
+        }
+    };
+
+    const isNextDisabled = processing || !currentQuestion || !isQuestionAnswered(currentQuestion, currentValue);
 
     if (loading) {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center bg-[#FCF9F2] text-center font-sans">
                 <div className="relative mb-8 flex items-center justify-center">
                     <div className="absolute h-24 w-24 animate-pulse rounded-full bg-[#A68A64]/20 blur-xl" />
-
                     <div className="relative flex h-20 w-20 items-center justify-center">
-                        {/* background ring */}
                         <svg className="absolute h-20 w-20">
                             <circle cx="40" cy="40" r="34" stroke="#E8E2D6" strokeWidth="4" fill="none" />
                         </svg>
-
-                        {/* animated loader */}
-                        <svg className="absolute h-20 w-20 animate-spin">
-                            <defs>
-                                <linearGradient id="loaderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stopColor="#3D2B1F" />
-                                    <stop offset="50%" stopColor="#6E5A46" />
-                                    <stop offset="100%" stopColor="#A68A64" />
-                                </linearGradient>
-                            </defs>
-
-                            <circle
-                                cx="40"
-                                cy="40"
-                                r="34"
-                                fill="none"
-                                stroke="url(#loaderGradient)"
-                                strokeWidth="4"
-                                strokeLinecap="round"
-                                style={{
-                                    animation: 'loaderDash 1.6s ease-in-out infinite',
-                                }}
-                            />
-                        </svg>
-
-                        <Settings size={34} className="animate-[spin_3s_linear_infinite] text-[#3D2B1F]" />
+                        <Settings size={34} className="animate-spin text-[#3D2B1F]" />
                     </div>
                 </div>
 
-                <h2 className="font-serif text-4xl font-bold text-[#1A1614]">Building your document</h2>
+                <h2 className="text-4xl font-bold text-[#1A1614]">Building your document</h2>
+                <p className="mt-2 text-[#70665E]">Submitting your answers...</p>
 
-                <p className="mt-2 text-[#70665E]">{getStatusMessage(progress)}</p>
-
-                {/* Progress */}
-                <div className="mt-6 flex items-center gap-3">
-                    <div className="relative h-1.5 w-64 overflow-hidden rounded-full bg-[#E8E2D6]">
-                        <div
-                            className="h-full bg-gradient-to-r from-[#3D2B1F] via-[#6E5A46] to-[#A68A64] transition-all duration-500"
-                            style={{ width: `${progress}%` }}
-                        />
-                    </div>
-
-                    <span className="w-10 text-left text-sm font-medium text-[#3D2B1F]">{Math.round(progress)}%</span>
+                <div className="mt-4 h-2 w-64 overflow-hidden rounded-full bg-gray-200">
+                    <div className="h-full bg-[#3D2B1F] transition-all duration-300 ease-out" style={{ width: `${progress}%` }} />
                 </div>
 
-                <p className="mt-4 max-w-xs text-sm text-[#8A8077]">
-                    This usually takes around <span className="font-medium">30–60 seconds</span>. Please keep this tab open while we generate your
-                    document.
-                </p>
+                <p className="mt-2 text-sm text-[#70665E]">{Math.floor(progress)}%</p>
             </div>
         );
     }
@@ -118,105 +471,58 @@ const QuestionAndAnswer: React.FC = () => {
         <div className="min-h-screen bg-[#FCF9F2] font-sans">
             <Header />
 
-            <section className="mx-auto flex min-h-[calc(100vh-64px)] max-w-6xl flex-col px-8 py-10">
-                <div className="flex flex-col space-y-12">
-                    {/* Stepper */}
-                    <Stepper steps={steps} currentStep={4} />
+            <section className="mx-auto max-w-4xl space-y-10 px-8 py-10">
+                <Stepper steps={steps} currentStep={4} />
 
-                    {/* Title */}
-                    <div className="flex flex-col items-center text-center">
-                        <Link
-                            href={route('product.details.index')}
-                            className="group mb-4 inline-flex items-center font-medium text-[#3D2B1F] hover:text-[#5A4638]"
-                        >
-                            <ArrowLeft size={18} className="mr-2 transition group-hover:-translate-x-1" />
-                            Back
-                        </Link>
+                <div className="text-center">
+                    <h2 className="text-3xl font-bold">{userDocument.document.title}</h2>
+                    <p className="mt-2 text-gray-500">{userDocument.document.description}</p>
+                </div>
 
-                        <h2 className="font-serif text-4xl font-bold text-[#1A1614]">Residential Lease Q&A</h2>
+                {currentQuestion ? (
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <CardTitle>{currentQuestion.label}</CardTitle>
 
-                        <p className="mt-2 text-base text-[#70665E]">Please answer the following questions to generate your lease agreement.</p>
-                    </div>
+                                {currentQuestion.is_upsell && (
+                                    <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">Add-on</span>
+                                )}
 
-                    {/* Questions */}
-                    <div className="mx-auto w-full max-w-lg space-y-6">
-                        {/* Question 1 */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>
-                                    <span className="font-semibold text-[#3D2B1F]">1.</span> What is the full address of the rental property?
-                                </CardTitle>
-                            </CardHeader>
+                                {currentQuestion.action_trigger && (
+                                    <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+                                        Action: {currentQuestion.action_trigger}
+                                    </span>
+                                )}
+                            </div>
+                        </CardHeader>
 
-                            <CardContent>
-                                <Input placeholder="e.g. 123 Main St, Los Angeles, CA 90001" />
-                            </CardContent>
-                        </Card>
+                        <CardContent>
+                            {renderInput(currentQuestion)}
 
-                        {/* Question 2 */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>
-                                    <span className="font-semibold text-[#3D2B1F]">2.</span> What is the monthly rent amount?
-                                </CardTitle>
-                            </CardHeader>
+                            {currentQuestion.help_text && <p className="mt-2 text-sm text-gray-500">{currentQuestion.help_text}</p>}
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <Card>
+                        <CardContent className="py-10 text-center">All questions completed.</CardContent>
+                    </Card>
+                )}
 
-                            <CardContent>
-                                <Input placeholder="e.g. £1,200" />
-                            </CardContent>
-                        </Card>
+                <div className="flex gap-3">
+                    <Button
+                        onClick={handleBack}
+                        disabled={history.length === 0 || processing}
+                        className="w-1/3 bg-gray-200 text-black hover:bg-gray-300"
+                    >
+                        Back
+                    </Button>
 
-                        {/* Question 3 */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>
-                                    <span className="font-semibold text-[#3D2B1F]">3.</span> What is the tenancy start date?
-                                </CardTitle>
-                            </CardHeader>
-
-                            <CardContent>
-                                <div className="relative">
-                                    <Input type="date" className="pr-10 [&::-webkit-calendar-picker-indicator]:opacity-0" />
-
-                                    <Calendar size={18} className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400" />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Question 4 */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>
-                                    <span className="font-semibold text-[#3D2B1F]">4.</span> What is the tenancy duration?
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Input placeholder="e.g. 12 months" />
-                            </CardContent>
-                        </Card>
-
-                        {/* Question 5 */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>
-                                    <span className="font-semibold text-[#3D2B1F]">5.</span> Who is responsible for utility bills?
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Input placeholder="e.g. Tenant / Landlord" />
-                            </CardContent>
-                        </Card>
-
-                        {/* Generate Button */}
-                        <Button onClick={handleGenerate} className="group w-full cursor-pointer bg-[#3D2B1F] text-white hover:bg-[#5A4638]">
-                            Generate My Document
-                            <ArrowRight size={18} className="transition-transform duration-200 group-hover:translate-x-1" />
-                        </Button>
-                    </div>
+                    <Button onClick={handleNext} disabled={isNextDisabled} className="w-2/3 bg-[#3D2B1F] text-white hover:bg-[#52382a]">
+                        Next
+                    </Button>
                 </div>
             </section>
         </div>
     );
-};
-
-export default QuestionAndAnswer;
+}

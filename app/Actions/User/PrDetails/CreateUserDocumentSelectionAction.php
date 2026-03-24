@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Actions\UserDocuments;
+namespace App\Actions\User\PrDetails;
 
 use App\Models\Document;
 use App\Models\User;

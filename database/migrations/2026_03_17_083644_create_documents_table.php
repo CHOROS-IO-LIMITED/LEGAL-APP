@@ -30,6 +30,8 @@ return new class extends Migration
             $table->string('document_original_name')->nullable();
             $table->string('document_mime')->nullable();
             $table->unsignedBigInteger('document_size')->nullable();
+            $table->json('default_question_schema_json')->nullable();
+            $table->json('template_schema_json')->nullable();
 
             $table->decimal('price', 10, 2);
             $table->text('description')->nullable();

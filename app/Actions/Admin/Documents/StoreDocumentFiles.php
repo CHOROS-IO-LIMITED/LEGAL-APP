@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Actions\Documents;
+namespace App\Actions\Admin\Documents;
 
 use App\Models\Document;
 use Illuminate\Http\UploadedFile;

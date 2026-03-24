@@ -38,7 +38,7 @@ use App\Http\Controllers\Web\Payment\PaymentController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\ProductDetailsController;
 use App\Http\Controllers\Web\QnA\QuestionController;
-use App\Http\Controllers\Web\UserDocumentSelectionController;
+use App\Http\Controllers\User\UserDocumentSelectionController;
 use Illuminate\Support\Facades\Route;
 
 // public route
@@ -57,12 +57,17 @@ Route::middleware(['auth'])->group(function () {
 
     // step 3: checkout
     Route::get('/products/details/checkout', [PaymentController::class, 'index'])->name('product.checkout');
+    Route::post('/products/details/checkout/continue', [PaymentController::class, 'continue'])->name('product.checkout.continue');
 
     // step 4: verification
     Route::get('/products/details/verify', [EmailVerificationController::class, 'index'])->name('email.verify');
+    Route::post('/products/details/verify/continue', [EmailVerificationController::class, 'continue'])->name('email.verify.continue');
 
     // step 5: qna
-    Route::get('/products/details/qna', [QuestionController::class, 'index'])->name('product.qna');
+    // Route::get('/products/details/qna', [QuestionController::class, 'index'])->name('product.qna');
+
+    Route::get('/products/details/qna', [QuestionController::class, 'show'])->name('product.qna.show');
+    Route::put('/products/details/qna/{userDocument}', [QuestionController::class, 'update'])->name('product.qna.update');
 });
 
 // step 1: product detail

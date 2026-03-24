@@ -60,6 +60,28 @@ return [
             'report' => false,
         ],
 
+
+        'public_documents' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public'),
+            'url' => env('APP_URL') . '/storage',
+            'visibility' => 'public',
+        ],
+
+        'document_templates' => [
+            'driver' => 'local',
+            'root' => base_path('private/documents'),
+            'throw' => false,
+        ],
+
+        // 'document_templates' => [
+        //     'driver' => 'local',
+        //     'root' => storage_path('app/public/documents/files'),
+        //     'url' => env('APP_URL') . '/storage/documents/files',
+        //     'visibility' => 'public',
+        //     'throw' => false,
+        // ],
+
     ],
 
     /*
