@@ -23,8 +23,11 @@ class UserDocument extends Model
     public const STATUS_QNA_PENDING = 'qna_pending';
     public const STATUS_QNA_COMPLETED = 'qna_completed';
     public const STATUS_PDF_GENERATED = 'pdf_generated';
+    public const STATUS_DRAFT = 'draft';
+    public const STATUS_PENDING_APPROVAL = 'pending_approval';
+    public const STATUS_SIGNATURES = 'signatures';
+    public const STATUS_REJECTED = 'rejected';
     public const STATUS_COMPLETED = 'completed';
-    public const STATUS_CANCELLED = 'cancelled';
 
     protected $fillable = [
         'user_id',
@@ -34,15 +37,15 @@ class UserDocument extends Model
         'price',
         'question_schema_json',
         'answers_json',
+        'recipients_json',
         'generated_pdf_path',
         'generated_pdf_original_name',
         'generated_pdf_mime',
         'generated_pdf_size',
-        'generated_docx_path',
-        'generated_docx_original_name',
-        'generated_docx_mime',
-        'generated_docx_size',
         'qna_completed_at',
+        'approved_at',
+        'rejected_at',
+        'rejected_reason',
         'pdf_generated_at',
         'completed_at',
     ];
@@ -51,16 +54,17 @@ class UserDocument extends Model
         'price' => 'decimal:2',
         'question_schema_json' => 'array',
         'answers_json' => 'array',
+        'recipients_json' => 'array',
         'generated_pdf_size' => 'integer',
         'qna_completed_at' => 'datetime',
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
         'pdf_generated_at' => 'datetime',
-        'docx_generated_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
 
     protected $appends = [
         'generated_pdf_url',
-        'generated_docx_url',
     ];
 
     public function user(): BelongsTo
@@ -81,6 +85,17 @@ class UserDocument extends Model
     public function scopeBatch(Builder $query, string $batchUuid): Builder
     {
         return $query->where('batch_uuid', $batchUuid);
+    }
+
+    public function scopeDashboardVisible(Builder $query): Builder
+    {
+        return $query->whereIn('status', [
+            self::STATUS_DRAFT,
+            self::STATUS_PENDING_APPROVAL,
+            self::STATUS_SIGNATURES,
+            self::STATUS_REJECTED,
+            self::STATUS_COMPLETED,
+        ]);
     }
 
     protected function generatedPdfUrl(): Attribute
