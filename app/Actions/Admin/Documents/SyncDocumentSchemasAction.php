@@ -3,7 +3,7 @@
 namespace App\Actions\Admin\Documents;
 
 use App\Models\Document;
-use App\Services\Documents\Shared\DocumentSchemaRegistry;
+use App\Services\Admin\Documents\DocumentSchemaRegistry;
 
 class SyncDocumentSchemasAction
 {

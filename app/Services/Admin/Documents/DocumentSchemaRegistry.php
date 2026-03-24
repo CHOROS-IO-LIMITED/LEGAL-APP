@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Documents\Shared;
+namespace App\Services\Admin\Documents;
 
 use App\Models\Document;
 use App\Support\Documents\LoanAgreement\LoanAgreementQuestionSchema;
