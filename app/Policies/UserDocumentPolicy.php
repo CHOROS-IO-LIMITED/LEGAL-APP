@@ -32,6 +32,36 @@ class UserDocumentPolicy
         return $user->id === $userDocument->user_id || $user->user_role === 'admin';
     }
 
+    public function approve(User $user, UserDocument $userDocument): bool
+    {
+        return ($user->id === $userDocument->user_id || $user->user_role === 'admin')
+            && in_array($userDocument->status, [
+                UserDocument::STATUS_DRAFT,
+                UserDocument::STATUS_REJECTED,
+            ], true);
+    }
+
+    public function reject(User $user, UserDocument $userDocument): bool
+    {
+        return ($user->id === $userDocument->user_id || $user->user_role === 'admin')
+            && in_array($userDocument->status, [
+                UserDocument::STATUS_PENDING_APPROVAL,
+                UserDocument::STATUS_DRAFT,
+            ], true);
+    }
+
+    public function sign(User $user, UserDocument $userDocument): bool
+    {
+        return ($user->id === $userDocument->user_id || $user->user_role === 'admin')
+            && $userDocument->status === UserDocument::STATUS_SIGNATURES;
+    }
+
+    public function download(User $user, UserDocument $userDocument): bool
+    {
+        return ($user->id === $userDocument->user_id || $user->user_role === 'admin')
+            && $userDocument->status === UserDocument::STATUS_COMPLETED;
+    }
+
     public function startKyc(User $user, UserDocument $userDocument): bool
     {
         return ($user->id === $userDocument->user_id || $user->user_role === 'admin')
