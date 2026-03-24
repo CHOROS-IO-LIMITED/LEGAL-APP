@@ -65,13 +65,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/products/details/verify/continue', [EmailVerificationController::class, 'continue'])->name('email.verify.continue');
 
     // step 5: qna
-    Route::get('/products/details/qna', [QuestionController::class, 'index'])->name('product.qna');
+    // Route::get('/products/details/qna', [QuestionController::class, 'index'])->name('product.qna');
 
-    Route::get('/products/details/qna', [UserDocumentQuestionController::class, 'show'])
-        ->name('product.qna.show');
-
-    Route::put('/products/details/qna/{userDocument}', [UserDocumentQuestionController::class, 'update'])
-        ->name('product.qna.update');
+    Route::get('/products/details/qna', [QuestionController::class, 'show'])->name('product.qna.show');
+    Route::put('/products/details/qna/{userDocument}', [QuestionController::class, 'update'])->name('product.qna.update');
 });
 
 // step 1: product detail
