@@ -38,20 +38,40 @@ return new class extends Migration
             $table->json('question_schema_json')->nullable();
             $table->json('answers_json')->nullable();
 
+            // notes
+            $table->text('client_note')->nullable();
+            $table->text('lawyer_note')->nullable();
+
+            // signature / docsign
+            $table->json('signature_recipients_json')->nullable();
+            $table->string('docusign_client_name')->nullable();
+            $table->string('docusign_client_email')->nullable();
+            $table->string('signature_provider')->nullable();
+            $table->string('signature_envelope_id')->nullable();
+
+            // generated pdf
             $table->string('generated_pdf_path')->nullable();
             $table->string('generated_pdf_original_name')->nullable();
             $table->string('generated_pdf_mime')->nullable();
             $table->unsignedBigInteger('generated_pdf_size')->nullable();
 
+            // timestamps
             $table->timestamp('qna_completed_at')->nullable();
             $table->timestamp('pdf_generated_at')->nullable();
+            $table->timestamp('submitted_for_approval_at')->nullable();
+            $table->timestamp('approved_for_signature_at')->nullable();
+            $table->timestamp('sent_for_signature_at')->nullable();
+            $table->timestamp('rejected_at')->nullable();
             $table->timestamp('completed_at')->nullable();
 
             $table->timestamps();
 
+            // indexes
             $table->index(['user_id', 'status']);
             $table->index(['document_id']);
             $table->index(['batch_uuid', 'user_id']);
+            $table->index(['user_id', 'submitted_for_approval_at'], 'user_documents_user_submitted_idx');
+            $table->index(['status', 'submitted_for_approval_at'], 'user_documents_status_submitted_idx');
         });
     }
 

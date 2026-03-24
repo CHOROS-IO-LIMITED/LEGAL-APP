@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import UserLayout from '@/layouts/user-layout';
-import { Link } from '@inertiajs/react';
+import type { DashboardProps, DocumentItem, SignatureRecipient } from '@/types/User/Dashboard/types';
+import { Link, router } from '@inertiajs/react';
 import { ArrowLeft, CheckCircle, ClipboardList, Clock, FileSignature, Plus, SquarePen } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import CompletedDocumentView from './CompletedDocumentView';
@@ -8,298 +9,49 @@ import DocumentTable from './DocumentTable';
 import ReviewDocumentView from './ReviewDocumentView';
 import SignView from './SignView';
 
-interface User {
-    name: string;
-    email: string;
-}
-
-export type DocumentStatus = 'draft' | 'pending_lawyer_review' | 'rejected' | 'awaiting_signatures' | 'partially_signed' | 'completed';
-
-export type AuditTrailItem = {
-    id: string | number;
-    label: string;
-    timestamp: string;
-};
-
-export type RecipientItem = {
-    id: string | number;
-    name: string;
-    email: string;
-    role?: string;
-    hasSigned?: boolean;
-    signedAt?: string | null;
-    signUrl?: string | null;
-};
-
-export type DocumentItem = {
-    id: string | number;
-    title: string;
-    submittedBy: string;
-    submittedAtLabel: string;
-    status: DocumentStatus;
-    clientEmail?: string;
-    kycStatus?: 'Verified' | 'Pending';
-    paymentStatus?: 'Received' | 'Pending';
-    clientNote?: string;
-    lawyerNote?: string;
-    recipients?: RecipientItem[];
-    sentForSignatureAt?: string;
-    completedAt?: string;
-    auditTrail?: AuditTrailItem[];
-};
-
-interface DashboardProps {
-    user: User;
-}
-
 type ActiveView = 'review' | 'sign' | 'completed';
 
-const INITIAL_DOCUMENTS: DocumentItem[] = [
-    {
-        id: 1,
-        title: 'Residential Lease — J. Harrington',
-        submittedBy: 'James Harrington',
-        submittedAtLabel: 'Today 2:32 PM',
-        status: 'draft',
-        clientEmail: 'james@example.com',
-        kycStatus: 'Verified',
-        paymentStatus: 'Received',
-        clientNote: '',
-        recipients: [
-            {
-                id: 1,
-                name: 'James Harrington',
-                email: 'james@example.com',
-                role: 'Tenant',
-                hasSigned: false,
-                signedAt: null,
-                signUrl: '/sign/mock/1',
-            },
-            {
-                id: 2,
-                name: 'Olivia Harrington',
-                email: 'olivia@example.com',
-                role: 'Co-Tenant',
-                hasSigned: false,
-                signedAt: null,
-                signUrl: '/sign/mock/2',
-            },
-        ],
-    },
-    {
-        id: 2,
-        title: 'NDA — Acme Ltd.',
-        submittedBy: 'Sarah Mitchell',
-        submittedAtLabel: 'Today 11:15 AM',
-        status: 'pending_lawyer_review',
-        clientEmail: 'sarah@example.com',
-        kycStatus: 'Verified',
-        paymentStatus: 'Received',
-        clientNote: 'Please prioritize this before our vendor onboarding deadline.',
-        recipients: [
-            {
-                id: 1,
-                name: 'Sarah Mitchell',
-                email: 'sarah@example.com',
-                role: 'Disclosing Party',
-                hasSigned: false,
-                signedAt: null,
-                signUrl: '/sign/mock/3',
-            },
-        ],
-        auditTrail: [
-            { id: 1, label: 'Document created', timestamp: 'Mar 10, 2026 • 10:40 AM' },
-            { id: 2, label: 'Client approved document', timestamp: 'Mar 10, 2026 • 11:12 AM' },
-            { id: 3, label: 'Submitted to lawyer for review', timestamp: 'Mar 10, 2026 • 11:15 AM' },
-        ],
-    },
-    {
-        id: 3,
-        title: 'Employment Contract — TechCorp',
-        submittedBy: 'Robert Chen',
-        submittedAtLabel: 'Yesterday',
-        status: 'rejected',
-        clientEmail: 'robert@example.com',
-        kycStatus: 'Pending',
-        paymentStatus: 'Pending',
-        lawyerNote: 'Please correct the compensation section and add the probation period details before resubmission.',
-        clientNote: '',
-        recipients: [
-            {
-                id: 1,
-                name: 'Robert Chen',
-                email: 'robert@example.com',
-                role: 'Employee',
-                hasSigned: false,
-                signedAt: null,
-                signUrl: '/sign/mock/4',
-            },
-            {
-                id: 2,
-                name: 'TechCorp HR',
-                email: 'hr@techcorp.com',
-                role: 'Employer',
-                hasSigned: false,
-                signedAt: null,
-                signUrl: '/sign/mock/5',
-            },
-        ],
-    },
-    {
-        id: 4,
-        title: 'Commercial Lease — Elm Square',
-        submittedBy: 'Amanda Lopez',
-        submittedAtLabel: 'Today 9:20 AM',
-        status: 'awaiting_signatures',
-        clientEmail: 'amanda@example.com',
-        kycStatus: 'Verified',
-        paymentStatus: 'Received',
-        recipients: [
-            {
-                id: 1,
-                name: 'Amanda Lopez',
-                email: 'amanda@example.com',
-                role: 'Tenant',
-                hasSigned: false,
-                signedAt: null,
-                signUrl: '/sign/mock/6',
-            },
-            {
-                id: 2,
-                name: 'Elm Square Holdings',
-                email: 'leasing@elmsquare.com',
-                role: 'Landlord',
-                hasSigned: false,
-                signedAt: null,
-                signUrl: '/sign/mock/7',
-            },
-        ],
-        sentForSignatureAt: 'Mar 10, 2026 • 1:05 PM',
-        auditTrail: [
-            { id: 1, label: 'Document submitted', timestamp: 'Mar 10, 2026 • 8:50 AM' },
-            { id: 2, label: 'Lawyer approved document', timestamp: 'Mar 10, 2026 • 12:58 PM' },
-            { id: 3, label: 'Signature requests sent', timestamp: 'Mar 10, 2026 • 1:05 PM' },
-        ],
-    },
-    {
-        id: 5,
-        title: 'Service Agreement — Northwind Co.',
-        submittedBy: 'Daniel Cruz',
-        submittedAtLabel: 'Mar 9, 2026',
-        status: 'partially_signed',
-        clientEmail: 'daniel@example.com',
-        kycStatus: 'Verified',
-        paymentStatus: 'Received',
-        recipients: [
-            {
-                id: 1,
-                name: 'Daniel Cruz',
-                email: 'daniel@example.com',
-                role: 'Client',
-                hasSigned: true,
-                signedAt: 'Mar 10, 2026 • 9:18 AM',
-                signUrl: '/sign/mock/8',
-            },
-            {
-                id: 2,
-                name: 'Northwind Co.',
-                email: 'legal@northwind.com',
-                role: 'Provider',
-                hasSigned: false,
-                signedAt: null,
-                signUrl: '/sign/mock/9',
-            },
-        ],
-        sentForSignatureAt: 'Mar 10, 2026 • 8:40 AM',
-        auditTrail: [
-            { id: 1, label: 'Lawyer approved document', timestamp: 'Mar 10, 2026 • 8:35 AM' },
-            { id: 2, label: 'Signature requests sent', timestamp: 'Mar 10, 2026 • 8:40 AM' },
-            { id: 3, label: 'Daniel Cruz signed document', timestamp: 'Mar 10, 2026 • 9:18 AM' },
-        ],
-    },
-    {
-        id: 6,
-        title: 'Consultancy Agreement — Vertex Inc.',
-        submittedBy: 'Maria Santos',
-        submittedAtLabel: 'Mar 8, 2026',
-        status: 'completed',
-        clientEmail: 'maria@example.com',
-        kycStatus: 'Verified',
-        paymentStatus: 'Received',
-        recipients: [
-            {
-                id: 1,
-                name: 'Maria Santos',
-                email: 'maria@example.com',
-                role: 'Consultant',
-                hasSigned: true,
-                signedAt: 'Mar 9, 2026 • 10:05 AM',
-                signUrl: '/sign/mock/10',
-            },
-            {
-                id: 2,
-                name: 'Vertex Inc.',
-                email: 'legal@vertex.com',
-                role: 'Company',
-                hasSigned: true,
-                signedAt: 'Mar 9, 2026 • 10:18 AM',
-                signUrl: '/sign/mock/11',
-            },
-        ],
-        sentForSignatureAt: 'Mar 9, 2026 • 9:40 AM',
-        completedAt: 'Mar 9, 2026 • 10:18 AM',
-        auditTrail: [
-            { id: 1, label: 'Lawyer approved document', timestamp: 'Mar 9, 2026 • 9:36 AM' },
-            { id: 2, label: 'Signature requests sent', timestamp: 'Mar 9, 2026 • 9:40 AM' },
-            { id: 3, label: 'Maria Santos signed document', timestamp: 'Mar 9, 2026 • 10:05 AM' },
-            { id: 4, label: 'Vertex Inc. signed document', timestamp: 'Mar 9, 2026 • 10:18 AM' },
-            { id: 5, label: 'Document fully completed', timestamp: 'Mar 9, 2026 • 10:18 AM' },
-        ],
-    },
-];
+type SignatureRecipientPayload = {
+    name: string;
+    email: string;
+    role: string | null;
+    routing_order: number | null;
+    status: string | null;
+    signed_at: string | null;
+    sign_url: string | null;
+};
 
-function deriveStatusFromRecipients(recipients: RecipientItem[] = []): DocumentStatus {
-    if (!recipients.length) return 'awaiting_signatures';
-
-    const signedCount = recipients.filter((recipient) => recipient.hasSigned).length;
-
-    if (signedCount === 0) return 'awaiting_signatures';
-    if (signedCount < recipients.length) return 'partially_signed';
-    return 'completed';
-}
-
-export default function UserDashboard({ user }: DashboardProps) {
-    const [documents, setDocuments] = useState<DocumentItem[]>(INITIAL_DOCUMENTS);
-    const [selectedDocumentId, setSelectedDocumentId] = useState<string | number | null>(null);
+export default function UserDashboard({ user, documents }: DashboardProps) {
+    const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(null);
     const [activeView, setActiveView] = useState<ActiveView>('review');
 
     const selectedDocument = useMemo(() => documents.find((doc) => doc.id === selectedDocumentId) ?? null, [documents, selectedDocumentId]);
 
     const stats = useMemo(() => {
         const total = documents.length;
-        const drafts = documents.filter((doc) => doc.status === 'draft').length;
-        const waitingApproval = documents.filter((doc) => doc.status === 'pending_lawyer_review').length;
-        const forSigning = documents.filter((doc) => ['awaiting_signatures', 'partially_signed'].includes(doc.status)).length;
-        const completed = documents.filter((doc) => doc.status === 'completed').length;
+        const drafts = documents.filter((doc) => doc.dashboardStatus === 'draft').length;
+        const pendingApproval = documents.filter((doc) => doc.dashboardStatus === 'pending_approval').length;
+        const forSignature = documents.filter((doc) => doc.dashboardStatus === 'signature').length;
+        const completed = documents.filter((doc) => doc.dashboardStatus === 'completed').length;
 
         return [
             { icon: ClipboardList, value: total, description: 'Total Documents' },
             { icon: SquarePen, value: drafts, description: 'Drafts' },
-            { icon: Clock, value: waitingApproval, description: 'Waiting Approval' },
-            { icon: FileSignature, value: forSigning, description: 'For Signature' },
+            { icon: Clock, value: pendingApproval, description: 'Pending Approval' },
+            { icon: FileSignature, value: forSignature, description: 'Signature' },
             { icon: CheckCircle, value: completed, description: 'Completed' },
         ];
     }, [documents]);
 
-    function handleOpenReview(doc: DocumentItem) {
+    function handleOpenDocument(doc: DocumentItem) {
         setSelectedDocumentId(doc.id);
 
-        if (doc.status === 'awaiting_signatures' || doc.status === 'partially_signed') {
+        if (doc.dashboardStatus === 'signature') {
             setActiveView('sign');
             return;
         }
 
-        if (doc.status === 'completed') {
+        if (doc.dashboardStatus === 'completed') {
             setActiveView('completed');
             return;
         }
@@ -307,110 +59,50 @@ export default function UserDashboard({ user }: DashboardProps) {
         setActiveView('review');
     }
 
-    function handleViewCompleted(doc: DocumentItem) {
-        setSelectedDocumentId(doc.id);
-        setActiveView('completed');
-    }
-
-    function handleUpdateDocument(id: string | number, updates: Partial<DocumentItem>) {
-        setDocuments((prev) => prev.map((doc) => (doc.id === id ? { ...doc, ...updates } : doc)));
-    }
-
     function handleCloseDocumentFlow() {
         setSelectedDocumentId(null);
         setActiveView('review');
     }
 
-    function handleApproveDocument() {
-        if (!selectedDocument) return;
-
-        const now = 'Mar 10, 2026 • 2:42 PM';
-
-        handleUpdateDocument(selectedDocument.id, {
-            status: 'pending_lawyer_review',
-            auditTrail: [
-                ...(selectedDocument.auditTrail ?? [{ id: 1, label: 'Document created', timestamp: selectedDocument.submittedAtLabel }]),
-                { id: Date.now(), label: 'Client approved document', timestamp: now },
-                { id: Date.now() + 1, label: 'Submitted to lawyer for review', timestamp: now },
-            ],
-        });
+    function mapRecipientsForRequest(recipients: SignatureRecipient[]): SignatureRecipientPayload[] {
+        return recipients.map((recipient) => ({
+            name: recipient.name,
+            email: recipient.email,
+            role: recipient.role ?? null,
+            routing_order: recipient.routing_order ?? null,
+            status: recipient.status ?? null,
+            signed_at: recipient.signed_at ?? null,
+            sign_url: recipient.sign_url ?? null,
+        }));
     }
 
-    function handleApplyClientChanges(note: string) {
-        if (!selectedDocument) return;
-
-        handleUpdateDocument(selectedDocument.id, {
-            clientNote: note,
-            status: 'draft',
-        });
-    }
-
-    function handleRecipientSign(documentId: string | number, recipientEmail: string) {
-        const now = 'Mar 10, 2026 • 3:08 PM';
-
-        setDocuments((prev) =>
-            prev.map((doc) => {
-                if (doc.id !== documentId) return doc;
-
-                const updatedRecipients =
-                    doc.recipients?.map((recipient) =>
-                        recipient.email.toLowerCase() === recipientEmail.toLowerCase()
-                            ? {
-                                  ...recipient,
-                                  hasSigned: true,
-                                  signedAt: now,
-                              }
-                            : recipient,
-                    ) ?? [];
-
-                const nextStatus = deriveStatusFromRecipients(updatedRecipients);
-
-                return {
-                    ...doc,
-                    recipients: updatedRecipients,
-                    status: nextStatus,
-                    completedAt: nextStatus === 'completed' ? now : doc.completedAt,
-                    auditTrail: [
-                        ...(doc.auditTrail ?? []),
-                        {
-                            id: Date.now(),
-                            label: `${recipientEmail} signed document`,
-                            timestamp: now,
-                        },
-                        ...(nextStatus === 'completed'
-                            ? [
-                                  {
-                                      id: Date.now() + 1,
-                                      label: 'Document fully completed',
-                                      timestamp: now,
-                                  },
-                              ]
-                            : []),
-                    ],
-                };
-            }),
+    function handleSubmitForApproval(document: DocumentItem, payload: { clientNote?: string; signatureRecipients: SignatureRecipient[] }) {
+        router.post(
+            route('user.documents.submit-for-approval', document.id),
+            {
+                client_note: payload.clientNote ?? null,
+                signature_recipients: mapRecipientsForRequest(payload.signatureRecipients),
+            },
+            {
+                preserveScroll: true,
+            },
         );
-
-        const updatedDoc = documents.find((doc) => doc.id === documentId);
-        if (updatedDoc) {
-            const updatedRecipients =
-                updatedDoc.recipients?.map((recipient) =>
-                    recipient.email.toLowerCase() === recipientEmail.toLowerCase()
-                        ? {
-                              ...recipient,
-                              hasSigned: true,
-                              signedAt: now,
-                          }
-                        : recipient,
-                ) ?? [];
-
-            const nextStatus = deriveStatusFromRecipients(updatedRecipients);
-            setActiveView(nextStatus === 'completed' ? 'completed' : 'sign');
-        }
     }
 
-    function handleDownloadDocument(doc: DocumentItem) {
-        console.log('Download PDF for', doc.title);
+    function handleReturnToQuestions(document: DocumentItem, clientNote: string) {
+        router.post(
+            route('user.documents.return-to-questions', document.id),
+            {
+                client_note: clientNote,
+            },
+            {
+                preserveScroll: true,
+            },
+        );
+    }
+
+    function handleDownload(document: DocumentItem) {
+        window.open(document.downloadUrl, '_blank', 'noopener,noreferrer');
     }
 
     return (
@@ -423,8 +115,8 @@ export default function UserDashboard({ user }: DashboardProps) {
                                 <ReviewDocumentView
                                     document={selectedDocument}
                                     onBack={handleCloseDocumentFlow}
-                                    onApproveDocument={handleApproveDocument}
-                                    onApplyChanges={handleApplyClientChanges}
+                                    onSubmitForApproval={(payload) => handleSubmitForApproval(selectedDocument, payload)}
+                                    onReturnToQuestions={(note) => handleReturnToQuestions(selectedDocument, note)}
                                 />
                             )}
 
@@ -433,7 +125,7 @@ export default function UserDashboard({ user }: DashboardProps) {
                                     currentUserEmail={user.email}
                                     document={selectedDocument}
                                     onBack={handleCloseDocumentFlow}
-                                    onSign={(recipientEmail) => handleRecipientSign(selectedDocument.id, recipientEmail)}
+                                    onDownload={() => handleDownload(selectedDocument)}
                                 />
                             )}
 
@@ -442,7 +134,7 @@ export default function UserDashboard({ user }: DashboardProps) {
                                     currentUserEmail={user.email}
                                     document={selectedDocument}
                                     onBack={handleCloseDocumentFlow}
-                                    onDownload={() => handleDownloadDocument(selectedDocument)}
+                                    onDownload={() => handleDownload(selectedDocument)}
                                 />
                             )}
                         </div>
@@ -461,7 +153,7 @@ export default function UserDashboard({ user }: DashboardProps) {
                                     <div className="flex flex-col gap-1">
                                         <h1 className="text-2xl font-semibold tracking-tight text-[#1A1614]">Dashboard Overview</h1>
                                         <p className="text-sm text-[#6B635B]">
-                                            Welcome back, {user.name}! Here&apos;s what&apos;s happening with your documents today.
+                                            Welcome back, {user.name}! Here&apos;s the current status of your generated legal documents.
                                         </p>
                                     </div>
 
@@ -500,13 +192,7 @@ export default function UserDashboard({ user }: DashboardProps) {
                                 })}
                             </div>
 
-                            <DocumentTable
-                                items={documents}
-                                pageSize={6}
-                                currentUserEmail={user.email}
-                                onReview={handleOpenReview}
-                                onViewCompleted={handleViewCompleted}
-                            />
+                            <DocumentTable items={documents} pageSize={6} onOpen={handleOpenDocument} />
                         </>
                     )}
                 </div>

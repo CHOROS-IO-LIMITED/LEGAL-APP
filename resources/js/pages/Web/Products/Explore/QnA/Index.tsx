@@ -40,21 +40,9 @@ type Question = {
     follow_ups?: FollowUp[];
 };
 
-// type UserDocument = {
-//     id: number;
-//     answers_json: Record<string, unknown> | null;
-//     question_schema_json: {
-//         document_type: string;
-//         questions: Question[];
-//     } | null;
-//     document: {
-//         title: string | null;
-//         description: string | null;
-//     };
-// };
-
 type UserDocument = {
     id: number;
+    batch_uuid?: string;
     answers_json: Record<string, unknown> | null;
     question_schema_json: {
         document_type: string;
@@ -94,7 +82,7 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
 
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(0);
-    const [history, setHistory] = useState<string[]>([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
     const [currentValue, setCurrentValue] = useState<FormValue>('');
     const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
@@ -145,7 +133,7 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
 
     const isQuestionAnswered = (question: Question, value: FormValue | undefined) => {
         if (!question.required) {
-            return !isEmptyValue(value) || value === undefined || value === null || value === '';
+            return true;
         }
 
         if (question.type === 'checkbox') {
@@ -177,21 +165,17 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
         return result;
     };
 
-    const visibleQuestions = useMemo(() => {
-        return getVisibleQuestions(schema.questions, answers);
-    }, [schema.questions, answers]);
+    const visibleQuestions = useMemo(() => getVisibleQuestions(schema.questions, answers), [schema.questions, answers]);
 
-    const currentQuestion = useMemo(() => {
-        for (const question of visibleQuestions) {
-            const value = answers[question.key];
+    useEffect(() => {
+        if (visibleQuestions.length === 0) return;
 
-            if (!isQuestionAnswered(question, value)) {
-                return question;
-            }
+        if (currentIndex > visibleQuestions.length - 1) {
+            setCurrentIndex(Math.max(visibleQuestions.length - 1, 0));
         }
+    }, [visibleQuestions, currentIndex]);
 
-        return null;
-    }, [visibleQuestions, answers]);
+    const currentQuestion = visibleQuestions[currentIndex] ?? null;
 
     useEffect(() => {
         if (!currentQuestion) return;
@@ -226,11 +210,17 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
         setData('answers', updated);
     };
 
-    const setAnswer = (key: string, value: FormValue) => {
-        const updated = { ...answers, [key]: value };
-        persistAnswers(updated);
+    const saveCurrentAnswer = () => {
+        if (!currentQuestion) return answers;
 
-        setHistory((prev) => (prev[prev.length - 1] === key ? prev : [...prev, key]));
+        const updatedAnswers = {
+            ...answers,
+            [currentQuestion.key]: currentValue,
+        };
+
+        persistAnswers(updatedAnswers);
+
+        return updatedAnswers;
     };
 
     const handleGenerate = (finalAnswers: Record<string, FormValue>) => {
@@ -270,35 +260,24 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
         if (!currentQuestion) return;
         if (!isQuestionAnswered(currentQuestion, currentValue)) return;
 
-        const nextAnswers = {
-            ...answers,
-            [currentQuestion.key]: currentValue,
-        };
+        const nextAnswers = saveCurrentAnswer();
+        const nextVisibleQuestions = getVisibleQuestions(schema.questions, nextAnswers);
 
-        persistAnswers(nextAnswers);
-        setHistory((prev) => (prev[prev.length - 1] === currentQuestion.key ? prev : [...prev, currentQuestion.key]));
-
-        const remainingVisible = getVisibleQuestions(schema.questions, nextAnswers);
-        const nextQuestion = remainingVisible.find((question) => !isQuestionAnswered(question, nextAnswers[question.key]));
-
-        if (!nextQuestion) {
+        if (currentIndex >= nextVisibleQuestions.length - 1) {
             handleGenerate(nextAnswers);
-        }
-    };
-
-    const handleBack = () => {
-        if (history.length === 0) {
             return;
         }
 
-        const previousKey = history[history.length - 1];
-        const updatedHistory = history.slice(0, -1);
-        const updatedAnswers = { ...answers };
+        setCurrentIndex((prev) => prev + 1);
+    };
 
-        delete updatedAnswers[previousKey];
+    const handleBack = () => {
+        if (!currentQuestion || currentIndex === 0) {
+            return;
+        }
 
-        persistAnswers(updatedAnswers);
-        setHistory(updatedHistory);
+        saveCurrentAnswer();
+        setCurrentIndex((prev) => Math.max(prev - 1, 0));
     };
 
     const normalizeInputValue = (value: FormValue) => {
@@ -440,6 +419,9 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
         }
     };
 
+    const progressLabel =
+        visibleQuestions.length > 0 ? `${Math.min(currentIndex + 1, visibleQuestions.length)} of ${visibleQuestions.length}` : 'Completed';
+
     const isNextDisabled = processing || !currentQuestion || !isQuestionAnswered(currentQuestion, currentValue);
 
     if (loading) {
@@ -456,7 +438,7 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
                 </div>
 
                 <h2 className="text-4xl font-bold text-[#1A1614]">Building your document</h2>
-                <p className="mt-2 text-[#70665E]">Submitting your answers...</p>
+                <p className="mt-2 text-[#70665E]">Submitting your answers and regenerating the latest PDF...</p>
 
                 <div className="mt-4 h-2 w-64 overflow-hidden rounded-full bg-gray-200">
                     <div className="h-full bg-[#3D2B1F] transition-all duration-300 ease-out" style={{ width: `${progress}%` }} />
@@ -477,6 +459,7 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
                 <div className="text-center">
                     <h2 className="text-3xl font-bold">{userDocument.document.title}</h2>
                     <p className="mt-2 text-gray-500">{userDocument.document.description}</p>
+                    <p className="mt-4 text-sm font-medium text-[#6B635B]">Question {progressLabel}</p>
                 </div>
 
                 {currentQuestion ? (
@@ -512,14 +495,14 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
                 <div className="flex gap-3">
                     <Button
                         onClick={handleBack}
-                        disabled={history.length === 0 || processing}
+                        disabled={currentIndex === 0 || processing}
                         className="w-1/3 bg-gray-200 text-black hover:bg-gray-300"
                     >
                         Back
                     </Button>
 
                     <Button onClick={handleNext} disabled={isNextDisabled} className="w-2/3 bg-[#3D2B1F] text-white hover:bg-[#52382a]">
-                        Next
+                        {currentIndex >= visibleQuestions.length - 1 ? 'Generate Document' : 'Next'}
                     </Button>
                 </div>
             </section>
