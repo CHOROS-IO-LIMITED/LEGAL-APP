@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Web;
 
-use App\Actions\UserDocuments\CreateUserDocumentSelectionAction;
+use App\Actions\User\PrDetails\CreateUserDocumentSelectionAction;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Web\StoreUserDocumentSelectionRequest;
+use App\Http\Requests\User\PrDetails\StoreUserDocumentSelectionRequest;
 use Illuminate\Http\RedirectResponse;
 
 class UserDocumentSelectionController extends Controller
