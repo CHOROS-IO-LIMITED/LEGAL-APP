@@ -18,8 +18,10 @@ class ApproveUserDocumentForSignatureAction
             $userDocument->update([
                 'status' => UserDocument::STATUS_SIGNATURE,
                 'approved_for_signature_at' => now(),
-                'sent_for_signature_at' => now(),
-                'signature_provider' => 'docusign',
+                // 'sent_for_signature_at' => now(),
+                // 'signature_provider' => 'docusign',
+                'sent_for_signature_at' => null,
+                'signature_provider' => null,
             ]);
 
             return $userDocument->fresh(['user', 'document']);

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\AdminUserDocumentReviewController;
 use App\Http\Middleware\AdminMiddleware;
 
 Route::middleware(AdminMiddleware::class)
@@ -9,6 +10,8 @@ Route::middleware(AdminMiddleware::class)
     ->name('admin.')
     ->group(function () {
 
-        Route::get('/dashboard', [DashboardController::class, 'index'])
-            ->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::post('/documents/{userDocument}/approve', [AdminUserDocumentReviewController::class, 'approve'])->name('documents.approve');
+        Route::post('/documents/{userDocument}/reject', [AdminUserDocumentReviewController::class, 'reject'])->name('documents.reject');
+        Route::post('/documents/{userDocument}/complete', [AdminUserDocumentReviewController::class, 'markCompleted'])->name('documents.complete');
     });

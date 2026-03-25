@@ -11,7 +11,13 @@ class RejectUserDocumentAfterReviewAction
     public function handle(UserDocument $userDocument, string $lawyerNote): UserDocument
     {
         if (! $userDocument->canBeRejectedByLawyer()) {
-            throw new RuntimeException('This document cannot be rejected.');
+            throw new RuntimeException('This document cannot be returned for amendment.');
+        }
+
+        $lawyerNote = trim($lawyerNote);
+
+        if ($lawyerNote === '') {
+            throw new RuntimeException('A lawyer note is required when returning a document.');
         }
 
         return DB::transaction(function () use ($userDocument, $lawyerNote) {
