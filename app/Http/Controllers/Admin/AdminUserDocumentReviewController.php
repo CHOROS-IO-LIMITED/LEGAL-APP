@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\Admin\Dashboard\Review\RejectUserDocumentAfterReviewAction;
-use App\Actions\User\Dashboard\Review\ApproveUserDocumentForSignatureAction;
-use App\Actions\User\Dashboard\Review\MarkUserDocumentCompletedAction;
+use App\Actions\Admin\Dashboard\Review\ApproveUserDocumentForSignatureAction;
+use App\Actions\Admin\Dashboard\Review\MarkUserDocumentCompletedAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Dashboard\Review\RejectUserDocumentAfterReviewRequest;
 use App\Models\UserDocument;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Actions\User\Dashboard\Review;
+namespace App\Actions\Admin\Dashboard\Review;
 
 use App\Models\UserDocument;
 use Illuminate\Support\Facades\DB;
