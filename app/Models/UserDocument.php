@@ -119,6 +119,16 @@ class UserDocument extends Model
         ]);
     }
 
+    public function scopeForAdminDashboard(Builder $query): Builder
+    {
+        return $query->whereIn('status', [
+            self::STATUS_PENDING_APPROVAL,
+            self::STATUS_SIGNATURE,
+            self::STATUS_REJECTED,
+            self::STATUS_COMPLETED,
+        ]);
+    }
+
     protected function generatedPdfUrl(): Attribute
     {
         return Attribute::make(
