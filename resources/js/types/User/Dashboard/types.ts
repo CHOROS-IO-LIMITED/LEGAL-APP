@@ -5,26 +5,29 @@ export interface User {
     email: string;
 }
 
-export interface SignatureRecipient {
+export type SignatureRecipient = {
     name: string;
     email: string;
     role?: string | null;
     routing_order?: number | null;
+    recipient_id?: string | null;
     status?: string | null;
     signed_at?: string | null;
     sign_url?: string | null;
-}
+};
 
-export interface DocumentItem {
+export type DocumentItem = {
     id: number;
     batchUuid: string;
     title: string;
     price: string;
     internalStatus: string;
-    dashboardStatus: DashboardStatus;
+    dashboardStatus: 'draft' | 'pending_approval' | 'signature' | 'rejected' | 'completed';
+
     submittedAtLabel: string | null;
     createdAtLabel: string | null;
     updatedAtLabel: string | null;
+
     generatedPdfUrl: string | null;
     downloadUrl: string;
     questionnaireUrl: string;
@@ -39,6 +42,7 @@ export interface DocumentItem {
 
     signatureProvider: string | null;
     signatureEnvelopeId: string | null;
+    signatureStatus: string | null;
     signatureRecipients: SignatureRecipient[];
 
     submittedForApprovalAt: string | null;
@@ -51,10 +55,14 @@ export interface DocumentItem {
         canSubmitForApproval: boolean;
         canReturnToQuestions: boolean;
         canDownload: boolean;
+        canSign: boolean;
     };
-}
+};
 
-export interface DashboardProps {
-    user: User;
+export type DashboardProps = {
+    user: {
+        name: string;
+        email: string;
+    };
     documents: DocumentItem[];
-}
+};

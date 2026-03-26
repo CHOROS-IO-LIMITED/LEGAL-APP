@@ -27,6 +27,7 @@ class SubmitUserDocumentForApprovalRequest extends FormRequest
             'signature_recipients.*.routing_order' => ['nullable', 'integer', 'min:1'],
             'signature_recipients.*.status' => ['nullable', 'string', 'max:50'],
             'signature_recipients.*.signed_at' => ['nullable'],
+            'signature_recipients.*.recipient_id' => ['nullable', 'string', 'max:100'],
             'signature_recipients.*.sign_url' => ['nullable', 'string', 'max:2000'],
         ];
     }

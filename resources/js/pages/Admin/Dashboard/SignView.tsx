@@ -6,7 +6,6 @@ type Props = {
     document: DocumentItem;
     onBack: () => void;
     onDownload: () => void;
-    onMarkCompleted: () => void;
 };
 
 function DocumentPreview({ pdfUrl }: { pdfUrl: string | null }) {
@@ -29,9 +28,9 @@ function DocumentPreview({ pdfUrl }: { pdfUrl: string | null }) {
     );
 }
 
-export default function SignView({ document, onBack, onDownload, onMarkCompleted }: Props) {
+export default function SignView({ document, onBack, onDownload }: Props) {
     const recipients = document.signatureRecipients ?? [];
-    const signedCount = recipients.filter((recipient) => recipient.status === 'signed').length;
+    const signedCount = recipients.filter((recipient) => recipient.status === 'completed' || recipient.status === 'signed').length;
     const totalCount = recipients.length || 1;
     const progress = Math.round((signedCount / totalCount) * 100);
 
@@ -57,7 +56,12 @@ export default function SignView({ document, onBack, onDownload, onMarkCompleted
                         </span>
                     </div>
 
-                    <p className="text-sm text-[#6B635B]">Approved by lawyer on {document.approvedForSignatureAt ?? 'N/A'}.</p>
+                    <p className="text-sm text-[#6B635B]">
+                        Approved by lawyer on {document.approvedForSignatureAt ?? 'N/A'}
+                        {document.sentForSignatureAt
+                            ? ` · Sent via DocuSign on ${document.sentForSignatureAt}`
+                            : ' · Waiting for sender completion in DocuSign'}
+                    </p>
                 </div>
 
                 <DocumentPreview pdfUrl={document.generatedPdfUrl} />
@@ -80,10 +84,10 @@ export default function SignView({ document, onBack, onDownload, onMarkCompleted
                                 </div>
 
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-[13px] font-semibold text-[#1A1614]">Signature Workflow</p>
+                                    <p className="text-[13px] font-semibold text-[#1A1614]">DocuSign Workflow</p>
                                     <p className="mt-1 text-[11px] leading-5 text-[#6B635B]">
-                                        This document is currently in signature stage. You can track recipients and mark it completed once fully
-                                        executed.
+                                        This document is managed by DocuSign. Completion is updated automatically after all required recipients finish
+                                        signing.
                                     </p>
                                 </div>
                             </div>
@@ -110,16 +114,6 @@ export default function SignView({ document, onBack, onDownload, onMarkCompleted
                             <Download className="h-4 w-4" />
                             Download Current PDF
                         </button>
-
-                        <button
-                            type="button"
-                            onClick={onMarkCompleted}
-                            disabled={!document.actions.canMarkCompleted}
-                            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#CFEAD9] bg-white px-4 text-sm font-semibold text-[#1F9D6A] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#A9D8BC] hover:bg-[#F8FFFB] hover:shadow-md focus:ring-2 focus:ring-[#1F9D6A]/15 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            <CheckCircle2 className="h-4 w-4" />
-                            Mark Completed
-                        </button>
                     </CardContent>
                 </Card>
 
@@ -133,37 +127,41 @@ export default function SignView({ document, onBack, onDownload, onMarkCompleted
 
                     <CardContent className="space-y-2 px-4 pt-4 pb-4">
                         {recipients.length > 0 ? (
-                            recipients.map((recipient, index) => (
-                                <div key={`${recipient.email}-${index}`} className="rounded-lg px-2 py-2">
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate text-[13px] font-medium text-[#1A1614]">{recipient.name}</p>
-                                            <p className="text-[10px] text-[#8A8178]">{recipient.role ?? 'Recipient'}</p>
+                            recipients.map((recipient, index) => {
+                                const isSigned = recipient.status === 'completed' || recipient.status === 'signed';
 
-                                            <div className="mt-1 flex items-center gap-1.5 text-[11px] text-[#6B635B]">
-                                                <Mail className="h-3 w-3" />
-                                                <span className="truncate">{recipient.email}</span>
+                                return (
+                                    <div key={`${recipient.email}-${index}`} className="rounded-lg px-2 py-2">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-[13px] font-medium text-[#1A1614]">{recipient.name}</p>
+                                                <p className="text-[10px] text-[#8A8178]">{recipient.role ?? 'Recipient'}</p>
+
+                                                <div className="mt-1 flex items-center gap-1.5 text-[11px] text-[#6B635B]">
+                                                    <Mail className="h-3 w-3" />
+                                                    <span className="truncate">{recipient.email}</span>
+                                                </div>
+
+                                                {recipient.signed_at ? (
+                                                    <div className="mt-1.5 text-[10px] text-[#6B635B]">Signed at {recipient.signed_at}</div>
+                                                ) : null}
                                             </div>
 
-                                            {recipient.signed_at ? (
-                                                <div className="mt-1.5 text-[10px] text-[#6B635B]">Signed at {recipient.signed_at}</div>
-                                            ) : null}
+                                            {isSigned ? (
+                                                <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#CFEAD9] bg-[#F4FCF7] px-2 py-0.5 text-[10px] font-medium text-[#1F9D6A]">
+                                                    <CheckCircle2 className="h-3 w-3" />
+                                                    Signed
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#D8E5FF] bg-[#F7FAFF] px-2 py-0.5 text-[10px] font-medium text-[#2563EB]">
+                                                    <Clock3 className="h-3 w-3" />
+                                                    Pending
+                                                </span>
+                                            )}
                                         </div>
-
-                                        {recipient.status === 'signed' ? (
-                                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#CFEAD9] bg-[#F4FCF7] px-2 py-0.5 text-[10px] font-medium text-[#1F9D6A]">
-                                                <CheckCircle2 className="h-3 w-3" />
-                                                Signed
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#D8E5FF] bg-[#F7FAFF] px-2 py-0.5 text-[10px] font-medium text-[#2563EB]">
-                                                <Clock3 className="h-3 w-3" />
-                                                Pending
-                                            </span>
-                                        )}
                                     </div>
-                                </div>
-                            ))
+                                );
+                            })
                         ) : (
                             <div className="text-sm text-[#6B635B]">No signature recipients have been attached yet.</div>
                         )}

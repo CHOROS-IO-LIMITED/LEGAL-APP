@@ -46,8 +46,8 @@ class DashboardController extends Controller
             'updatedAtLabel' => optional($userDocument->updated_at)?->format('M d, Y • h:i A'),
             'submittedAtLabel' => optional($userDocument->submitted_for_approval_at)?->format('M d, Y • h:i A'),
 
-            'generatedPdfUrl' => $userDocument->generated_pdf_url,
-            'downloadUrl' => route('user.documents.download', $userDocument),
+            'generatedPdfUrl' => $userDocument->current_pdf_url,
+            'downloadUrl' => route('admin.documents.download', $userDocument),
 
             'client' => [
                 'name' => $userDocument->client_name,
@@ -59,6 +59,7 @@ class DashboardController extends Controller
 
             'signatureProvider' => $userDocument->signature_provider,
             'signatureEnvelopeId' => $userDocument->signature_envelope_id,
+            'signatureStatus' => $userDocument->signature_status,
             'signatureRecipients' => $userDocument->signature_recipients_json ?? [],
 
             'submittedForApprovalAt' => optional($userDocument->submitted_for_approval_at)?->format('M d, Y • h:i A'),
@@ -70,7 +71,6 @@ class DashboardController extends Controller
             'actions' => [
                 'canApproveForSignature' => Auth::user()->can('approveForSignature', $userDocument),
                 'canRejectAfterReview' => Auth::user()->can('rejectAfterReview', $userDocument),
-                'canMarkCompleted' => Auth::user()->can('markCompleted', $userDocument),
                 'canDownload' => Auth::user()->can('download', $userDocument),
             ],
         ];

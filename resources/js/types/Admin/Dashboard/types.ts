@@ -1,13 +1,13 @@
 export type DashboardStatus = 'pending_approval' | 'signature' | 'rejected' | 'completed';
 
 export type SignatureRecipient = {
-    name: string;
-    email: string;
-    role: string | null;
-    routing_order: number | null;
-    status: string | null;
-    signed_at: string | null;
-    sign_url: string | null;
+    name: string | null;
+    email: string | null;
+    role?: string | null;
+    recipient_id?: string | null;
+    routing_order?: string | number | null;
+    status?: string | null;
+    signed_at?: string | null;
 };
 
 export type DocumentItem = {
@@ -16,7 +16,7 @@ export type DocumentItem = {
     title: string;
     price: string;
     internalStatus: string;
-    dashboardStatus: DashboardStatus;
+    dashboardStatus: 'pending_approval' | 'signature' | 'rejected' | 'completed' | 'draft';
 
     createdAtLabel: string | null;
     updatedAtLabel: string | null;
@@ -35,6 +35,7 @@ export type DocumentItem = {
 
     signatureProvider: string | null;
     signatureEnvelopeId: string | null;
+    signatureStatus: string | null;
     signatureRecipients: SignatureRecipient[];
 
     submittedForApprovalAt: string | null;
@@ -46,7 +47,6 @@ export type DocumentItem = {
     actions: {
         canApproveForSignature: boolean;
         canRejectAfterReview: boolean;
-        canMarkCompleted: boolean;
         canDownload: boolean;
     };
 };

@@ -50,6 +50,7 @@ function normalizeRecipients(document: DocumentItem): SignatureRecipient[] {
         return document.signatureRecipients.map((recipient, index) => ({
             ...recipient,
             routing_order: recipient.routing_order ?? index + 1,
+            recipient_id: recipient.recipient_id ?? null,
             role: recipient.role ?? 'Client',
         }));
     }
@@ -60,6 +61,7 @@ function normalizeRecipients(document: DocumentItem): SignatureRecipient[] {
             email: document.client.email ?? '',
             role: 'Client',
             routing_order: 1,
+            recipient_id: null,
             status: 'pending',
             signed_at: null,
             sign_url: null,
@@ -180,6 +182,7 @@ export default function ReviewDocumentView({ document, onBack, onSubmitForApprov
                                                 role: recipient.role?.trim() ?? '',
                                                 routing_order: index + 1,
                                                 status: recipient.status ?? 'pending',
+                                                recipient_id: recipient.recipient_id ?? null,
                                                 signed_at: recipient.signed_at ?? null,
                                                 sign_url: recipient.sign_url ?? null,
                                             })),

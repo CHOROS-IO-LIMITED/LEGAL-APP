@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class UserDocument extends Model
 {
@@ -24,11 +25,9 @@ class UserDocument extends Model
     public const STATUS_QNA_COMPLETED = 'qna_completed';
     public const STATUS_PDF_GENERATED = 'pdf_generated';
 
-    // Post-generation workflow statuses for dashboard / lawyer / signature flow.
     public const STATUS_PENDING_APPROVAL = 'pending_approval';
     public const STATUS_SIGNATURE = 'signature';
     public const STATUS_REJECTED = 'rejected';
-
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_CANCELLED = 'cancelled';
 
@@ -53,10 +52,15 @@ class UserDocument extends Model
         'docusign_client_email',
         'signature_provider',
         'signature_envelope_id',
+        'signature_status',
         'generated_pdf_path',
         'generated_pdf_original_name',
         'generated_pdf_mime',
         'generated_pdf_size',
+        'signed_pdf_path',
+        'signed_pdf_original_name',
+        'signed_pdf_mime',
+        'signed_pdf_size',
         'submitted_for_approval_at',
         'qna_completed_at',
         'pdf_generated_at',
@@ -64,6 +68,7 @@ class UserDocument extends Model
         'sent_for_signature_at',
         'rejected_at',
         'completed_at',
+        'signature_completed_at',
     ];
 
     protected $casts = [
@@ -72,6 +77,7 @@ class UserDocument extends Model
         'answers_json' => 'array',
         'signature_recipients_json' => 'array',
         'generated_pdf_size' => 'integer',
+        'signed_pdf_size' => 'integer',
         'submitted_for_approval_at' => 'datetime',
         'qna_completed_at' => 'datetime',
         'pdf_generated_at' => 'datetime',
@@ -79,10 +85,13 @@ class UserDocument extends Model
         'sent_for_signature_at' => 'datetime',
         'rejected_at' => 'datetime',
         'completed_at' => 'datetime',
+        'signature_completed_at' => 'datetime',
     ];
 
     protected $appends = [
         'generated_pdf_url',
+        'signed_pdf_url',
+        'current_pdf_url',
         'dashboard_status',
         'client_name',
         'client_email',
@@ -142,6 +151,26 @@ class UserDocument extends Model
         );
     }
 
+    protected function signedPdfUrl(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (! $this->signed_pdf_path) {
+                    return null;
+                }
+
+                return Storage::disk(config('filesystems.default'))->url($this->signed_pdf_path);
+            }
+        );
+    }
+
+    protected function currentPdfUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->signed_pdf_url ?: $this->generated_pdf_url
+        );
+    }
+
     protected function dashboardStatus(): Attribute
     {
         return Attribute::make(
@@ -188,12 +217,13 @@ class UserDocument extends Model
 
     public function canBeDownloaded(): bool
     {
-        return ! empty($this->generated_pdf_path);
+        return ! empty($this->signed_pdf_path) || ! empty($this->generated_pdf_path);
     }
 
     public function canBeApprovedByLawyer(): bool
     {
-        return $this->status === self::STATUS_PENDING_APPROVAL;
+        return $this->status === self::STATUS_PENDING_APPROVAL
+            && ! empty($this->generated_pdf_path);
     }
 
     public function canBeRejectedByLawyer(): bool
@@ -201,8 +231,59 @@ class UserDocument extends Model
         return $this->status === self::STATUS_PENDING_APPROVAL;
     }
 
-    public function canBeMarkedCompleted(): bool
+    public function canBeSignedByUser(User $user): bool
     {
-        return $this->status === self::STATUS_SIGNATURE;
+        if ($this->status !== self::STATUS_SIGNATURE) {
+            return false;
+        }
+
+        if (! $this->signature_envelope_id) {
+            return false;
+        }
+
+        if ($user->id !== $this->user_id) {
+            return false;
+        }
+
+        $recipient = $this->findRecipientForEmail($user->email);
+
+        if (! $recipient) {
+            return false;
+        }
+
+        return ! empty($recipient['recipient_id']);
+    }
+
+    public function findRecipientForEmail(?string $email): ?array
+    {
+        $needle = Str::lower(trim((string) $email));
+
+        if ($needle === '') {
+            return null;
+        }
+
+        $recipients = is_array($this->signature_recipients_json) ? $this->signature_recipients_json : [];
+
+        foreach ($recipients as $recipient) {
+            $recipientEmail = Str::lower(trim((string) ($recipient['email'] ?? '')));
+
+            if ($recipientEmail === $needle) {
+                return $recipient;
+            }
+        }
+
+        return null;
+    }
+
+    public function currentPdfPath(): ?string
+    {
+        return $this->signed_pdf_path ?: $this->generated_pdf_path;
+    }
+
+    public function currentPdfOriginalName(): string
+    {
+        return $this->signed_pdf_original_name
+            ?: $this->generated_pdf_original_name
+            ?: 'document.pdf';
     }
 }

@@ -76,18 +76,29 @@ class UserDocumentPolicy
             && $userDocument->canBeDownloaded();
     }
 
-    public function approveForSignature(User $user, UserDocument $userDocument): bool
-    {
-        return $user->user_role === 'admin' && $userDocument->canBeApprovedByLawyer();
-    }
-
     public function rejectAfterReview(User $user, UserDocument $userDocument): bool
     {
         return $user->user_role === 'admin' && $userDocument->canBeRejectedByLawyer();
     }
 
-    public function markCompleted(User $user, UserDocument $userDocument): bool
+    public function sign(User $user, UserDocument $userDocument): bool
     {
-        return $user->user_role === 'admin' && $userDocument->canBeMarkedCompleted();
+        return ($user->id === $userDocument->user_id || $user->user_role === 'admin')
+            && $userDocument->canBeSignedByUser($user);
+    }
+
+    public function approveForSignature(User $user, UserDocument $userDocument): bool
+    {
+        return $user->user_role === 'admin'
+            && $userDocument->canBeApprovedByLawyer();
+    }
+
+    public function manageSignature(User $user, UserDocument $userDocument): bool
+    {
+        return $user->user_role === 'admin'
+            && in_array($userDocument->status, [
+                UserDocument::STATUS_SIGNATURE,
+                UserDocument::STATUS_COMPLETED,
+            ], true);
     }
 }

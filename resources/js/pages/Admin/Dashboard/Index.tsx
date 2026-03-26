@@ -59,21 +59,7 @@ export default function AdminDashboard({ user, documents }: DashboardProps) {
     }
 
     function handleReject(document: DocumentItem, lawyerNote: string) {
-        router.post(
-            route('admin.documents.reject', document.id),
-            {
-                lawyer_note: lawyerNote,
-            },
-            {
-                preserveScroll: true,
-            },
-        );
-    }
-
-    function handleMarkCompleted(document: DocumentItem) {
-        router.post(route('admin.documents.complete', document.id), undefined, {
-            preserveScroll: true,
-        });
+        router.post(route('admin.documents.reject', document.id), { lawyer_note: lawyerNote }, { preserveScroll: true });
     }
 
     function handleDownload(document: DocumentItem) {
@@ -101,7 +87,6 @@ export default function AdminDashboard({ user, documents }: DashboardProps) {
                                     document={selectedDocument}
                                     onBack={handleCloseDocumentFlow}
                                     onDownload={() => handleDownload(selectedDocument)}
-                                    onMarkCompleted={() => handleMarkCompleted(selectedDocument)}
                                 />
                             )}
 
