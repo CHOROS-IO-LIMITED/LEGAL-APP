@@ -50,6 +50,7 @@ function normalizeRecipients(document: DocumentItem): SignatureRecipient[] {
         return document.signatureRecipients.map((recipient, index) => ({
             ...recipient,
             routing_order: recipient.routing_order ?? index + 1,
+            recipient_id: recipient.recipient_id ?? null,
             role: recipient.role ?? 'Client',
         }));
     }
@@ -60,6 +61,7 @@ function normalizeRecipients(document: DocumentItem): SignatureRecipient[] {
             email: document.client.email ?? '',
             role: 'Client',
             routing_order: 1,
+            recipient_id: null,
             status: 'pending',
             signed_at: null,
             sign_url: null,
@@ -180,6 +182,7 @@ export default function ReviewDocumentView({ document, onBack, onSubmitForApprov
                                                 role: recipient.role?.trim() ?? '',
                                                 routing_order: index + 1,
                                                 status: recipient.status ?? 'pending',
+                                                recipient_id: recipient.recipient_id ?? null,
                                                 signed_at: recipient.signed_at ?? null,
                                                 sign_url: recipient.sign_url ?? null,
                                             })),
@@ -252,14 +255,13 @@ export default function ReviewDocumentView({ document, onBack, onSubmitForApprov
                                         </p>
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowChangeCard(true)}
+                                    <Link
+                                        href={document.questionnaireUrl}
                                         className="group mt-5 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#3D2B1F] px-4 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#2E2017] hover:shadow-md focus:ring-2 focus:ring-[#3D2B1F]/20 focus:outline-none"
                                     >
                                         <SquarePen className="h-4 w-4 transition-transform duration-200 group-hover:rotate-[-8deg]" />
                                         Revise Document
-                                    </button>
+                                    </Link>
                                 </div>
                             </div>
                         )}

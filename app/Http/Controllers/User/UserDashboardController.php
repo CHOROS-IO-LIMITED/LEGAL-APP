@@ -37,8 +37,6 @@ class UserDashboardController extends Controller
             'batch_uuid' => $userDocument->batch_uuid,
         ]);
 
-        $downloadUrl = route('user.documents.download', $userDocument);
-
         return [
             'id' => $userDocument->id,
             'batchUuid' => $userDocument->batch_uuid,
@@ -49,8 +47,8 @@ class UserDashboardController extends Controller
             'submittedAtLabel' => optional($userDocument->submitted_for_approval_at ?? $userDocument->pdf_generated_at ?? $userDocument->created_at)?->diffForHumans(),
             'createdAtLabel' => optional($userDocument->created_at)?->format('M d, Y • h:i A'),
             'updatedAtLabel' => optional($userDocument->updated_at)?->format('M d, Y • h:i A'),
-            'generatedPdfUrl' => $userDocument->generated_pdf_url,
-            'downloadUrl' => $downloadUrl,
+            'generatedPdfUrl' => $userDocument->current_pdf_url,
+            'downloadUrl' => route('user.documents.download', $userDocument),
             'questionnaireUrl' => $questionnaireUrl,
 
             'client' => [
@@ -63,6 +61,7 @@ class UserDashboardController extends Controller
 
             'signatureProvider' => $userDocument->signature_provider,
             'signatureEnvelopeId' => $userDocument->signature_envelope_id,
+            'signatureStatus' => $userDocument->signature_status,
             'signatureRecipients' => $userDocument->signature_recipients_json ?? [],
 
             'submittedForApprovalAt' => optional($userDocument->submitted_for_approval_at)?->format('M d, Y • h:i A'),
@@ -75,6 +74,7 @@ class UserDashboardController extends Controller
                 'canSubmitForApproval' => Auth::user()->can('submitForApproval', $userDocument),
                 'canReturnToQuestions' => Auth::user()->can('returnToQuestions', $userDocument),
                 'canDownload' => Auth::user()->can('download', $userDocument),
+                'canSign' => Auth::user()->can('sign', $userDocument),
             ],
         ];
     }

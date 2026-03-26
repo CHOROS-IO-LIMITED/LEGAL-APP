@@ -12,7 +12,6 @@ use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-
 class UserDocumentDashboardActionController extends Controller
 {
     public function submitForApproval(
@@ -49,15 +48,16 @@ class UserDocumentDashboardActionController extends Controller
         $this->authorize('download', $userDocument);
 
         $disk = config('filesystems.default');
+        $path = $userDocument->currentPdfPath();
 
-        abort_unless(! empty($userDocument->generated_pdf_path), 404, 'Generated PDF not found.');
+        abort_unless(is_string($path) && $path !== '', 404, 'Document file not found.');
 
         /** @var FilesystemAdapter $storage */
         $storage = Storage::disk($disk);
 
         return $storage->download(
-            $userDocument->generated_pdf_path,
-            $userDocument->generated_pdf_original_name ?: 'document.pdf'
+            $path,
+            $userDocument->currentPdfOriginalName()
         );
     }
 }

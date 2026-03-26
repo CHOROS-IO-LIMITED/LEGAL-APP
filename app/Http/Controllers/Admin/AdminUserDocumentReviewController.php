@@ -2,25 +2,26 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Admin\Dashboard\Review\ApproveUserDocumentForSignatureAction;
 use App\Actions\Admin\Dashboard\Review\RejectUserDocumentAfterReviewAction;
-use App\Actions\User\Dashboard\Review\ApproveUserDocumentForSignatureAction;
-use App\Actions\User\Dashboard\Review\MarkUserDocumentCompletedAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Dashboard\Review\RejectUserDocumentAfterReviewRequest;
 use App\Models\UserDocument;
 use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 
 class AdminUserDocumentReviewController extends Controller
 {
     public function approve(
         UserDocument $userDocument,
         ApproveUserDocumentForSignatureAction $action
-    ): RedirectResponse {
+    ): Response {
         $this->authorize('approveForSignature', $userDocument);
 
-        $action->handle($userDocument);
+        $result = $action->handle($userDocument);
 
-        return back()->with('success', 'Document approved and moved to signature workflow.');
+        return Inertia::location($result['senderViewUrl']);
     }
 
     public function reject(
@@ -36,16 +37,5 @@ class AdminUserDocumentReviewController extends Controller
         );
 
         return back()->with('success', 'Document returned to the client for amendment.');
-    }
-
-    public function markCompleted(
-        UserDocument $userDocument,
-        MarkUserDocumentCompletedAction $action
-    ): RedirectResponse {
-        $this->authorize('markCompleted', $userDocument);
-
-        $action->handle($userDocument);
-
-        return back()->with('success', 'Document marked as completed.');
     }
 }

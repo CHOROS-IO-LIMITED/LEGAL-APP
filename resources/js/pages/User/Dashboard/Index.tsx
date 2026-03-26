@@ -16,6 +16,7 @@ type SignatureRecipientPayload = {
     email: string;
     role: string | null;
     routing_order: number | null;
+    recipient_id: string | null;
     status: string | null;
     signed_at: string | null;
     sign_url: string | null;
@@ -70,6 +71,7 @@ export default function UserDashboard({ user, documents }: DashboardProps) {
             email: recipient.email,
             role: recipient.role ?? null,
             routing_order: recipient.routing_order ?? null,
+            recipient_id: recipient.recipient_id ?? null,
             status: recipient.status ?? null,
             signed_at: recipient.signed_at ?? null,
             sign_url: recipient.sign_url ?? null,
@@ -105,6 +107,12 @@ export default function UserDashboard({ user, documents }: DashboardProps) {
         window.open(document.downloadUrl, '_blank', 'noopener,noreferrer');
     }
 
+    function handleStartSigning(document: DocumentItem) {
+        router.post(route('user.documents.sign', document.id), undefined, {
+            preserveScroll: true,
+        });
+    }
+
     return (
         <UserLayout user={user}>
             <main className="flex-1 overflow-y-auto bg-[#FCF9F2] p-4 md:p-6">
@@ -126,6 +134,7 @@ export default function UserDashboard({ user, documents }: DashboardProps) {
                                     document={selectedDocument}
                                     onBack={handleCloseDocumentFlow}
                                     onDownload={() => handleDownload(selectedDocument)}
+                                    onSign={() => handleStartSigning(selectedDocument)}
                                 />
                             )}
 

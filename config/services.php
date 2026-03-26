@@ -58,4 +58,16 @@ return [
         ],
     ],
 
+    'docusign' => [
+        'integrator_key' => env('DOCUSIGN_INTEGRATOR_KEY'),
+        'user_id' => env('DOCUSIGN_USER_ID'),
+        'account_id' => env('DOCUSIGN_ACCOUNT_ID'),
+        'base_uri' => rtrim((string) env('DOCUSIGN_BASE_URI', 'https://demo.docusign.net'), '/'),
+        'oauth_base_uri' => rtrim((string) env('DOCUSIGN_OAUTH_BASE_URI', 'https://account-d.docusign.com'), '/'),
+        'redirect_uri' => env('DOCUSIGN_REDIRECT_URI'),
+        'access_token' => env('DOCUSIGN_ACCESS_TOKEN'),
+        'connect_secret' => env('DOCUSIGN_CONNECT_SECRET'),
+        'connect_enabled' => filter_var(env('DOCUSIGN_CONNECT_ENABLED', false), FILTER_VALIDATE_BOOL),
+    ],
+
 ];
