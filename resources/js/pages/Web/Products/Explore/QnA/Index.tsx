@@ -33,7 +33,6 @@ type Question = {
     options?: string[];
     help_text?: string;
     placeholder?: string;
-    action_trigger?: string;
     is_upsell?: boolean;
     min?: number;
     max?: number;
@@ -438,7 +437,7 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
                 </div>
 
                 <h2 className="text-4xl font-bold text-[#1A1614]">Building your document</h2>
-                <p className="mt-2 text-[#70665E]">Submitting your answers and regenerating the latest PDF...</p>
+                <p className="mt-2 text-[#70665E]">Submitting your answers and generating the latest PDF document...</p>
 
                 <div className="mt-4 h-2 w-64 overflow-hidden rounded-full bg-gray-200">
                     <div className="h-full bg-[#3D2B1F] transition-all duration-300 ease-out" style={{ width: `${progress}%` }} />
@@ -470,12 +469,6 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
 
                                 {currentQuestion.is_upsell && (
                                     <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">Add-on</span>
-                                )}
-
-                                {currentQuestion.action_trigger && (
-                                    <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
-                                        Action: {currentQuestion.action_trigger}
-                                    </span>
                                 )}
                             </div>
                         </CardHeader>
