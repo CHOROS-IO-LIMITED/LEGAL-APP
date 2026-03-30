@@ -48,8 +48,7 @@ class LoanAgreementQuestionSchema
                                     'label' => 'What is the full company name?',
                                     'type' => 'text',
                                     'required' => true,
-                                    'action_trigger' => 'company_lookup',
-                                    'help_text' => 'Use Companies House details for confirmation.',
+                                    'help_text' => 'Please enter the exact company name manually.',
                                 ],
                                 [
                                     'key' => 'client_is_director',
@@ -89,18 +88,53 @@ class LoanAgreementQuestionSchema
                         [
                             'when' => ['field' => 'lender_entity_type', 'operator' => 'equals', 'value' => 'individual'],
                             'questions' => [
-                                ['key' => 'lender_full_name', 'label' => 'What is the lender’s full legal name?', 'type' => 'text', 'required' => true],
-                                ['key' => 'lender_address', 'label' => 'What is the lender’s full address?', 'type' => 'textarea', 'required' => true],
-                                ['key' => 'lender_signatory_name', 'label' => 'What is the lender signatory name?', 'type' => 'text', 'required' => true],
+                                [
+                                    'key' => 'lender_full_name',
+                                    'label' => 'What is the lender’s full legal name?',
+                                    'type' => 'text',
+                                    'required' => true,
+                                ],
+                                [
+                                    'key' => 'lender_address',
+                                    'label' => 'What is the lender’s full address?',
+                                    'type' => 'textarea',
+                                    'required' => true,
+                                ],
+                                [
+                                    'key' => 'lender_signatory_name',
+                                    'label' => 'What is the lender signatory name?',
+                                    'type' => 'text',
+                                    'required' => true,
+                                ],
                             ],
                         ],
                         [
                             'when' => ['field' => 'lender_entity_type', 'operator' => 'equals', 'value' => 'company'],
                             'questions' => [
-                                ['key' => 'lender_company_name', 'label' => 'What is the lender company’s full name?', 'type' => 'text', 'required' => true, 'action_trigger' => 'company_lookup'],
-                                ['key' => 'lender_company_number', 'label' => 'What is the lender company number?', 'type' => 'text', 'required' => true],
-                                ['key' => 'lender_registered_office_address', 'label' => 'What is the lender company’s registered office address?', 'type' => 'textarea', 'required' => true],
-                                ['key' => 'lender_signatory_name', 'label' => 'What is the full legal name of the lender’s signatory?', 'type' => 'text', 'required' => true],
+                                [
+                                    'key' => 'lender_company_name',
+                                    'label' => 'What is the lender company’s full name?',
+                                    'type' => 'text',
+                                    'required' => true,
+                                ],
+                                [
+                                    'key' => 'lender_company_number',
+                                    'label' => 'What is the lender company number?',
+                                    'type' => 'text',
+                                    'required' => true,
+                                ],
+                                [
+                                    'key' => 'lender_registered_office_address',
+                                    'label' => 'What is the lender company’s registered office address?',
+                                    'type' => 'textarea',
+                                    'required' => true,
+                                ],
+                                [
+                                    'key' => 'lender_signatory_name',
+                                    'label' => 'What is the full legal name of the lender’s signatory?',
+                                    'type' => 'text',
+                                    'required' => true,
+                                ],
                             ],
                         ],
                     ],
@@ -115,9 +149,24 @@ class LoanAgreementQuestionSchema
                         [
                             'when' => ['field' => 'borrower_entity_type', 'operator' => 'equals', 'value' => 'individual'],
                             'questions' => [
-                                ['key' => 'borrower_full_name', 'label' => 'What is the borrower’s full legal name?', 'type' => 'text', 'required' => true],
-                                ['key' => 'borrower_address', 'label' => 'What is the borrower’s full address?', 'type' => 'textarea', 'required' => true],
-                                ['key' => 'borrower_signatory_name', 'label' => 'What is the borrower signatory name?', 'type' => 'text', 'required' => true],
+                                [
+                                    'key' => 'borrower_full_name',
+                                    'label' => 'What is the borrower’s full legal name?',
+                                    'type' => 'text',
+                                    'required' => true,
+                                ],
+                                [
+                                    'key' => 'borrower_address',
+                                    'label' => 'What is the borrower’s full address?',
+                                    'type' => 'textarea',
+                                    'required' => true,
+                                ],
+                                [
+                                    'key' => 'borrower_signatory_name',
+                                    'label' => 'What is the borrower signatory name?',
+                                    'type' => 'text',
+                                    'required' => true,
+                                ],
                                 [
                                     'key' => 'multiple_borrowers',
                                     'label' => 'Is there more than one borrower?',
@@ -150,10 +199,30 @@ class LoanAgreementQuestionSchema
                         [
                             'when' => ['field' => 'borrower_entity_type', 'operator' => 'equals', 'value' => 'company'],
                             'questions' => [
-                                ['key' => 'borrower_company_name', 'label' => 'What is the borrower company’s full name?', 'type' => 'text', 'required' => true, 'action_trigger' => 'company_lookup'],
-                                ['key' => 'borrower_company_number', 'label' => 'What is the borrower company number?', 'type' => 'text', 'required' => true],
-                                ['key' => 'borrower_registered_office_address', 'label' => 'What is the borrower company’s registered office address?', 'type' => 'textarea', 'required' => true],
-                                ['key' => 'borrower_signatory_name', 'label' => 'What is the full legal name of the borrower’s signatory?', 'type' => 'text', 'required' => true],
+                                [
+                                    'key' => 'borrower_company_name',
+                                    'label' => 'What is the borrower company’s full name?',
+                                    'type' => 'text',
+                                    'required' => true,
+                                ],
+                                [
+                                    'key' => 'borrower_company_number',
+                                    'label' => 'What is the borrower company number?',
+                                    'type' => 'text',
+                                    'required' => true,
+                                ],
+                                [
+                                    'key' => 'borrower_registered_office_address',
+                                    'label' => 'What is the borrower company’s registered office address?',
+                                    'type' => 'textarea',
+                                    'required' => true,
+                                ],
+                                [
+                                    'key' => 'borrower_signatory_name',
+                                    'label' => 'What is the full legal name of the borrower’s signatory?',
+                                    'type' => 'text',
+                                    'required' => true,
+                                ],
                             ],
                         ],
                     ],
@@ -213,12 +282,16 @@ class LoanAgreementQuestionSchema
                     'label' => 'What is the full address of the property for the first charge?',
                     'type' => 'textarea',
                     'required' => false,
-                    'action_trigger' => 'land_registry_title_lookup',
                     'follow_ups' => [
                         [
                             'when' => ['field' => 'security_types', 'operator' => 'equals', 'value' => 'first_charge_property'],
                             'questions' => [
-                                ['key' => 'first_charge_title_number', 'label' => 'What is the title number for the first charge property?', 'type' => 'text', 'required' => true],
+                                [
+                                    'key' => 'first_charge_title_number',
+                                    'label' => 'What is the title number for the first charge property?',
+                                    'type' => 'text',
+                                    'required' => true,
+                                ],
                             ],
                         ],
                     ],
@@ -228,7 +301,6 @@ class LoanAgreementQuestionSchema
                     'label' => 'What is the full address of the property for the second charge?',
                     'type' => 'textarea',
                     'required' => false,
-                    'action_trigger' => 'land_registry_title_lookup',
                 ],
                 [
                     'key' => 'second_charge_title_number',
@@ -272,11 +344,40 @@ class LoanAgreementQuestionSchema
                         [
                             'when' => ['field' => 'loan_purpose_property_related', 'operator' => 'equals', 'value' => 'yes'],
                             'questions' => [
-                                ['key' => 'property_project_type', 'label' => 'Is the property being created or renovated to be sold, rented, or either?', 'type' => 'select', 'required' => true, 'options' => ['sold', 'rented', 'either']],
-                                ['key' => 'property_control_information_level', 'label' => 'How much control information about the property should be included?', 'type' => 'textarea', 'required' => true],
-                                ['key' => 'property_restriction_occupy', 'label' => 'Should there be an occupation restriction?', 'type' => 'select', 'required' => true, 'options' => ['yes', 'no']],
-                                ['key' => 'property_restriction_third_party_interest', 'label' => 'Should there be a third-party interest restriction?', 'type' => 'select', 'required' => true, 'options' => ['yes', 'no']],
-                                ['key' => 'property_restriction_renting', 'label' => 'Should there be a renting restriction?', 'type' => 'select', 'required' => true, 'options' => ['yes', 'no']],
+                                [
+                                    'key' => 'property_project_type',
+                                    'label' => 'Is the property being created or renovated to be sold, rented, or either?',
+                                    'type' => 'select',
+                                    'required' => true,
+                                    'options' => ['sold', 'rented', 'either'],
+                                ],
+                                [
+                                    'key' => 'property_control_information_level',
+                                    'label' => 'How much control information about the property should be included?',
+                                    'type' => 'textarea',
+                                    'required' => true,
+                                ],
+                                [
+                                    'key' => 'property_restriction_occupy',
+                                    'label' => 'Should there be an occupation restriction?',
+                                    'type' => 'select',
+                                    'required' => true,
+                                    'options' => ['yes', 'no'],
+                                ],
+                                [
+                                    'key' => 'property_restriction_third_party_interest',
+                                    'label' => 'Should there be a third-party interest restriction?',
+                                    'type' => 'select',
+                                    'required' => true,
+                                    'options' => ['yes', 'no'],
+                                ],
+                                [
+                                    'key' => 'property_restriction_renting',
+                                    'label' => 'Should there be a renting restriction?',
+                                    'type' => 'select',
+                                    'required' => true,
+                                    'options' => ['yes', 'no'],
+                                ],
                             ],
                         ],
                     ],
@@ -291,7 +392,13 @@ class LoanAgreementQuestionSchema
                         [
                             'when' => ['field' => 'interest_structure', 'operator' => 'equals', 'value' => 'rate'],
                             'questions' => [
-                                ['key' => 'interest_rate_value', 'label' => 'What is the interest rate?', 'type' => 'text', 'required' => true, 'placeholder' => 'Example: 10'],
+                                [
+                                    'key' => 'interest_rate_value',
+                                    'label' => 'What is the interest rate?',
+                                    'type' => 'text',
+                                    'required' => true,
+                                    'placeholder' => 'Example: 10',
+                                ],
                                 [
                                     'key' => 'interest_payment_timing',
                                     'label' => 'Will interest be paid monthly, yearly, rolled up and compounded, or rolled up without compounding?',
@@ -304,7 +411,13 @@ class LoanAgreementQuestionSchema
                         [
                             'when' => ['field' => 'interest_structure', 'operator' => 'equals', 'value' => 'fixed_amount'],
                             'questions' => [
-                                ['key' => 'fixed_interest_amount', 'label' => 'What is the fixed interest amount?', 'type' => 'number', 'required' => true, 'min' => 0],
+                                [
+                                    'key' => 'fixed_interest_amount',
+                                    'label' => 'What is the fixed interest amount?',
+                                    'type' => 'number',
+                                    'required' => true,
+                                    'min' => 0,
+                                ],
                             ],
                         ],
                     ],
@@ -326,10 +439,34 @@ class LoanAgreementQuestionSchema
                         [
                             'when' => ['field' => 'borrower_company_operations_info_required', 'operator' => 'equals', 'value' => 'yes'],
                             'questions' => [
-                                ['key' => 'company_info_audited_accounts', 'label' => 'Require audited consolidated accounts?', 'type' => 'select', 'required' => true, 'options' => ['yes', 'no']],
-                                ['key' => 'company_info_monthly_management_accounts', 'label' => 'Require monthly management accounts?', 'type' => 'select', 'required' => true, 'options' => ['yes', 'no']],
-                                ['key' => 'company_info_notices_to_shareholders_creditors', 'label' => 'Require notices to shareholders/creditors?', 'type' => 'select', 'required' => true, 'options' => ['yes', 'no']],
-                                ['key' => 'company_info_other_reasonable_requests', 'label' => 'Require other reasonable information requests?', 'type' => 'select', 'required' => true, 'options' => ['yes', 'no']],
+                                [
+                                    'key' => 'company_info_audited_accounts',
+                                    'label' => 'Require audited consolidated accounts?',
+                                    'type' => 'select',
+                                    'required' => true,
+                                    'options' => ['yes', 'no'],
+                                ],
+                                [
+                                    'key' => 'company_info_monthly_management_accounts',
+                                    'label' => 'Require monthly management accounts?',
+                                    'type' => 'select',
+                                    'required' => true,
+                                    'options' => ['yes', 'no'],
+                                ],
+                                [
+                                    'key' => 'company_info_notices_to_shareholders_creditors',
+                                    'label' => 'Require notices to shareholders/creditors?',
+                                    'type' => 'select',
+                                    'required' => true,
+                                    'options' => ['yes', 'no'],
+                                ],
+                                [
+                                    'key' => 'company_info_other_reasonable_requests',
+                                    'label' => 'Require other reasonable information requests?',
+                                    'type' => 'select',
+                                    'required' => true,
+                                    'options' => ['yes', 'no'],
+                                ],
                             ],
                         ],
                     ],
@@ -350,7 +487,7 @@ class LoanAgreementQuestionSchema
                 ],
                 [
                     'key' => 'upsell_execution_service',
-                    'label' => 'Would you like to execute the completed document via a DocuSign-type facility?',
+                    'label' => 'Would you like to execute the completed document via an e-signature facility?',
                     'type' => 'select',
                     'required' => true,
                     'options' => ['yes', 'no'],
@@ -366,7 +503,12 @@ class LoanAgreementQuestionSchema
                         [
                             'when' => ['field' => 'jurisdiction_exclusive', 'operator' => 'equals', 'value' => 'no'],
                             'questions' => [
-                                ['key' => 'jurisdiction_requested_location', 'label' => 'If not, where would you want disputes to be dealt with?', 'type' => 'text', 'required' => true],
+                                [
+                                    'key' => 'jurisdiction_requested_location',
+                                    'label' => 'If not, where would you want disputes to be dealt with?',
+                                    'type' => 'text',
+                                    'required' => true,
+                                ],
                             ],
                         ],
                     ],

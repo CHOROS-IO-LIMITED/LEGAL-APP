@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DocuSignController;
 use App\Http\Controllers\Admin\AdminUserDocumentReviewController;
 use App\Http\Controllers\Admin\DownloadUserDocumentController;
 use App\Http\Middleware\AdminMiddleware;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 
 Route::middleware(AdminMiddleware::class)
     ->prefix('admin')
@@ -20,4 +21,4 @@ Route::middleware(AdminMiddleware::class)
         Route::get('/documents/docusign/return/{userDocument}', [DocuSignController::class, 'handleReturn'])->name('documents.docusign.return');
     });
 
-Route::post('/webhooks/docusign/connect', [DocuSignController::class, 'connectWebhook'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])->name('webhooks.docusign.connect');
+Route::post('/webhooks/docusign/connect', [DocuSignController::class, 'connectWebhook'])->withoutMiddleware([VerifyCsrfToken::class])->name('webhooks.docusign.connect');

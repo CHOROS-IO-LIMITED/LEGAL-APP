@@ -31,20 +31,48 @@ class DocuSignController extends Controller
         SyncUserDocumentSignatureStatusAction $syncAction
     ): Response {
         $rawBody = $request->getContent();
-        $secret = (string) config('services.docusign.connect_secret');
+        $secret = trim((string) config('services.docusign.connect_secret'));
 
         if ($secret !== '') {
-            $provided = (string) $request->header('X-DocuSign-Signature-1', '');
             $computed = base64_encode(hash_hmac('sha256', $rawBody, $secret, true));
 
-            if (! hash_equals($computed, $provided)) {
-                Log::warning('DocuSign webhook HMAC validation failed.');
+            $providedSignatures = array_filter([
+                (string) $request->header('X-DocuSign-Signature-1', ''),
+                (string) $request->header('X-DocuSign-Signature-2', ''),
+                (string) $request->header('X-DocuSign-Signature-3', ''),
+            ]);
+
+            $valid = false;
+
+            foreach ($providedSignatures as $provided) {
+                if ($provided !== '' && hash_equals($computed, trim($provided))) {
+                    $valid = true;
+                    break;
+                }
+            }
+
+            if (! $valid) {
+                Log::warning('DocuSign webhook HMAC validation failed.', [
+                    'computed' => $computed,
+                    'provided_headers_present' => array_values(array_filter([
+                        'X-DocuSign-Signature-1' => $request->header('X-DocuSign-Signature-1'),
+                        'X-DocuSign-Signature-2' => $request->header('X-DocuSign-Signature-2'),
+                        'X-DocuSign-Signature-3' => $request->header('X-DocuSign-Signature-3'),
+                    ])),
+                    'digest' => $request->header('x-authorization-digest'),
+                    'content_type' => $request->header('content-type'),
+                    'body_length' => strlen($rawBody),
+                ]);
 
                 return response('Invalid signature.', 401);
             }
         }
 
-        $payload = $request->json()->all();
+        $payload = json_decode($rawBody, true);
+
+        if (! is_array($payload)) {
+            return response('Invalid JSON payload.', 400);
+        }
 
         $envelopeId =
             data_get($payload, 'data.envelopeId') ??
