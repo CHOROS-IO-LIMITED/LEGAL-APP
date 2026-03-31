@@ -8,8 +8,6 @@
     <!-- CSRF Token (required for POST requests) -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    {{-- Removed dark mode detection script --}}
-
     <style>
         html {
             background-color: oklch(1 0 0);
@@ -25,11 +23,6 @@
 
     <!-- ComplyCube Web SDK -->
     <script src="https://assets.complycube.com/web-sdk/v1/complycube.min.js"></script>
-
-    <script>
-    window.RECAPTCHA_SITE_KEY = "{{ env('RECAPTCHA_SITE_KEY') }}";
-</script>
-<script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY') }}"></script>
 
     @routes
     @viteReactRefresh

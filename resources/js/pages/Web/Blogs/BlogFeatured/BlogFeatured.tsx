@@ -8,7 +8,6 @@ interface BlogArticle {
     description: string;
     image: string;
     author?: string;
-    authorLogo?: string;
     views?: number;
     date?: string;
 }
