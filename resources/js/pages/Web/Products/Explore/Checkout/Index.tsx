@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import Header from '@/components/web/Header';
 import Stepper from '@/components/web/Stepper';
+import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowLeft, Check, Lock } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
@@ -18,53 +18,92 @@ type CheckoutDocument = {
 type PageProps = {
     batchUuid?: string;
     documents?: CheckoutDocument[];
+    stripeKey?: string;
+    clientSecret?: string;
 } & Record<string, unknown>;
+
+const CheckoutForm: React.FC<{ batchUuid: string; total: string }> = ({ batchUuid, total }) => {
+    const stripe = useStripe();
+    const elements = useElements();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!stripe || !elements || isSubmitting) return;
+
+        setIsSubmitting(true);
+        setError(null);
+
+        const { error: submitError } = await elements.submit();
+        if (submitError) {
+            setError(submitError.message ?? 'Validation failed.');
+            setIsSubmitting(false);
+            return;
+        }
+
+        const { error: confirmError } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                return_url: `${route('product.checkout.continue')}?batch_uuid=${batchUuid}`,
+            },
+        });
+
+        if (confirmError) {
+            setError(confirmError.message ?? 'Payment failed. Please try again.');
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Payment</CardTitle>
+                    <CardDescription>Enter your card details to complete your purchase.</CardDescription>
+                </CardHeader>
+
+                <CardContent className="flex flex-col gap-4">
+                    <PaymentElement />
+
+                    {error && (
+                        <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+                            {error}
+                        </div>
+                    )}
+
+                    <button
+                        type="submit"
+                        disabled={isSubmitting || !stripe || !elements}
+                        className="mt-2 flex w-full items-center justify-center gap-2 rounded bg-[#3D2B1F] px-4 py-2 text-white hover:bg-[#5A4638] disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                        <Lock size={16} />
+                        {isSubmitting ? 'Processing...' : `Pay £${total} Securely`}
+                    </button>
+                </CardContent>
+            </Card>
+        </form>
+    );
+};
 
 const Checkout: React.FC = () => {
     const { props } = usePage<PageProps>();
 
     const batchUuid = props.batchUuid ?? '';
-    const documents = Array.isArray(props.documents) ? props.documents : [];
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const documents = useMemo(() => Array.isArray(props.documents) ? props.documents : [], [props.documents]);
+    const stripeKey = props.stripeKey ?? '';
+    const clientSecret = props.clientSecret ?? '';
 
-    const steps = ['Products', 'KYC', 'Checkout', 'Verification', 'Q&A'];
+    const steps = ['Products', 'KYC', 'Payment', 'Q&A'];
 
     const total = useMemo(() => {
         return documents.reduce((sum, item) => sum + Number(item.price ?? 0), 0).toFixed(2);
     }, [documents]);
 
-    const handleContinue = () => {
-        if (!batchUuid || isSubmitting) return;
-
-        setIsSubmitting(true);
-
-        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-        if (!token) {
-            setIsSubmitting(false);
-            return;
-        }
-
-        const form = window.document.createElement('form');
-        form.method = 'POST';
-        form.action = route('product.checkout.continue');
-        form.style.display = 'none';
-
-        const csrfInput = window.document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_token';
-        csrfInput.value = token;
-        form.appendChild(csrfInput);
-
-        const batchInput = window.document.createElement('input');
-        batchInput.type = 'hidden';
-        batchInput.name = 'batch_uuid';
-        batchInput.value = batchUuid;
-        form.appendChild(batchInput);
-
-        window.document.body.appendChild(form);
-        form.submit();
-    };
+    const stripePromise = useMemo(() => {
+        return stripeKey ? loadStripe(stripeKey) : null;
+    }, [stripeKey]);
 
     return (
         <div className="min-h-screen bg-[#FCF9F2] font-sans">
@@ -94,72 +133,29 @@ const Checkout: React.FC = () => {
 
                     <div className="mx-auto grid w-full max-w-5xl gap-8 lg:grid-cols-12">
                         <div className="flex flex-col gap-6 lg:col-span-7">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Your Details</CardTitle>
-                                    <CardDescription>Provide your contact information for billing and document delivery.</CardDescription>
-                                </CardHeader>
-
-                                <CardContent className="flex flex-col gap-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="flex flex-col gap-2">
-                                            <Label htmlFor="firstName">First Name</Label>
-                                            <Input id="firstName" placeholder="John" />
-                                        </div>
-
-                                        <div className="flex flex-col gap-2">
-                                            <Label htmlFor="lastName">Last Name</Label>
-                                            <Input id="lastName" placeholder="Smith" />
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-col gap-2">
-                                        <Label htmlFor="email">Email Address</Label>
-                                        <Input id="email" type="email" placeholder="john.smith@email.com" />
-                                    </div>
-
-                                    <div className="flex flex-col gap-2">
-                                        <Label htmlFor="company">Company (Optional)</Label>
-                                        <Input id="company" placeholder="Acme Ltd." />
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Payment</CardTitle>
-                                    <CardDescription>Enter your card details to complete your purchase.</CardDescription>
-                                </CardHeader>
-
-                                <CardContent className="flex flex-col gap-4">
-                                    <div className="flex flex-col gap-2">
-                                        <Label htmlFor="cardNumber">Card Number</Label>
-                                        <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="flex flex-col gap-2">
-                                            <Label htmlFor="expiry">Expiry</Label>
-                                            <Input id="expiry" placeholder="MM / YY" />
-                                        </div>
-
-                                        <div className="flex flex-col gap-2">
-                                            <Label htmlFor="cvc">CVC</Label>
-                                            <Input id="cvc" placeholder="123" />
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={handleContinue}
-                                        disabled={isSubmitting || !batchUuid}
-                                        className="mt-2 flex w-full items-center justify-center gap-2 rounded bg-[#3D2B1F] px-4 py-2 text-white hover:bg-[#5A4638] disabled:cursor-not-allowed disabled:opacity-70"
-                                    >
-                                        <Lock size={16} />
-                                        {isSubmitting ? 'Processing...' : 'Pay Securely'}
-                                    </button>
-                                </CardContent>
-                            </Card>
+                            {stripePromise && clientSecret ? (
+                                <Elements
+                                    stripe={stripePromise}
+                                    options={{
+                                        clientSecret,
+                                        appearance: {
+                                            theme: 'stripe',
+                                            variables: {
+                                                colorPrimary: '#3D2B1F',
+                                                borderRadius: '6px',
+                                            },
+                                        },
+                                    }}
+                                >
+                                    <CheckoutForm batchUuid={batchUuid} total={total} />
+                                </Elements>
+                            ) : (
+                                <Card>
+                                    <CardContent className="p-6 text-center text-sm text-[#70665E]">
+                                        Loading payment form...
+                                    </CardContent>
+                                </Card>
+                            )}
                         </div>
 
                         <div className="lg:col-span-5">

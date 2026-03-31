@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'webhook/complycube',
+            'webhook/stripe',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {})->create();

@@ -57,7 +57,7 @@ Route::middleware(['auth'])->group(function () {
 
     // step 3: checkout
     Route::get('/products/details/checkout', [PaymentController::class, 'index'])->name('product.checkout');
-    Route::post('/products/details/checkout/continue', [PaymentController::class, 'continue'])->name('product.checkout.continue');
+    Route::get('/products/details/checkout/continue', [PaymentController::class, 'continue'])->name('product.checkout.continue');
 
     // step 4: verification
     Route::get('/products/details/verify', [EmailVerificationController::class, 'index'])->name('email.verify');
