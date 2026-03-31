@@ -109,7 +109,7 @@ export default function BlogFeatured({ blog }: BlogFeaturedProps) {
                         {/* Meta */}
                         <div className="flex items-center justify-between text-sm text-[#A68A64]">
                             <div className="flex items-center gap-2">
-                                {blog.authorLogo && <img src={blog.authorLogo} alt={blog.author} className="h-5 w-5" />}
+                                <img src="/images/logo/dd-logo.png" alt={blog.author} className="h-5 w-5" />
                                 <span>{blog.author}</span>
                             </div>
 
