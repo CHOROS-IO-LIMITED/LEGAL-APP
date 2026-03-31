@@ -5,28 +5,21 @@ import { Link } from '@inertiajs/react';
 import { Variants, motion } from 'framer-motion';
 import { ArrowLeft, Calendar, Eye } from 'lucide-react';
 
-const relatedArticles = [
-    {
-        title: 'How AI is Transforming Legal Document Creation',
-        href: '/blogs/how-ai-is-transforming-legal-document-creation',
-        image: '/images/blog/articles/How-AI-is-Transforming-Legal-Document-Creation.webp',
-        date: 'March 15, 2026',
-    },
-    {
-        title: 'Why Small Businesses Need Smarter Legal Tools',
-        href: '/blogs/why-small-businesses-need-smarter-legal-tools',
-        image: '/images/blog/articles/Why-Small-Businesses-Need-Smarter-Legal-Tools.webp',
-        date: 'March 16, 2026',
-    },
-    {
-        title: 'From Idea to Signed Document in Minutes',
-        href: '/blogs/from-idea-to-signed-document-in-minutes',
-        image: '/images/blog/articles/From-Idea-to-Signed-Document-in-Minutes.webp',
-        date: 'March 18, 2026',
-    },
-];
+interface Blog {
+    title: string;
+    slug: string;
+    description: string;
+    image: string;
+    date: string;
+    author: string;
+}
 
-const TheFutureOfLegalServices = () => {
+interface Props {
+    blog: Blog;
+    relatedArticles: Blog[];
+}
+
+const TheFutureOfLegalServices = ({ blog, relatedArticles }: Props) => {
     const fadeUp: Variants = {
         hidden: { opacity: 0, y: 20 },
         show: {
@@ -80,16 +73,16 @@ const TheFutureOfLegalServices = () => {
 
                             {/* Title */}
                             <motion.h1 variants={fadeUp} className="mb-4 font-serif text-4xl text-[#2E2A26]">
-                                The Future of Legal Services: Fast, Accessible, and AI Powered
+                                {blog.title}
                             </motion.h1>
 
                             {/* Meta */}
                             <motion.div variants={fadeUp} className="mb-8 flex items-center gap-4 text-sm text-[#A68A64]">
-                                <img src="/images/logo/dd-logo.png" alt="Phiroze Daver" className="h-5 w-5" />
-                                <span>Phiroze Daver</span>
+                                <img src="/images/logo/dd-logo.png" alt={blog.author} className="h-5 w-5" />
+                                <span>{blog.author}</span>
                                 <span>•</span>
                                 <Calendar className="h-5 w-5 text-[#3D2B1F]" />
-                                <span>March 20, 2026</span>
+                                <span>{blog.date}</span>
                                 <span>•</span>
                                 <Eye className="h-5 w-5 text-[#3D2B1F]" />
                                 <span>0 views</span>
@@ -97,8 +90,7 @@ const TheFutureOfLegalServices = () => {
 
                             {/* Description */}
                             <motion.p variants={fadeUp} className="mb-10 text-lg leading-relaxed text-[#70665E]">
-                                Discover how Daver & Daver combines AI efficiency with licensed lawyer oversight to make legal services fast, simple,
-                                and accessible. Learn how what once took days can now be done in minutes, empowering businesses and individuals alike.
+                                {blog.description}
                             </motion.p>
 
                             {/* Hero Image */}
@@ -210,7 +202,7 @@ const TheFutureOfLegalServices = () => {
                                     className={`overflow-hidden bg-white p-3 ${idx !== relatedArticles.length - 1 ? 'border-b border-[#E8E2D6]' : ''}`}
                                     variants={itemVariants}
                                 >
-                                    <Link href={article.href} className="flex items-start gap-3 transition-colors hover:text-[#A68A64]">
+                                    <Link href={`/blogs/${article.slug}`} className="flex items-start gap-3 transition-colors hover:text-[#A68A64]">
                                         <img src={article.image} alt={article.title} className="h-16 w-16 flex-shrink-0 object-cover" />
                                         <div className="flex w-full flex-col justify-between">
                                             <span className="line-clamp-2 font-medium">{article.title}</span>

@@ -5,28 +5,21 @@ import { Link } from '@inertiajs/react';
 import { Variants, motion } from 'framer-motion';
 import { ArrowLeft, Calendar, Eye } from 'lucide-react';
 
-const relatedArticles = [
-    {
-        title: 'Why Small Businesses Need Smarter Legal Tools',
-        href: '/blogs/why-small-businesses-need-smarter-legal-tools',
-        image: '/images/blog/articles/Why-Small-Businesses-Need-Smarter-Legal-Tools.webp',
-        date: 'March 16, 2026',
-    },
-    {
-        title: 'From Idea to Signed Document in Minutes',
-        href: '/blogs/from-idea-to-signed-document-in-minutes',
-        image: '/images/blog/articles/From-Idea-to-Signed-Document-in-Minutes.webp',
-        date: 'March 18, 2026',
-    },
-    {
-        title: 'The Future of Legal Services',
-        href: '/blogs/the-future-of-legal-services',
-        image: '/images/blog/articles/The-Future-of-Legal-Services.webp',
-        date: 'March 20, 2026',
-    },
-];
+interface Blog {
+    title: string;
+    slug: string;
+    description: string;
+    image: string;
+    date: string;
+    author: string;
+}
 
-const HowAIisTransformingLegalDocumentCreation = () => {
+interface Props {
+    blog: Blog;
+    relatedArticles: Blog[];
+}
+
+const HowAIisTransformingLegalDocumentCreation = ({ blog, relatedArticles }: Props) => {
     const fadeUp: Variants = {
         hidden: { opacity: 0, y: 20 },
         show: {
@@ -80,16 +73,16 @@ const HowAIisTransformingLegalDocumentCreation = () => {
 
                             {/* Title */}
                             <motion.h1 variants={fadeUp} className="mb-4 font-serif text-4xl text-[#2E2A26]">
-                                How AI is Transforming Legal Document Creation
+                                {blog.title}
                             </motion.h1>
 
                             {/* Meta */}
                             <motion.div variants={fadeUp} className="mb-8 flex items-center gap-4 text-sm text-[#A68A64]">
-                                <img src="/images/logo/dd-logo.png" alt="Phiroze Daver" className="h-5 w-5" />
-                                <span>Phiroze Daver</span>
+                                <img src="/images/logo/dd-logo.png" alt={blog.author} className="h-5 w-5" />
+                                <span>{blog.author}</span>
                                 <span>•</span>
                                 <Calendar className="h-5 w-5 text-[#3D2B1F]" />
-                                <span>March 15, 2026</span>
+                                <span>{blog.date}</span>
                                 <span>•</span>
                                 <Eye className="h-5 w-5 text-[#3D2B1F]" />
                                 <span>0 views</span>
@@ -97,15 +90,14 @@ const HowAIisTransformingLegalDocumentCreation = () => {
 
                             {/* Description */}
                             <motion.p variants={fadeUp} className="mb-10 text-lg leading-relaxed text-[#70665E]">
-                                See how AI is revolutionizing the way legal documents are created. From partnership agreements to contracts, Daver &
-                                Daver uses intelligent automation plus professional review to make drafting faster, smarter, and more reliable.
+                                {blog.description}
                             </motion.p>
 
                             {/* Hero Image */}
                             <motion.figure variants={fadeUp} className="mb-12 overflow-hidden">
                                 <img
                                     src="/images/blog/articles/How-AI-is-Transforming-Legal-Document-Creation.webp"
-                                    alt="The Future of Legal Services"
+                                    alt="How AI is Transforming Legal Document Creation"
                                     className="h-full w-full scale-113 object-cover"
                                 />
                             </motion.figure>
@@ -191,6 +183,7 @@ const HowAIisTransformingLegalDocumentCreation = () => {
                     </div>
 
                     {/* Right Sidebar */}
+                    {/* Right Sidebar */}
                     <aside className="sticky top-24 self-start bg-[#F2EDE4] p-6 lg:w-1/4">
                         <motion.h2
                             className="mb-6 font-serif text-2xl text-[#2E2A26]"
@@ -203,14 +196,18 @@ const HowAIisTransformingLegalDocumentCreation = () => {
                         </motion.h2>
 
                         <motion.ul className="space-y-4" initial="hidden" whileInView="show" viewport={{ once: true }} variants={listVariants}>
-                            {relatedArticles.map((article, idx) => (
+                            {relatedArticles.map((article) => (
                                 <motion.li
-                                    key={idx}
-                                    className={`overflow-hidden bg-white p-3 ${idx !== relatedArticles.length - 1 ? 'border-b border-[#E8E2D6]' : ''}`}
+                                    key={article.slug} // use slug as key
+                                    className="overflow-hidden border-b border-[#E8E2D6] bg-white p-3 last:border-b-0"
                                     variants={itemVariants}
                                 >
-                                    <Link href={article.href} className="flex items-start gap-3 transition-colors hover:text-[#A68A64]">
-                                        <img src={article.image} alt={article.title} className="h-16 w-16 flex-shrink-0 object-cover" />
+                                    <Link href={`/blogs/${article.slug}`} className="flex items-start gap-3 transition-colors hover:text-[#A68A64]">
+                                        <img
+                                            src={article.image || '/images/logo/dd-logo.png'} // fallback if missing
+                                            alt={article.title}
+                                            className="h-16 w-16 flex-shrink-0 object-cover"
+                                        />
                                         <div className="flex w-full flex-col justify-between">
                                             <span className="line-clamp-2 font-medium">{article.title}</span>
                                             <div className="mt-0.5 flex items-center gap-1 text-[0.625rem] text-[#A68A64]">
