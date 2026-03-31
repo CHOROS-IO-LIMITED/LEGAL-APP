@@ -58,7 +58,7 @@ type Props = {
     userDocument: UserDocument | null;
 };
 
-const steps = ['Products', 'KYC', 'Checkout', 'Verification', 'Q&A'];
+const steps = ['Products', 'KYC', 'Payment', 'Q&A'];
 
 export default function QuestionAndAnswer({ userDocument }: Props) {
     if (!userDocument) {
@@ -453,7 +453,7 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
             <Header />
 
             <section className="mx-auto max-w-4xl space-y-10 px-8 py-10">
-                <Stepper steps={steps} currentStep={4} />
+                <Stepper steps={steps} currentStep={3} />
 
                 <div className="text-center">
                     <h2 className="text-3xl font-bold">{userDocument.document.title}</h2>

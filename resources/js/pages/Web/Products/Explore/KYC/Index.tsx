@@ -16,7 +16,7 @@ const KYC: React.FC = () => {
     const batchUuid = props.batchUuid ?? '';
     const [isStarting, setIsStarting] = useState(false);
 
-    const steps = ['Products', 'KYC', 'Checkout', 'Verification', 'Q&A'];
+    const steps = ['Products', 'KYC', 'Payment', 'Q&A'];
 
     const startVerification = () => {
         if (!batchUuid || isStarting) return;

@@ -87,7 +87,7 @@ const ProductDetails: React.FC = () => {
         );
     };
 
-    const steps = ['Products', 'KYC', 'Checkout', 'Verification', 'Q&A'];
+    const steps = ['Products', 'KYC', 'Payment', 'Q&A'];
 
     const selectedProductObjects = useMemo(() => {
         return selectedProducts.map((productId) => products.find((product) => product.id === productId)).filter(Boolean) as Product[];

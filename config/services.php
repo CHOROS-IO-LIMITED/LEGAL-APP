@@ -58,6 +58,12 @@ return [
         ],
     ],
 
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
+
     'docusign' => [
         'integrator_key' => env('DOCUSIGN_INTEGRATOR_KEY'),
         'user_id' => env('DOCUSIGN_USER_ID'),
