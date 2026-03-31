@@ -5,6 +5,7 @@ namespace App\Actions\Admin\Dashboard\Review;
 use App\Models\UserDocument;
 use App\Services\DocuSign\DocuSignService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class SyncUserDocumentSignatureStatusAction
@@ -48,19 +49,43 @@ class SyncUserDocumentSignatureStatusAction
                 $update['sent_for_signature_at'] = now();
             }
 
+            if (in_array($envelopeStatus, ['sent', 'delivered', 'completed'], true)) {
+                try {
+                    $combinedPdf = $this->docuSignService->downloadCombinedDocuments($userDocument->signature_envelope_id);
+
+                    if (! empty($combinedPdf)) {
+                        $directory = "generated/user-documents/{$userDocument->id}";
+                        $filename = $envelopeStatus === 'completed'
+                            ? 'signed-' . $userDocument->id . '.pdf'
+                            : 'signature-preview-' . $userDocument->id . '.pdf';
+
+                        $path = "{$directory}/{$filename}";
+
+                        Storage::disk(config('filesystems.default'))->put($path, $combinedPdf);
+
+                        if ($envelopeStatus === 'completed') {
+                            $update['signed_pdf_path'] = $path;
+                            $update['signed_pdf_original_name'] = 'signed-' . ($userDocument->generated_pdf_original_name ?: 'document.pdf');
+                            $update['signed_pdf_mime'] = 'application/pdf';
+                            $update['signed_pdf_size'] = strlen($combinedPdf);
+                        } else {
+                            $update['signed_pdf_path'] = $path;
+                            $update['signed_pdf_original_name'] = 'signature-preview-' . ($userDocument->generated_pdf_original_name ?: 'document.pdf');
+                            $update['signed_pdf_mime'] = 'application/pdf';
+                            $update['signed_pdf_size'] = strlen($combinedPdf);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Unable to download DocuSign combined PDF during sync.', [
+                        'user_document_id' => $userDocument->id,
+                        'envelope_id' => $userDocument->signature_envelope_id,
+                        'status' => $envelopeStatus,
+                        'message' => $e->getMessage(),
+                    ]);
+                }
+            }
+
             if ($envelopeStatus === 'completed') {
-                $combinedPdf = $this->docuSignService->downloadCombinedDocuments($userDocument->signature_envelope_id);
-
-                $directory = "generated/user-documents/{$userDocument->id}";
-                $filename = 'signed-' . $userDocument->id . '.pdf';
-                $path = "{$directory}/{$filename}";
-
-                Storage::disk(config('filesystems.default'))->put($path, $combinedPdf);
-
-                $update['signed_pdf_path'] = $path;
-                $update['signed_pdf_original_name'] = 'signed-' . ($userDocument->generated_pdf_original_name ?: 'document.pdf');
-                $update['signed_pdf_mime'] = 'application/pdf';
-                $update['signed_pdf_size'] = strlen($combinedPdf);
                 $update['status'] = UserDocument::STATUS_COMPLETED;
                 $update['completed_at'] = $userDocument->completed_at ?: now();
                 $update['signature_completed_at'] = now();
