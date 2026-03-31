@@ -17,10 +17,10 @@ class BlogsController extends Controller
                 'slug' => $blog->slug,
                 'title' => $blog->title,
                 'author' => $blog->author,
-                'date' => Carbon::parse($blog->date)->format('F j, Y'), // e.g., March 20, 2026
+                'date' => Carbon::parse($blog->date)->format('F j, Y'),
                 'views' => $blog->views,
                 'description' => $blog->description,
-                'image' => $blog->image ?? '/images/blog/default.webp', // fallback
+                'image' => $blog->image,
             ];
         });
 
@@ -32,6 +32,10 @@ class BlogsController extends Controller
     public function show($slug)
     {
         $blog = Blog::where('slug', $slug)->firstOrFail();
+
+        // Increment views in the database
+        $blog->increment('views');
+        $blog->refresh(); // reload the updated views
 
         // Related articles (exclude current)
         $related = Blog::where('id', '!=', $blog->id)
@@ -51,8 +55,10 @@ class BlogsController extends Controller
                 ];
             });
 
+        $component = $this->slugToComponent($slug);
+
         return Inertia::render(
-            "Web/Blogs/BlogPages/{$this->slugToComponent($slug)}",
+            "Web/Blogs/BlogPages/" . $component,
             [
                 'blog' => [
                     'id' => $blog->id,
@@ -60,7 +66,7 @@ class BlogsController extends Controller
                     'title' => $blog->title,
                     'author' => $blog->author,
                     'date' => Carbon::parse($blog->date)->format('F j, Y'),
-                    'views' => $blog->views,
+                    'views' => $blog->views, // now reflects the incremented count
                     'description' => $blog->description,
                     'image' => $blog->image ?? '/images/blog/default.webp',
                 ],
@@ -69,7 +75,6 @@ class BlogsController extends Controller
         );
     }
 
-    // Helper to map slug to React component name
     private function slugToComponent(string $slug): string
     {
         return collect(explode('-', $slug))

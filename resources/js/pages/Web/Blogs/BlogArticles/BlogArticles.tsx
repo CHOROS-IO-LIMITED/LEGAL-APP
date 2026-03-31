@@ -3,6 +3,8 @@ import { Eye } from 'lucide-react';
 import React from 'react';
 
 interface BlogArticle {
+    id: number;
+    slug: string;
     title: string;
     description: string;
     image: string;
@@ -11,37 +13,11 @@ interface BlogArticle {
     views?: number;
 }
 
-const articles: BlogArticle[] = [
-    {
-        title: 'How AI is Transforming Legal Document Creation',
-        description:
-            'See how AI is revolutionizing the way legal documents are created. From partnership agreements to contracts, Daver & Daver uses intelligent automation plus professional review to make drafting faster, smarter, and more reliable.',
-        image: '/images/blog/articles/How-AI-is-Transforming-Legal-Document-Creation.webp',
-        author: 'Phiroze Daver',
-        authorLogo: '/images/logo/dd-logo.png',
-        views: 0,
-    },
-    {
-        title: 'Why Small Businesses Need Smarter Legal Tools',
-        description:
-            'Small businesses often struggle to access affordable legal support. Learn how Daver & Daver helps companies protect their interests, reduce risk, and operate confidently with easy-to-create, professional legal documents.',
-        image: '/images/blog/articles/Why-Small-Businesses-Need-Smarter-Legal-Tools.webp',
-        author: 'Phiroze Daver',
-        authorLogo: '/images/logo/dd-logo.png',
-        views: 0,
-    },
-    {
-        title: 'From Idea to Signed Document in Minutes',
-        description:
-            'Turn ideas into legally binding documents quickly and seamlessly. Daver & Daver streamlines the entire workflow, from AI generation to lawyer review and instant signing, so your agreements move forward without delay.',
-        image: '/images/blog/articles/From-Idea-to-Signed-Document-in-Minutes.webp',
-        author: 'Phiroze Daver',
-        authorLogo: '/images/logo/dd-logo.png',
-        views: 0,
-    },
-];
+interface BlogArticlesProps {
+    blogs: BlogArticle[];
+}
 
-const BlogArticles: React.FC = () => {
+const BlogArticles: React.FC<BlogArticlesProps> = ({ blogs }) => {
     return (
         <section className="bg-[#F2EDE4] py-24">
             <div className="mx-auto max-w-6xl px-6">
@@ -84,10 +60,10 @@ const BlogArticles: React.FC = () => {
                         show: { transition: { staggerChildren: 0.15 } },
                     }}
                 >
-                    {articles.map((article, idx) => (
+                    {blogs.map((blog) => (
                         <motion.a
-                            key={idx}
-                            href={`/blogs/${article.title.replace(/\s+/g, '-').toLowerCase()}`}
+                            key={blog.id}
+                            href={`/blogs/${blog.slug}`}
                             className="group flex flex-col overflow-hidden bg-white shadow-sm"
                             variants={{
                                 hidden: { opacity: 0, y: 40 },
@@ -98,8 +74,8 @@ const BlogArticles: React.FC = () => {
                         >
                             <div className="h-48 w-full overflow-hidden">
                                 <motion.img
-                                    src={article.image}
-                                    alt={article.title}
+                                    src={blog.image}
+                                    alt={blog.title}
                                     className="h-full w-full scale-111 object-cover"
                                     whileHover={{ scale: 1.1 }}
                                     transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -107,21 +83,21 @@ const BlogArticles: React.FC = () => {
                             </div>
 
                             <div className="flex flex-1 flex-col p-6">
-                                <h3 className="mb-2 font-medium text-[#1A1614]">{article.title}</h3>
-                                <p className="text-sm leading-relaxed text-[#70665E]">{article.description}</p>
+                                <h3 className="mb-2 font-medium text-[#1A1614]">{blog.title}</h3>
+                                <p className="text-sm leading-relaxed text-[#70665E]">{blog.description}</p>
 
                                 <div className="mt-auto pt-2">
                                     <div className="my-4 h-px w-full bg-[#E8E2D6]" />
 
                                     <div className="flex items-center justify-between text-sm text-[#A68A64]">
                                         <div className="flex items-center gap-2">
-                                            {article.authorLogo && <img src={article.authorLogo} alt={article.author} className="h-5 w-5" />}
-                                            <span>{article.author}</span>
+                                            {blog.authorLogo && <img src={blog.authorLogo} alt={blog.author} className="h-5 w-5" />}
+                                            <span>{blog.author}</span>
                                         </div>
 
                                         <div className="flex items-center gap-1">
                                             <Eye className="h-5 w-5 text-[#3D2B1F]" />
-                                            <span>{article.views} views</span>
+                                            <span>{blog.views} views</span>
                                         </div>
                                     </div>
                                 </div>

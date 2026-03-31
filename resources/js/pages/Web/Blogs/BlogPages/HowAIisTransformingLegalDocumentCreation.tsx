@@ -12,6 +12,7 @@ interface Blog {
     image: string;
     date: string;
     author: string;
+    views: number;
 }
 
 interface Props {
@@ -19,7 +20,7 @@ interface Props {
     relatedArticles: Blog[];
 }
 
-const HowAIisTransformingLegalDocumentCreation = ({ blog, relatedArticles }: Props) => {
+const HowAiIsTransformingLegalDocumentCreation = ({ blog, relatedArticles }: Props) => {
     const fadeUp: Variants = {
         hidden: { opacity: 0, y: 20 },
         show: {
@@ -85,7 +86,7 @@ const HowAIisTransformingLegalDocumentCreation = ({ blog, relatedArticles }: Pro
                                 <span>{blog.date}</span>
                                 <span>•</span>
                                 <Eye className="h-5 w-5 text-[#3D2B1F]" />
-                                <span>0 views</span>
+                                 <span>{blog.views} views</span>
                             </motion.div>
 
                             {/* Description */}
@@ -183,7 +184,6 @@ const HowAIisTransformingLegalDocumentCreation = ({ blog, relatedArticles }: Pro
                     </div>
 
                     {/* Right Sidebar */}
-                    {/* Right Sidebar */}
                     <aside className="sticky top-24 self-start bg-[#F2EDE4] p-6 lg:w-1/4">
                         <motion.h2
                             className="mb-6 font-serif text-2xl text-[#2E2A26]"
@@ -227,4 +227,4 @@ const HowAIisTransformingLegalDocumentCreation = ({ blog, relatedArticles }: Pro
     );
 };
 
-export default HowAIisTransformingLegalDocumentCreation;
+export default HowAiIsTransformingLegalDocumentCreation;

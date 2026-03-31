@@ -12,6 +12,7 @@ interface Blog {
     image: string;
     date: string;
     author: string;
+    views: number;
 }
 
 interface Props {
@@ -85,7 +86,7 @@ const TheFutureOfLegalServices = ({ blog, relatedArticles }: Props) => {
                                 <span>{blog.date}</span>
                                 <span>•</span>
                                 <Eye className="h-5 w-5 text-[#3D2B1F]" />
-                                <span>0 views</span>
+                                <span>{blog.views} views</span>
                             </motion.div>
 
                             {/* Description */}

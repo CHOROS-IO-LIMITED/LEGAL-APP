@@ -1,7 +1,23 @@
 import { motion, TargetAndTransition } from 'framer-motion';
 import { ArrowRight, Calendar, Eye } from 'lucide-react';
 
-export default function BlogFeatured() {
+interface BlogArticle {
+    id: number;
+    slug: string;
+    title: string;
+    description: string;
+    image: string;
+    author?: string;
+    authorLogo?: string;
+    views?: number;
+    date?: string;
+}
+
+interface BlogFeaturedProps {
+    blog: BlogArticle;
+}
+
+export default function BlogFeatured({ blog }: BlogFeaturedProps) {
     const arrowVariants: Record<string, TargetAndTransition> = {
         initial: { x: 0 },
         hover: { x: 6, transition: { duration: 0.3, ease: 'easeOut' as const } },
@@ -43,13 +59,13 @@ export default function BlogFeatured() {
 
                 {/* Card */}
                 <motion.a
-                    href="/blogs/the-future-of-legal-services"
+                    href={`/blogs/${blog.slug}`}
                     className="group relative mx-auto flex max-w-6xl flex-col overflow-hidden border border-[#E8E2D6] bg-white md:flex-row"
                     initial={{ opacity: 0, y: 40 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, ease: 'easeOut' }}
-                    whileHover={{ scale: 1.03, y: -4, transition: { duration: 0.3, ease: 'easeOut' } }} // floating effect
+                    whileHover={{ scale: 1.03, y: -4, transition: { duration: 0.3, ease: 'easeOut' } }}
                 >
                     {/* Image */}
                     <motion.div
@@ -60,11 +76,7 @@ export default function BlogFeatured() {
                         transition={{ duration: 0.6, ease: 'easeOut' }}
                         whileHover={{ scale: 1.05, transition: { duration: 0.3, ease: 'easeOut' } }}
                     >
-                        <img
-                            src="/images/blog/articles/The-Future-of-Legal-Services.webp"
-                            alt="Featured Story"
-                            className="h-full w-full object-cover transition-transform duration-300"
-                        />
+                        <img src={blog.image} alt={blog.title} className="h-full w-full object-cover transition-transform duration-300" />
                         <span className="absolute top-4 left-4 rounded-none border border-[#A68A64] bg-[#FFF8E5] px-3 py-1 text-xs font-semibold text-[#A68A64]">
                             Featured
                         </span>
@@ -78,13 +90,8 @@ export default function BlogFeatured() {
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, ease: 'easeOut', delay: 0.1 }}
                     >
-                        <h3 className="mb-4 font-serif text-2xl text-[#2E2A26] md:text-2xl">
-                            The Future of Legal Services: Fast, Accessible, and AI Powered
-                        </h3>
-                        <p className="mb-6 text-base leading-relaxed text-[#70665E]">
-                            Discover how Daver & Daver combines AI efficiency with licensed lawyer oversight to make legal services fast, simple, and
-                            accessible. Learn how what once took days can now be done in minutes, empowering businesses and individuals alike.
-                        </p>
+                        <h3 className="mb-4 font-serif text-2xl text-[#2E2A26] md:text-2xl">{blog.title}</h3>
+                        <p className="mb-6 text-base leading-relaxed text-[#70665E]">{blog.description}</p>
 
                         <div className="mb-4 inline-flex items-center gap-2 font-semibold text-[#3D2B1F]">
                             Read Article
@@ -102,18 +109,18 @@ export default function BlogFeatured() {
                         {/* Meta */}
                         <div className="flex items-center justify-between text-sm text-[#A68A64]">
                             <div className="flex items-center gap-2">
-                                <img src="/images/logo/dd-logo.png" alt="Author Logo" className="h-5 w-5" />
-                                <span>Piroze Daver</span>
+                                {blog.authorLogo && <img src={blog.authorLogo} alt={blog.author} className="h-5 w-5" />}
+                                <span>{blog.author}</span>
                             </div>
 
                             <div className="flex items-center gap-2">
                                 <Calendar className="h-5 w-5 text-[#3D2B1F]" />
-                                <span>March 20, 2026</span>
+                                <span>{blog.date}</span>
                             </div>
 
                             <div className="flex items-center gap-2">
                                 <Eye className="h-5 w-5 text-[#3D2B1F]" />
-                                <span>0 views</span>
+                                <span>{blog.views} views</span>
                             </div>
                         </div>
                     </motion.div>
