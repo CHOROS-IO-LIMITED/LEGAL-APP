@@ -1,0 +1,6 @@
+import{C as e}from"./circle-check-CQ3vO6I4.js";import{c as t}from"./createLucideIcon-D4uoISAw.js";import{F as l}from"./file-pen-line-Dl94G96P.js";import{C as o}from"./clock-3-CS0ZDrfU.js";/**
+ * @license lucide-react v0.475.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const n=[["path",{d:"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8",key:"1357e3"}],["path",{d:"M3 3v5h5",key:"1xhq8a"}]],i=t("RotateCcw",n),p={pending_approval:{label:"Pending Review",pillClassName:"inline-flex items-center gap-1.5 rounded-full border border-[#F6DFAF] bg-[#FFF8E8] px-3 py-1 text-xs font-medium text-[#B7791F]",Icon:o,actionLabel:"Review"},signature:{label:"Signature",pillClassName:"inline-flex items-center gap-1.5 rounded-full border border-[#BFDBFE] bg-[#EFF6FF] px-3 py-1 text-xs font-medium text-[#1D4ED8]",Icon:l,actionLabel:"View"},rejected:{label:"Needs Amendment",pillClassName:"inline-flex items-center gap-1.5 rounded-full border border-[#F3C9C9] bg-[#FFF1F1] px-3 py-1 text-xs font-medium text-[#B42318]",Icon:i,actionLabel:"Review"},completed:{label:"Completed",pillClassName:"inline-flex items-center gap-1.5 rounded-full border border-[#A7F3D0] bg-[#ECFDF5] px-3 py-1 text-xs font-medium text-[#059669]",Icon:e,actionLabel:"View"}};export{p as D,i as R};
