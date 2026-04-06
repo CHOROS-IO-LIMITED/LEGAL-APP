@@ -1,9 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Header from '@/components/web/Header';
 import Stepper from '@/components/web/Stepper';
+import { Link, usePage } from '@inertiajs/react';
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { Link, usePage } from '@inertiajs/react';
 import { ArrowLeft, Check, Lock } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 
@@ -67,11 +67,7 @@ const CheckoutForm: React.FC<{ batchUuid: string; total: string }> = ({ batchUui
                 <CardContent className="flex flex-col gap-4">
                     <PaymentElement />
 
-                    {error && (
-                        <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">
-                            {error}
-                        </div>
-                    )}
+                    {error && <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
                     <button
                         type="submit"
@@ -91,7 +87,7 @@ const Checkout: React.FC = () => {
     const { props } = usePage<PageProps>();
 
     const batchUuid = props.batchUuid ?? '';
-    const documents = useMemo(() => Array.isArray(props.documents) ? props.documents : [], [props.documents]);
+    const documents = useMemo(() => (Array.isArray(props.documents) ? props.documents : []), [props.documents]);
     const stripeKey = props.stripeKey ?? '';
     const clientSecret = props.clientSecret ?? '';
 
@@ -151,9 +147,7 @@ const Checkout: React.FC = () => {
                                 </Elements>
                             ) : (
                                 <Card>
-                                    <CardContent className="p-6 text-center text-sm text-[#70665E]">
-                                        Loading payment form...
-                                    </CardContent>
+                                    <CardContent className="p-6 text-center text-sm text-[#70665E]">Loading payment form...</CardContent>
                                 </Card>
                             )}
                         </div>
