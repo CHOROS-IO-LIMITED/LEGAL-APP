@@ -4,8 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import UserLayout from '@/layouts/user-layout';
-import { Link } from '@inertiajs/react';
-import { ArrowLeft, CreditCard, FileClock, Receipt, TrendingUp } from 'lucide-react';
+import { CreditCard, FileClock, FileDown, Receipt, ReceiptText, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 
 interface User {
@@ -107,24 +106,26 @@ export default function InvoiceIndex({ user }: Props) {
             <main className="flex-1 overflow-y-auto bg-[#FCF9F2] p-4 md:p-6">
                 <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
                     {/* Header */}
-                    <div className="flex flex-col gap-4">
-                        <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-medium text-[#6B635B] hover:text-[#1A1614]">
-                            <ArrowLeft className="h-4 w-4" />
-                            Back to Dashboard
-                        </Link>
+                    <div className="border border-[#E7E1D7] bg-white p-6 shadow-sm">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="flex flex-col gap-1">
+                                <h1 className="text-2xl font-semibold tracking-tight text-[#1A1614]">My Invoices</h1>
+                                <p className="text-sm text-[#6B635B]">View and manage all your invoices, payments, and billing history.</p>
+                            </div>
 
-                        <div className="flex flex-col gap-1">
-                            <h1 className="text-2xl font-semibold tracking-tight text-[#1A1614]">My Invoices</h1>
-                            <p className="text-sm text-[#6B635B]">View and manage all your invoices, payments, and billing history.</p>
+                            <Button className="inline-flex cursor-pointer items-center gap-2 rounded-none bg-[#3D2B1F] px-4 text-sm text-white shadow-sm hover:bg-[#2E2017] hover:shadow-md focus:ring-2 focus:ring-[#3D2B1F]/20">
+                                <FileDown className="h-4 w-4" />
+                                Export Invoices
+                            </Button>
                         </div>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        <Card>
+                        <Card className="rounded-none">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-[#6B635B]">Total Invoices</CardTitle>
 
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E7E1D7] bg-[#F2EDE4]">
+                                <div className="flex h-8 w-8 items-center justify-center border border-[#E7E1D7] bg-[#F2EDE4]">
                                     <Receipt className="h-4 w-4 text-[#A68A64]" />
                                 </div>
                             </CardHeader>
@@ -135,11 +136,11 @@ export default function InvoiceIndex({ user }: Props) {
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        <Card className="rounded-none">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-[#6B635B]">Paid Invoices</CardTitle>
 
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E7E1D7] bg-[#F2EDE4]">
+                                <div className="flex h-8 w-8 items-center justify-center border border-[#E7E1D7] bg-[#F2EDE4]">
                                     <CreditCard className="h-4 w-4 text-[#A68A64]" />
                                 </div>
                             </CardHeader>
@@ -150,11 +151,11 @@ export default function InvoiceIndex({ user }: Props) {
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        <Card className="rounded-none">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-[#6B635B]">Pending Payments</CardTitle>
 
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E7E1D7] bg-[#F2EDE4]">
+                                <div className="flex h-8 w-8 items-center justify-center border border-[#E7E1D7] bg-[#F2EDE4]">
                                     <FileClock className="h-4 w-4 text-[#A68A64]" />
                                 </div>
                             </CardHeader>
@@ -165,11 +166,11 @@ export default function InvoiceIndex({ user }: Props) {
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        <Card className="rounded-none">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-[#6B635B]">Total Spent</CardTitle>
 
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E7E1D7] bg-[#F2EDE4]">
+                                <div className="flex h-8 w-8 items-center justify-center border border-[#E7E1D7] bg-[#F2EDE4]">
                                     <TrendingUp className="h-4 w-4 text-[#A68A64]" />
                                 </div>
                             </CardHeader>
@@ -191,7 +192,7 @@ export default function InvoiceIndex({ user }: Props) {
                                     setSearch(e.target.value);
                                     setPage(1);
                                 }}
-                                className="border-[#E7E1D7] bg-white"
+                                className="rounded-none border-[#E7E1D7] bg-white"
                             />
                         </div>
 
@@ -203,13 +204,19 @@ export default function InvoiceIndex({ user }: Props) {
                                     setPage(1);
                                 }}
                             >
-                                <SelectTrigger className="w-[140px] border-[#E7E1D7] bg-white">
+                                <SelectTrigger className="w-[140px] rounded-none border-[#E7E1D7] bg-white">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Status</SelectItem>
-                                    <SelectItem value="paid">Paid</SelectItem>
-                                    <SelectItem value="pending">Pending</SelectItem>
+                                <SelectContent className="rounded-none">
+                                    <SelectItem value="all" className="rounded-none">
+                                        All Status
+                                    </SelectItem>
+                                    <SelectItem value="paid" className="rounded-none">
+                                        Paid
+                                    </SelectItem>
+                                    <SelectItem value="pending" className="rounded-none">
+                                        Pending
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
 
@@ -220,31 +227,42 @@ export default function InvoiceIndex({ user }: Props) {
                                     setPage(1);
                                 }}
                             >
-                                <SelectTrigger className="w-[160px] border-[#E7E1D7] bg-white">
+                                <SelectTrigger className="w-[160px] rounded-none border-[#E7E1D7] bg-white">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="recent">Newest First</SelectItem>
-                                    <SelectItem value="oldest">Oldest First</SelectItem>
-                                    <SelectItem value="highest">Highest Amount</SelectItem>
-                                    <SelectItem value="lowest">Lowest Amount</SelectItem>
+                                <SelectContent className="rounded-none">
+                                    <SelectItem value="recent" className="rounded-none">
+                                        Newest First
+                                    </SelectItem>
+                                    <SelectItem value="oldest" className="rounded-none">
+                                        Oldest First
+                                    </SelectItem>
+                                    <SelectItem value="highest" className="rounded-none">
+                                        Highest Amount
+                                    </SelectItem>
+                                    <SelectItem value="lowest" className="rounded-none">
+                                        Lowest Amount
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
 
                     {/* Table */}
-                    <Card>
+                    <Card className="rounded-none">
                         <CardHeader className="flex flex-row items-center justify-between border-b border-[#E7E1D7]">
-                            <CardTitle className="text-base font-semibold text-[#1A1614]">Invoices ({filteredInvoices.length})</CardTitle>
+                            <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                                <ReceiptText className="h-4 w-4 text-[#3D2B1F]" />
+                                Invoices ({filteredInvoices.length})
+                            </CardTitle>
                         </CardHeader>
 
                         <CardContent className="p-0">
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-[#F8F4EC] hover:bg-[#F8F4EC]">
-                                        <TableHead>Invoice #</TableHead>
-                                        <TableHead>Docs #</TableHead>
+                                        <TableHead>Invoice No.</TableHead>
+                                        <TableHead>Docs No.</TableHead>
                                         <TableHead>Documents</TableHead>
                                         <TableHead className="text-center">Quantity</TableHead>
                                         <TableHead className="text-center">Amount</TableHead>
@@ -270,7 +288,7 @@ export default function InvoiceIndex({ user }: Props) {
                                                         {invoice.documents.length > 2 && (
                                                             <button
                                                                 onClick={() => toggleRow(invoice.id)}
-                                                                className="text-xs text-[#6B635B] underline cursor-pointer"
+                                                                className="cursor-pointer text-xs text-[#6B635B] underline"
                                                             >
                                                                 Show less
                                                             </button>
@@ -303,11 +321,9 @@ export default function InvoiceIndex({ user }: Props) {
 
                                             <TableCell className="text-center">
                                                 {invoice.status === 'Paid' ? (
-                                                    <span className="rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-700">Paid</span>
+                                                    <span className="bg-green-100 px-2 py-1 text-xs font-medium text-green-700">Paid</span>
                                                 ) : (
-                                                    <span className="rounded-md bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-700">
-                                                        Pending
-                                                    </span>
+                                                    <span className="bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-700">Pending</span>
                                                 )}
                                             </TableCell>
 
@@ -318,19 +334,25 @@ export default function InvoiceIndex({ user }: Props) {
                             </Table>
                         </CardContent>
 
-                        <div className="flex items-center justify-between border-t border-[#E7E1D7] px-6 py-4 text-sm text-[#6B635B]">
-                            <span>
+                        <div className="flex flex-col items-center justify-between border-t border-[#E7E1D7] px-4 py-4 text-sm text-[#6B635B] md:flex-row md:px-6">
+                            <span className="mb-2 text-center md:mb-0 md:text-left">
                                 Showing <span className="font-medium text-[#1A1614]">{(page - 1) * ITEMS_PER_PAGE + 1}</span> –{' '}
                                 <span className="font-medium text-[#1A1614]">{Math.min(page * ITEMS_PER_PAGE, filteredInvoices.length)}</span> of{' '}
                                 <span className="font-medium text-[#1A1614]">{filteredInvoices.length}</span>
                             </span>
 
-                            <div className="flex items-center gap-3">
-                                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => Math.max(p - 1, 1))}>
+                            <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                                <Button
+                                    variant="outline"
+                                    className="rounded-none"
+                                    size="sm"
+                                    disabled={page === 1}
+                                    onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                                >
                                     Prev
                                 </Button>
 
-                                <span>
+                                <span className="text-center">
                                     Page <span className="font-medium text-[#1A1614]">{page}</span> of{' '}
                                     <span className="font-medium text-[#1A1614]">{totalPages}</span>
                                 </span>
@@ -340,6 +362,7 @@ export default function InvoiceIndex({ user }: Props) {
                                     size="sm"
                                     disabled={page === totalPages}
                                     onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                                    className="rounded-none"
                                 >
                                     Next
                                 </Button>

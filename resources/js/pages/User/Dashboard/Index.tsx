@@ -1,8 +1,9 @@
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import UserLayout from '@/layouts/user-layout';
 import type { DashboardProps, DocumentItem, SignatureRecipient } from '@/types/User/Dashboard/types';
-import { Link, router } from '@inertiajs/react';
-import { ArrowLeft, CheckCircle, ClipboardList, Clock, FileSignature, Plus, SquarePen } from 'lucide-react';
+import { router } from '@inertiajs/react';
+import { CheckCircle, ClipboardList, Clock, FileDown, FileSignature, SquarePen } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import CompletedDocumentView from './CompletedDocumentView';
 import DocumentTable from './DocumentTable';
@@ -149,58 +150,64 @@ export default function UserDashboard({ user, documents }: DashboardProps) {
                         </div>
                     ) : (
                         <>
-                            <div className="flex flex-col gap-4">
-                                <Link
-                                    href="/products/details"
-                                    className="inline-flex items-center gap-2 text-sm font-medium text-[#6B635B] transition-colors hover:text-[#1A1614]"
-                                >
-                                    <ArrowLeft className="h-4 w-4" />
-                                    Back to Products
-                                </Link>
-
+                            {/* Header Card */}
+                            <div className="border border-[#E7E1D7] bg-white p-6 shadow-sm">
                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                     <div className="flex flex-col gap-1">
-                                        <h1 className="text-2xl font-semibold tracking-tight text-[#1A1614]">Dashboard Overview</h1>
+                                        <h1 className="text-2xl font-semibold tracking-tight text-[#1A1614]">My Documents</h1>
                                         <p className="text-sm text-[#6B635B]">
-                                            Welcome back, {user.name}! Here&apos;s the current status of your generated legal documents.
+                                            Welcome back, {user.name}! View and manage all your legal documents, approvals, and signatures.
                                         </p>
                                     </div>
 
-                                    <Link
-                                        href="/products/details"
-                                        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#3D2B1F] px-4 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:bg-[#2E2017] hover:shadow-md focus:ring-2 focus:ring-[#3D2B1F]/20 focus:outline-none"
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                        Add Document
-                                    </Link>
+                                    <Button className="inline-flex cursor-pointer items-center gap-2 rounded-none bg-[#3D2B1F] px-4 text-sm text-white shadow-sm hover:bg-[#2E2017] hover:shadow-md focus:ring-2 focus:ring-[#3D2B1F]/20">
+                                        <FileDown className="h-4 w-4" />
+                                        Export Documents
+                                    </Button>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+                            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                                 {stats.map((stat, index) => {
                                     const Icon = stat.icon;
 
                                     return (
-                                        <Card key={index} className="border-[#E7E1D7] bg-white transition-all hover:shadow-sm">
-                                            <CardContent className="p-6">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex flex-col">
-                                                        <p className="text-sm text-[#6B635B]">{stat.description}</p>
-                                                        <div className="mt-1 text-2xl font-semibold tracking-tight text-[#1A1614]">
-                                                            {stat.value.toLocaleString()}
-                                                        </div>
-                                                    </div>
+                                        <Card key={index} className="rounded-none">
+                                            {/* Card Header */}
+                                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                                <CardTitle className="text-sm font-medium text-[#6B635B]">{stat.description}</CardTitle>
 
-                                                    <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#E7E1D7] bg-[#F2EDE4]">
-                                                        <Icon className="h-5 w-5 text-[#A68A64]" />
-                                                    </div>
+                                                <div className="flex h-8 w-8 items-center justify-center border border-[#E7E1D7] bg-[#F2EDE4]">
+                                                    <Icon className="h-4 w-4 text-[#A68A64]" />
                                                 </div>
+                                            </CardHeader>
+
+                                            {/* Card Content */}
+                                            <CardContent>
+                                                <div className="text-2xl font-bold text-[#1A1614]">{stat.value.toLocaleString()}</div>
+                                                <p className="text-xs text-[#6B635B]">
+                                                    {(() => {
+                                                        switch (stat.description) {
+                                                            case 'Total Documents':
+                                                                return 'Documents created';
+                                                            case 'Drafts':
+                                                                return 'Documents in draft';
+                                                            case 'Pending Approval':
+                                                                return 'Awaiting approval';
+                                                            case 'Signature':
+                                                                return 'Documents for signature';
+                                                            case 'Completed':
+                                                                return 'Completed documents';
+                                                            default:
+                                                                return '';
+                                                        }
+                                                    })()}
+                                                </p>
                                             </CardContent>
                                         </Card>
                                     );
                                 })}
                             </div>
-
                             <DocumentTable items={documents} pageSize={6} onOpen={handleOpenDocument} />
                         </>
                     )}

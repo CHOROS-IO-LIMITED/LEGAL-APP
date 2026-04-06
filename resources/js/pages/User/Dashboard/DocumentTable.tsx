@@ -1,7 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
 import { DASHBOARD_STATUS_META } from '@/types/User/Dashboard/status';
 import type { DocumentItem } from '@/types/User/Dashboard/types';
-import { ArrowLeft, ArrowRight, Eye, FileText, FolderOpen, Search } from 'lucide-react';
+import { Eye, FileText, FolderOpen } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 type Props = {
@@ -38,171 +41,178 @@ export default function DocumentTable({ items, pageSize = 8, onOpen }: Props) {
         return filteredItems.slice(start, start + pageSize);
     }, [filteredItems, page, pageSize]);
 
-    function handlePrev() {
-        setPage((current) => Math.max(1, current - 1));
-    }
-
-    function handleNext() {
-        setPage((current) => Math.min(totalPages, current + 1));
-    }
-
-    function handleQueryChange(value: string) {
-        setQuery(value);
-        setPage(1);
-    }
-
-    function handleStatusChange(value: 'all' | DocumentItem['dashboardStatus']) {
-        setStatusFilter(value);
-        setPage(1);
-    }
+    const handlePrev = () => setPage((p) => Math.max(1, p - 1));
+    const handleNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
     return (
-        <Card className="border-[#E7E1D7] bg-white shadow-sm">
-            <CardHeader className="border-b border-[#EFE7DB] px-6 pt-5 pb-4">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <CardTitle className="flex items-center gap-2 text-lg font-semibold text-[#1A1614]">
-                        <FolderOpen className="h-5 w-5 text-[#7C7368]" />
-                        My Documents
+        <>
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="w-full md:max-w-sm">
+                    <Input
+                        placeholder="Search title, client, email..."
+                        value={query}
+                        onChange={(e) => {
+                            setQuery(e.target.value);
+                            setPage(1);
+                        }}
+                        className="rounded-none border-[#E7E1D7] bg-white"
+                    />
+                </div>
+
+                {/* Status Filter */}
+                <Select
+                    value={statusFilter}
+                    onValueChange={(v) => {
+                        setStatusFilter(v as 'all' | DocumentItem['dashboardStatus']);
+                        setPage(1);
+                    }}
+                >
+                    <SelectTrigger className="w-[140px] rounded-none border-[#E7E1D7] bg-white">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-none">
+                        <SelectItem value="all" className="rounded-none">
+                            All Statuses
+                        </SelectItem>
+                        <SelectItem value="draft" className="rounded-none">
+                            Draft
+                        </SelectItem>
+                        <SelectItem value="pending_approval" className="rounded-none">
+                            Pending Approval
+                        </SelectItem>
+                        <SelectItem value="signature" className="rounded-none">
+                            Signature
+                        </SelectItem>
+                        <SelectItem value="rejected" className="rounded-none">
+                            Rejected
+                        </SelectItem>
+                        <SelectItem value="completed" className="rounded-none">
+                            Completed
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+            <Card className="rounded-none border-[#E7E1D7] bg-white shadow-sm">
+                {/* Filters Above Table */}
+                <CardHeader className="flex flex-col gap-4 border-b border-[#E7E1D7] px-6 pt-5 pb-4 md:flex-row md:items-center md:justify-between">
+                    {/* Title */}
+                    <CardTitle className="flex items-center gap-2 text-base font-semibold text-[#1A1614]">
+                        <FolderOpen className="h-4 w-4 text-[#3D2B1F]" />
+                        My Documents ({filteredItems.length})
                     </CardTitle>
+                </CardHeader>
 
-                    <div className="flex flex-col gap-3 sm:flex-row">
-                        <div className="flex items-center gap-2 rounded-xl border border-[#E2DBD2] bg-[#FCFAF6] px-3 py-2">
-                            <Search className="h-4 w-4 text-[#7C7368]" />
-                            <input
-                                type="text"
-                                value={query}
-                                onChange={(e) => handleQueryChange(e.target.value)}
-                                placeholder="Search title, client, email..."
-                                className="w-full min-w-[220px] bg-transparent text-sm text-[#1A1614] outline-none"
-                            />
-                        </div>
+                {/* Table */}
+                <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-[#F8F4EC] hover:bg-[#F8F4EC]">
+                                    <TableCell>Document</TableCell>
+                                    <TableCell>Client</TableCell>
+                                    <TableCell>Status</TableCell>
+                                    <TableCell>Submitted</TableCell>
+                                    <TableCell>Updated</TableCell>
+                                    <TableCell>Action</TableCell>
+                                </TableRow>
+                            </TableHeader>
 
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => handleStatusChange(e.target.value as 'all' | DocumentItem['dashboardStatus'])}
-                            className="rounded-xl border border-[#E2DBD2] bg-[#FCFAF6] px-3 py-2 text-sm text-[#1A1614] outline-none"
-                        >
-                            <option value="all">All Statuses</option>
-                            <option value="draft">Draft</option>
-                            <option value="pending_approval">Pending Approval</option>
-                            <option value="signature">Signature</option>
-                            <option value="rejected">Rejected</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                    </div>
-                </div>
-            </CardHeader>
+                            <TableBody>
+                                {paginatedItems.length > 0 ? (
+                                    paginatedItems.map((item) => {
+                                        const statusMeta = DASHBOARD_STATUS_META[item.dashboardStatus];
+                                        const StatusIcon = statusMeta.Icon;
 
-            <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full">
-                        <thead>
-                            <tr className="border-b border-[#EFE7DB] bg-[#FCFAF6]">
-                                <th className="px-6 py-3 text-left text-xs font-semibold tracking-wide text-[#6B635B] uppercase">Document</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold tracking-wide text-[#6B635B] uppercase">Client</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold tracking-wide text-[#6B635B] uppercase">Status</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold tracking-wide text-[#6B635B] uppercase">Submitted</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold tracking-wide text-[#6B635B] uppercase">Updated</th>
-                                <th className="px-6 py-3 text-right text-xs font-semibold tracking-wide text-[#6B635B] uppercase">Action</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {paginatedItems.length > 0 ? (
-                                paginatedItems.map((item) => {
-                                    const statusMeta = DASHBOARD_STATUS_META[item.dashboardStatus];
-                                    const StatusIcon = statusMeta.Icon;
-
-                                    return (
-                                        <tr key={item.id} className="border-b border-[#F4EEE5] last:border-b-0">
-                                            <td className="px-6 py-4 align-top">
-                                                <div className="flex items-start gap-3">
-                                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#E7E1D7] bg-white">
-                                                        <FileText className="h-4 w-4 text-[#7C7368]" />
+                                        return (
+                                            <TableRow key={item.id} className="border-b border-[#E7E1D7] last:border-b-0 hover:bg-[#FAF6EF]">
+                                                <TableCell>
+                                                    <div className="flex items-start gap-3 border border-[#E7E1D7] bg-[#FCFAF6] p-2 transition-colors hover:bg-[#FAF6EF]">
+                                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-[#E7E1D7] bg-white shadow-sm">
+                                                            <FileText className="h-4 w-4 text-[#7C7368]" />
+                                                        </div>
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <p className="truncate text-sm font-medium text-[#1A1614]">{item.title}</p>
+                                                            <p className="text-xs text-[#8A8178]">Created {item.createdAtLabel ?? 'N/A'}</p>
+                                                        </div>
                                                     </div>
+                                                </TableCell>
 
+                                                <TableCell>
                                                     <div className="flex flex-col gap-1">
-                                                        <p className="text-sm font-medium text-[#1A1614]">{item.title}</p>
-                                                        <p className="text-xs text-[#8A8178]">Created {item.createdAtLabel ?? 'N/A'}</p>
+                                                        <p className="text-sm text-[#1A1614]">{item.client?.name ?? 'N/A'}</p>
+                                                        <p className="text-xs text-[#8A8178]">{item.client?.email ?? 'N/A'}</p>
                                                     </div>
-                                                </div>
-                                            </td>
+                                                </TableCell>
 
-                                            <td className="px-6 py-4 align-top">
-                                                <div className="flex flex-col gap-1">
-                                                    <p className="text-sm text-[#1A1614]">{item.client?.name ?? 'N/A'}</p>
-                                                    <p className="text-xs text-[#8A8178]">{item.client?.email ?? 'N/A'}</p>
-                                                </div>
-                                            </td>
+                                                <TableCell>
+                                                    <span className={statusMeta.pillClassName}>
+                                                        <StatusIcon className="h-3.5 w-3.5" />
+                                                        {statusMeta.label}
+                                                    </span>
+                                                </TableCell>
 
-                                            <td className="px-6 py-4 align-top">
-                                                <span className={statusMeta.pillClassName}>
-                                                    <StatusIcon className="h-3.5 w-3.5" />
-                                                    {statusMeta.label}
-                                                </span>
-                                            </td>
+                                                <TableCell className="text-sm text-[#3B332E]">{item.submittedAtLabel ?? 'N/A'}</TableCell>
 
-                                            <td className="px-6 py-4 align-top text-sm text-[#3B332E]">{item.submittedAtLabel ?? 'N/A'}</td>
+                                                <TableCell className="text-sm text-[#3B332E]">{item.updatedAtLabel ?? 'N/A'}</TableCell>
 
-                                            <td className="px-6 py-4 align-top text-sm text-[#3B332E]">{item.updatedAtLabel ?? 'N/A'}</td>
+                                                <TableCell>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => onOpen(item)}
+                                                        className="inline-flex cursor-pointer items-center gap-2 rounded-none bg-[#3D2B1F] px-3 py-1 text-sm font-medium text-white hover:bg-[#2E2017] focus:ring-2 focus:ring-[#A68A64]/40 focus:outline-none"
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                        {statusMeta.actionLabel}
+                                                    </button>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="px-6 py-12 text-center text-sm text-[#6B635B]">
+                                            No documents found.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
 
-                                            <td className="px-6 py-4 text-right align-top">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => onOpen(item)}
-                                                    className="inline-flex items-center gap-2 rounded-xl bg-[#3D2B1F] px-3.5 py-2 text-sm font-medium text-white transition-all hover:bg-[#2E2017] hover:shadow-sm focus:ring-2 focus:ring-[#A68A64]/40 focus:outline-none"
-                                                >
-                                                    <Eye className="h-4 w-4" />
-                                                    {statusMeta.actionLabel}
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            ) : (
-                                <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-sm text-[#6B635B]">
-                                        No documents found.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div className="flex items-center justify-between border-t border-[#EFE7DB] px-6 py-4">
-                    <p className="text-sm text-[#6B635B]">
-                        Showing {paginatedItems.length} of {filteredItems.length} document
-                        {filteredItems.length === 1 ? '' : 's'}
-                    </p>
-
-                    <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={handlePrev}
-                            disabled={page === 1}
-                            className="inline-flex items-center gap-2 rounded-lg border border-[#E2DBD2] bg-white px-3 py-2 text-sm text-[#2F2A26] disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            <ArrowLeft className="h-4 w-4" />
-                            Prev
-                        </button>
-
-                        <span className="text-sm text-[#6B635B]">
-                            Page {page} of {totalPages}
+                    {/* Pagination */}
+                    <div className="flex flex-col items-center justify-between border-t border-[#E7E1D7] px-4 py-4 text-sm text-[#6B635B] md:flex-row md:px-6">
+                        <span className="mb-2 text-center md:mb-0 md:text-left">
+                            Showing <span className="font-medium text-[#1A1614]">{(page - 1) * pageSize + 1}</span> –{' '}
+                            <span className="font-medium text-[#1A1614]">{Math.min(page * pageSize, filteredItems.length)}</span> of{' '}
+                            <span className="font-medium text-[#1A1614]">{filteredItems.length}</span> document
+                            {filteredItems.length === 1 ? '' : 's'}
                         </span>
 
-                        <button
-                            type="button"
-                            onClick={handleNext}
-                            disabled={page === totalPages}
-                            className="inline-flex items-center gap-2 rounded-lg border border-[#E2DBD2] bg-white px-3 py-2 text-sm text-[#2F2A26] disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            Next
-                            <ArrowRight className="h-4 w-4" />
-                        </button>
+                        <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                            <button
+                                onClick={handlePrev}
+                                disabled={page === 1}
+                                className="rounded-none border border-[#E7E1D7] bg-white px-3 py-2 text-sm text-[#2F2A26] disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Prev
+                            </button>
+
+                            <span className="text-center">
+                                Page <span className="font-medium text-[#1A1614]">{page}</span> of{' '}
+                                <span className="font-medium text-[#1A1614]">{totalPages}</span>
+                            </span>
+
+                            <button
+                                onClick={handleNext}
+                                disabled={page === totalPages}
+                                className="rounded-none border border-[#E7E1D7] bg-white px-3 py-2 text-sm text-[#2F2A26] disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Next
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </CardContent>
-        </Card>
+                </CardContent>
+            </Card>
+        </>
     );
 }
