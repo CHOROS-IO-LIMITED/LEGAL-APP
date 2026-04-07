@@ -14,8 +14,8 @@ import {
     ClipboardPlus,
     Globe,
     LayoutDashboard,
+    LogOut,
     PanelLeftClose,
-    Receipt,
     ReceiptPoundSterling,
     Settings,
 } from 'lucide-react';
@@ -192,15 +192,16 @@ export default function UserLayout({ user, children }: UserLayoutProps) {
                     </div>
 
                     {/* User */}
+                    {/* User */}
                     <div className="border-t border-[#E7E1D7] px-4 py-3">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <button
                                     className={`group flex w-full items-center ${
                                         collapsed ? 'justify-center' : 'justify-between'
-                                    } gap-3 px-2 py-2 text-sm font-medium hover:bg-[#F4EFE6] focus:ring-2 focus:ring-[#3D2B1F] focus:outline-none dark:hover:bg-gray-700`}
+                                    } gap-3 px-2 py-2 text-sm hover:bg-[#F4EFE6]`}
                                 >
-                                    <Avatar className="h-8 w-8 flex-shrink-0 rounded-none">
+                                    <Avatar className="h-8 w-8 rounded-none">
                                         <AvatarImage src="/api/placeholder/32/32" />
                                         <AvatarFallback className="bg-[#A68A64] text-white">{user.name.slice(0, 2).toUpperCase()}</AvatarFallback>
                                     </Avatar>
@@ -212,29 +213,26 @@ export default function UserLayout({ user, children }: UserLayoutProps) {
                                         </div>
                                     )}
 
-                                    {!collapsed && <ChevronsUpDown className="h-4 w-4 flex-shrink-0 text-[#A68A64]" />}
+                                    {!collapsed && <ChevronsUpDown size={14} className="text-[#A68A64]" />}
                                 </button>
                             </DropdownMenuTrigger>
 
-                            <DropdownMenuContent
-                                align="end"
-                                className="w-48 rounded-none border bg-white p-0 shadow-md dark:border-gray-700 dark:bg-gray-800"
-                            >
-                                <DropdownMenuLabel className="text-[#6B635B] dark:text-gray-300">My Account</DropdownMenuLabel>
+                            <DropdownMenuContent className="w-48 rounded-none">
+                                <DropdownMenuLabel className="text-[#6B635B]">My Account</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
+
                                 <Link href={route('user.settings')}>
-                                    <DropdownMenuItem className="gap-3 rounded-none text-[#1A1614] hover:bg-[#F4EFE6] dark:hover:bg-gray-700">
+                                    <DropdownMenuItem className="cursor-pointer rounded-none">
                                         <Settings size={16} className="text-[#A68A64]" />
                                         Settings
                                     </DropdownMenuItem>
                                 </Link>
+
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem asChild>
-                                    <Link
-                                        href={route('auth.logout')}
-                                        className="gap-3 rounded-none text-[#1A1614] hover:bg-[#F4EFE6] dark:hover:bg-gray-700"
-                                    >
-                                        <Receipt size={16} className="text-[#A68A64]" />
+
+                                <DropdownMenuItem className="cursor-pointer rounded-none" asChild>
+                                    <Link href={route('auth.logout')}>
+                                        <LogOut size={16} className="text-[#A68A64]" />
                                         Logout
                                     </Link>
                                 </DropdownMenuItem>
@@ -341,7 +339,7 @@ export default function UserLayout({ user, children }: UserLayoutProps) {
                                         href={route('auth.logout')}
                                         className="gap-3 rounded-none text-[#1A1614] hover:bg-[#F4EFE6] dark:hover:bg-gray-700"
                                     >
-                                        <Receipt size={16} className="text-[#A68A64]" />
+                                        <LogOut size={16} className="text-[#A68A64]" />
                                         Logout
                                     </Link>
                                 </DropdownMenuItem>

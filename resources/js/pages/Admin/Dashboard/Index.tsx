@@ -1,8 +1,9 @@
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminLayout from '@/layouts/admin-layout';
 import type { DashboardProps, DocumentItem } from '@/types/Admin/Dashboard/types';
 import { router } from '@inertiajs/react';
-import { CheckCircle, Clock, FileSignature, RotateCcw } from 'lucide-react';
+import { CheckCircle, Clock, FileDown, FileSignature, RotateCcw } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import CompletedDocumentView from './CompletedDocumentView';
 import DocumentTable from './DocumentTable';
@@ -100,40 +101,61 @@ export default function AdminDashboard({ user, documents }: DashboardProps) {
                         </div>
                     ) : (
                         <>
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                <div className="flex flex-col gap-1">
-                                    <h1 className="text-2xl font-semibold tracking-tight text-[#1A1614]">Admin Dashboard Overview</h1>
-                                    <p className="text-sm text-[#6B635B]">
-                                        Welcome back, {user.name}! Review client-generated legal documents and manage approval workflow.
-                                    </p>
+                            {/* Header Card */}
+                            <div className="border border-[#E7E1D7] bg-white p-6 shadow-sm">
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                    <div className="flex flex-col gap-1">
+                                        <h1 className="text-2xl font-semibold tracking-tight text-[#1A1614]">Admin Dashboard Overview</h1>
+                                        <p className="text-sm text-[#6B635B]">
+                                            Welcome back, {user.name}! Review client-generated legal documents and manage approvals.
+                                        </p>
+                                    </div>
+
+                                    <Button className="inline-flex cursor-pointer items-center gap-2 rounded-none bg-[#3D2B1F] px-4 text-sm text-white shadow-sm hover:bg-[#2E2017] hover:shadow-md focus:ring-2 focus:ring-[#3D2B1F]/20">
+                                        <FileDown className="h-4 w-4" />
+                                        Export Documents
+                                    </Button>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                            {/* Stats Cards */}
+                            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                                 {stats.map((stat, index) => {
                                     const Icon = stat.icon;
 
                                     return (
-                                        <Card key={index} className="border-[#E7E1D7] bg-white transition-all hover:shadow-sm">
-                                            <CardContent className="p-6">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex flex-col">
-                                                        <p className="text-sm text-[#6B635B]">{stat.description}</p>
-                                                        <div className="mt-1 text-2xl font-semibold tracking-tight text-[#1A1614]">
-                                                            {stat.value.toLocaleString()}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#E7E1D7] bg-[#F2EDE4]">
-                                                        <Icon className="h-5 w-5 text-[#A68A64]" />
-                                                    </div>
+                                        <Card key={index} className="rounded-none">
+                                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                                <CardTitle className="text-sm font-medium text-[#6B635B]">{stat.description}</CardTitle>
+                                                <div className="flex h-8 w-8 items-center justify-center border border-[#E7E1D7] bg-[#F2EDE4]">
+                                                    <Icon className="h-4 w-4 text-[#A68A64]" />
                                                 </div>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="text-2xl font-bold text-[#1A1614]">{stat.value.toLocaleString()}</div>
+                                                <p className="text-xs text-[#6B635B]">
+                                                    {(() => {
+                                                        switch (stat.description) {
+                                                            case 'Pending Review':
+                                                                return 'Documents awaiting review';
+                                                            case 'Signature':
+                                                                return 'Documents for signature';
+                                                            case 'Needs Amendment':
+                                                                return 'Rejected documents';
+                                                            case 'Completed':
+                                                                return 'Completed documents';
+                                                            default:
+                                                                return '';
+                                                        }
+                                                    })()}
+                                                </p>
                                             </CardContent>
                                         </Card>
                                     );
                                 })}
                             </div>
 
+                            {/* Document Table */}
                             <DocumentTable items={documents} pageSize={8} onOpen={handleOpenDocument} />
                         </>
                     )}

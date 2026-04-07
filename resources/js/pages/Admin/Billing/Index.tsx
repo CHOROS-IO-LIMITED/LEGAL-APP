@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminLayout from '@/layouts/admin-layout';
-import { BarChart3, Calendar, DollarSign, Download, ShoppingCart, TrendingDown, TrendingUp } from 'lucide-react';
+import { BarChart3, Calendar, DollarSign, Download, ReceiptText, ShoppingCart, TrendingDown, TrendingUp } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -156,27 +156,29 @@ export default function BillingIndex({ user }: BillingIndexProps) {
             <main className="flex-1 overflow-y-auto bg-[#FCF9F2] p-4 md:p-6">
                 <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
                     {/* Header */}
-                    <div className="flex items-center justify-between">
-                        <div className="flex flex-col gap-1">
-                            <h1 className="text-2xl font-semibold tracking-tight text-[#1A1614]">Revenue & Payments</h1>
+                    <div className="border border-[#E7E1D7] bg-white p-6 shadow-sm">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="flex flex-col gap-1">
+                                <h1 className="text-2xl font-semibold tracking-tight text-[#1A1614]">Revenue & Payments</h1>
 
-                            <p className="text-sm text-[#6B635B]">Monitor earnings, track transactions, and manage payment activity.</p>
+                                <p className="text-sm text-[#6B635B]">Monitor earnings, track transactions, and manage payment activity.</p>
+                            </div>
+
+                            <Button className="inline-flex cursor-pointer items-center gap-2 rounded-none bg-[#3D2B1F] px-4 text-sm text-white shadow-sm hover:bg-[#2E2017] hover:shadow-md focus:ring-2 focus:ring-[#3D2B1F]/20">
+                                <Download className="h-4 w-4" />
+                                Export Report
+                            </Button>
                         </div>
-
-                        <Button className="bg-[#3D2B1F] text-white hover:bg-[#5A4638]">
-                            <Download className="mr-2 h-4 w-4" />
-                            Export Report
-                        </Button>
                     </div>
 
                     {/* Stat Cards */}
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         {/* Total Revenue */}
-                        <Card>
+                        <Card className="rounded-none border border-[#E7E1D7]">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-[#6B635B]">Total Revenue</CardTitle>
 
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E7E1D7] bg-[#F2EDE4]">
+                                <div className="flex h-8 w-8 items-center justify-center border border-[#E7E1D7] bg-[#F2EDE4]">
                                     <DollarSign className="h-4 w-4 text-[#A68A64]" />
                                 </div>
                             </CardHeader>
@@ -189,11 +191,11 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                         </Card>
 
                         {/* Total Orders */}
-                        <Card>
+                        <Card className="rounded-none border border-[#E7E1D7]">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-[#6B635B]">Total Orders</CardTitle>
 
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E7E1D7] bg-[#F2EDE4]">
+                                <div className="flex h-8 w-8 items-center justify-center border border-[#E7E1D7] bg-[#F2EDE4]">
                                     <ShoppingCart className="h-4 w-4 text-[#A68A64]" />
                                 </div>
                             </CardHeader>
@@ -206,11 +208,11 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                         </Card>
 
                         {/* AOV */}
-                        <Card>
+                        <Card className="rounded-none border border-[#E7E1D7]">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-[#6B635B]">Average Order Value</CardTitle>
 
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E7E1D7] bg-[#F2EDE4]">
+                                <div className="flex h-8 w-8 items-center justify-center border border-[#E7E1D7] bg-[#F2EDE4]">
                                     <BarChart3 className="h-4 w-4 text-[#A68A64]" />
                                 </div>
                             </CardHeader>
@@ -223,11 +225,11 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                         </Card>
 
                         {/* Orders This Month */}
-                        <Card>
+                        <Card className="rounded-none border border-[#E7E1D7]">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-[#6B635B]">Orders This Month</CardTitle>
 
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E7E1D7] bg-[#F2EDE4]">
+                                <div className="flex h-8 w-8 items-center justify-center border border-[#E7E1D7] bg-[#F2EDE4]">
                                     <Calendar className="h-4 w-4 text-[#A68A64]" />
                                 </div>
                             </CardHeader>
@@ -257,7 +259,7 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                     {/* Charts */}
                     <div className="grid gap-6 lg:grid-cols-3">
                         {/* Revenue Trend */}
-                        <Card className="lg:col-span-2">
+                        <Card className="rounded-none lg:col-span-2">
                             <CardHeader>
                                 <CardTitle className="text-[#1A1614]">Revenue Trend</CardTitle>
                             </CardHeader>
@@ -286,7 +288,7 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                         </Card>
 
                         {/* Top Documents */}
-                        <Card>
+                        <Card className="rounded-none">
                             <CardHeader>
                                 <CardTitle className="text-[#1A1614]">Top Legal Documents</CardTitle>
                             </CardHeader>
@@ -317,7 +319,7 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                                     setSearch(e.target.value);
                                     setPage(1);
                                 }}
-                                className="border-[#E7E1D7] bg-white"
+                                className="h-10 rounded-none border-[#E7E1D7] bg-white focus:ring-2 focus:ring-[#3D2B1F]/20 focus:outline-none"
                             />
                         </div>
 
@@ -330,15 +332,25 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                                     setPage(1);
                                 }}
                             >
-                                <SelectTrigger className="w-[140px] border-[#E7E1D7] bg-white">
+                                <SelectTrigger className="h-10 w-[140px] rounded-none border-[#E7E1D7] bg-white focus:ring-2 focus:ring-[#3D2B1F]/20">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all-qty">All Qty.</SelectItem>
-                                    <SelectItem value="1-qty">1 Qty</SelectItem>
-                                    <SelectItem value="2-qty">2 Qty</SelectItem>
-                                    <SelectItem value="3-qty">3 Qty</SelectItem>
-                                    <SelectItem value="4-qty">4 Qty</SelectItem>
+                                <SelectContent className="rounded-none border-[#E7E1D7]">
+                                    <SelectItem value="all-qty" className="rounded-none">
+                                        All Qty.
+                                    </SelectItem>
+                                    <SelectItem value="1-qty" className="rounded-none">
+                                        1 Qty
+                                    </SelectItem>
+                                    <SelectItem value="2-qty" className="rounded-none">
+                                        2 Qty
+                                    </SelectItem>
+                                    <SelectItem value="3-qty" className="rounded-none">
+                                        3 Qty
+                                    </SelectItem>
+                                    <SelectItem value="4-qty" className="rounded-none">
+                                        4 Qty
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
 
@@ -349,22 +361,31 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                                     setPage(1);
                                 }}
                             >
-                                <SelectTrigger className="w-[140px] border-[#E7E1D7] bg-white">
+                                <SelectTrigger className="h-10 w-[160px] rounded-none border-[#E7E1D7] bg-white focus:ring-2 focus:ring-[#3D2B1F]/20">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="name-a-z">Name A-Z</SelectItem>
-                                    <SelectItem value="name-z-a">Name Z-A</SelectItem>
-                                    <SelectItem value="email-a-z">Email A-Z</SelectItem>
-                                    <SelectItem value="email-z-a">Email Z-A</SelectItem>
+                                <SelectContent className="rounded-none border-[#E7E1D7]">
+                                    <SelectItem value="name-a-z" className="rounded-none">
+                                        Name A-Z
+                                    </SelectItem>
+                                    <SelectItem value="name-z-a" className="rounded-none">
+                                        Name Z-A
+                                    </SelectItem>
+                                    <SelectItem value="email-a-z" className="rounded-none">
+                                        Email A-Z
+                                    </SelectItem>
+                                    <SelectItem value="email-z-a" className="rounded-none">
+                                        Email Z-A
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
 
-                    <Card>
+                    <Card className="rounded-none">
                         <CardHeader className="flex flex-row items-center justify-between border-b border-[#E7E1D7]">
-                            <CardTitle className="text-base font-semibold text-[#1A1614]">
+                            <CardTitle className="flex items-center gap-2 text-base font-semibold text-[#1A1614]">
+                                <ReceiptText className="h-4 w-4 text-[#3D2B1F]" />
                                 Recent Orders <span className="text-[#6B635B]">({filteredOrders.length})</span>
                             </CardTitle>
                         </CardHeader>
@@ -373,8 +394,8 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-[#F8F4EC] hover:bg-[#F8F4EC]">
-                                        <TableHead className="w-[120px]">Invoice #</TableHead>
-                                        <TableHead className="w-[120px]">Document #</TableHead>
+                                        <TableHead className="w-[120px]">Invoice No.</TableHead>
+                                        <TableHead className="w-[120px]">Docs No.</TableHead>
                                         <TableHead>Customer</TableHead>
                                         <TableHead>Document</TableHead>
                                         <TableHead className="text-center">Quantity</TableHead>
@@ -387,12 +408,12 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                                     {paginatedOrders.map((order) => (
                                         <TableRow key={order.id} className="hover:bg-[#FAF6EF]">
                                             <TableCell className="font-medium text-[#1A1614]">{order.invoice}</TableCell>
+
                                             <TableCell className="font-medium text-[#1A1614]">{order.id}</TableCell>
 
                                             <TableCell>
                                                 <div className="flex flex-col">
                                                     <span className="font-medium text-[#1A1614]">{order.customer}</span>
-
                                                     <span className="text-xs text-[#6B635B]">{order.email}</span>
                                                 </div>
                                             </TableCell>
@@ -405,7 +426,10 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                                                         ))}
 
                                                         {order.documents.length > 2 && (
-                                                            <button onClick={() => toggleRow(order.id)} className="text-xs cursor-pointer text-[#6B635B] underline">
+                                                            <button
+                                                                onClick={() => toggleRow(order.id)}
+                                                                className="cursor-pointer text-xs text-[#6B635B] underline"
+                                                            >
                                                                 Show less
                                                             </button>
                                                         )}
@@ -437,11 +461,9 @@ export default function BillingIndex({ user }: BillingIndexProps) {
 
                                             <TableCell className="text-center">
                                                 {order.status === 'Paid' ? (
-                                                    <span className="rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-700">Paid</span>
+                                                    <span className="bg-green-100 px-2 py-1 text-xs font-medium text-green-700">Paid</span>
                                                 ) : (
-                                                    <span className="rounded-md bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-700">
-                                                        Pending
-                                                    </span>
+                                                    <span className="bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-700">Pending</span>
                                                 )}
                                             </TableCell>
                                         </TableRow>
@@ -450,19 +472,25 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                             </Table>
                         </CardContent>
 
-                        <div className="flex items-center justify-between border-t border-[#E7E1D7] px-6 py-4 text-sm text-[#6B635B]">
-                            <span>
+                        <div className="flex flex-col items-center justify-between border-t border-[#E7E1D7] px-4 py-4 text-sm text-[#6B635B] md:flex-row md:px-6">
+                            <span className="mb-2 text-center md:mb-0 md:text-left">
                                 Showing <span className="font-medium text-[#1A1614]">{(page - 1) * ITEMS_PER_PAGE + 1}</span> –{' '}
-                                <span className="font-medium text-[#1A1614]">{Math.min(page * ITEMS_PER_PAGE, orders.length)}</span> of{' '}
-                                <span className="font-medium text-[#1A1614]">{orders.length}</span> orders
+                                <span className="font-medium text-[#1A1614]">{Math.min(page * ITEMS_PER_PAGE, filteredOrders.length)}</span> of{' '}
+                                <span className="font-medium text-[#1A1614]">{filteredOrders.length}</span>
                             </span>
 
-                            <div className="flex items-center gap-3">
-                                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => Math.max(p - 1, 1))}>
+                            <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="rounded-none"
+                                    disabled={page === 1}
+                                    onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                                >
                                     Prev
                                 </Button>
 
-                                <span>
+                                <span className="text-center">
                                     Page <span className="font-medium text-[#1A1614]">{page}</span> of{' '}
                                     <span className="font-medium text-[#1A1614]">{totalPages}</span>
                                 </span>
@@ -470,6 +498,7 @@ export default function BillingIndex({ user }: BillingIndexProps) {
                                 <Button
                                     variant="outline"
                                     size="sm"
+                                    className="rounded-none"
                                     disabled={page === totalPages}
                                     onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
                                 >

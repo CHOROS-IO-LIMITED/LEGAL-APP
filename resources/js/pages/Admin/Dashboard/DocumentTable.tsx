@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DASHBOARD_STATUS_META } from '@/types/Admin/Dashboard/status';
 import type { DocumentItem } from '@/types/Admin/Dashboard/types';
-import { ArrowLeft, ArrowRight, Eye, FileText, FolderOpen, Search } from 'lucide-react';
+import { Eye, FileText, FolderOpen } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 type Props = {
@@ -17,7 +18,6 @@ export default function DocumentTable({ items, pageSize = 8, onOpen }: Props) {
 
     const filteredItems = useMemo(() => {
         const keyword = query.trim().toLowerCase();
-
         return items.filter((item) => {
             const matchesQuery =
                 keyword.length === 0 ||
@@ -38,57 +38,59 @@ export default function DocumentTable({ items, pageSize = 8, onOpen }: Props) {
         return filteredItems.slice(start, start + pageSize);
     }, [filteredItems, page, pageSize]);
 
-    function handlePrev() {
-        setPage((current) => Math.max(1, current - 1));
-    }
-
-    function handleNext() {
-        setPage((current) => Math.min(totalPages, current + 1));
-    }
-
-    function handleQueryChange(value: string) {
-        setQuery(value);
-        setPage(1);
-    }
-
-    function handleStatusChange(value: 'all' | DocumentItem['dashboardStatus']) {
-        setStatusFilter(value);
-        setPage(1);
-    }
+    const handlePrev = () => setPage((p) => Math.max(1, p - 1));
+    const handleNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
     return (
-        <Card className="border-[#E7E1D7] bg-white shadow-sm">
-            <CardHeader className="border-b border-[#EFE7DB] px-6 pt-5 pb-4">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <CardTitle className="flex items-center gap-2 text-lg font-semibold text-[#1A1614]">
-                        <FolderOpen className="h-5 w-5 text-[#7C7368]" />
-                        Documents Queue
-                    </CardTitle>
+        <Card className="rounded-none border-[#E7E1D7] bg-white shadow-sm">
+            {/* Filters + Header */}
+            <CardHeader className="flex flex-col gap-4 border-b border-[#E7E1D7] px-6 pt-5 pb-4 md:flex-row md:items-center md:justify-between">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold text-[#1A1614]">
+                    <FolderOpen className="h-4 w-4 text-[#3D2B1F]" />
+                    Documents Queue ({filteredItems.length})
+                </CardTitle>
 
-                    <div className="flex flex-col gap-3 sm:flex-row">
-                        <div className="flex items-center gap-2 rounded-xl border border-[#E2DBD2] bg-[#FCFAF6] px-3 py-2">
-                            <Search className="h-4 w-4 text-[#7C7368]" />
-                            <input
-                                type="text"
-                                value={query}
-                                onChange={(e) => handleQueryChange(e.target.value)}
-                                placeholder="Search title, client, email..."
-                                className="w-full min-w-[220px] bg-transparent text-sm text-[#1A1614] outline-none"
-                            />
-                        </div>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                    <input
+                        type="text"
+                        value={query}
+                        onChange={(e) => {
+                            setQuery(e.target.value);
+                            setPage(1);
+                        }}
+                        placeholder="Search title, client, email..."
+                        className="rounded-none border border-[#E7E1D7] bg-white px-3 py-2 text-sm text-[#1A1614] outline-none"
+                    />
 
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => handleStatusChange(e.target.value as 'all' | DocumentItem['dashboardStatus'])}
-                            className="rounded-xl border border-[#E2DBD2] bg-[#FCFAF6] px-3 py-2 text-sm text-[#1A1614] outline-none"
-                        >
-                            <option value="all">All Statuses</option>
-                            <option value="pending_approval">Pending Review</option>
-                            <option value="signature">Signature</option>
-                            <option value="rejected">Needs Amendment</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                    </div>
+                    <Select
+                        value={statusFilter}
+                        onValueChange={(v) => {
+                            setStatusFilter(v as 'all' | DocumentItem['dashboardStatus']);
+                            setPage(1);
+                        }}
+                    >
+                        <SelectTrigger className="w-[140px] rounded-none border border-[#E7E1D7] bg-white px-3 py-2 text-sm text-[#1A1614]">
+                            <SelectValue placeholder="All Statuses" />
+                        </SelectTrigger>
+
+                        <SelectContent className="rounded-none">
+                            <SelectItem value="all" className="rounded-none">
+                                All Statuses
+                            </SelectItem>
+                            <SelectItem value="pending_approval" className="rounded-none">
+                                Pending Review
+                            </SelectItem>
+                            <SelectItem value="signature" className="rounded-none">
+                                Signature
+                            </SelectItem>
+                            <SelectItem value="rejected" className="rounded-none">
+                                Needs Amendment
+                            </SelectItem>
+                            <SelectItem value="completed" className="rounded-none">
+                                Completed
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </CardHeader>
 
@@ -96,13 +98,13 @@ export default function DocumentTable({ items, pageSize = 8, onOpen }: Props) {
                 <div className="overflow-x-auto">
                     <table className="min-w-full">
                         <thead>
-                            <tr className="border-b border-[#EFE7DB] bg-[#FCFAF6]">
-                                <th className="px-6 py-3 text-left text-xs font-semibold tracking-wide text-[#6B635B] uppercase">Document</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold tracking-wide text-[#6B635B] uppercase">Client</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold tracking-wide text-[#6B635B] uppercase">Status</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold tracking-wide text-[#6B635B] uppercase">Submitted</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold tracking-wide text-[#6B635B] uppercase">Updated</th>
-                                <th className="px-6 py-3 text-right text-xs font-semibold tracking-wide text-[#6B635B] uppercase">Action</th>
+                            <tr className="bg-[#F8F4EC] hover:bg-[#F8F4EC]">
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-[#6B635B] uppercase">Document</th>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-[#6B635B] uppercase">Client</th>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-[#6B635B] uppercase">Status</th>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-[#6B635B] uppercase">Submitted</th>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-[#6B635B] uppercase">Updated</th>
+                                <th className="px-6 py-3 text-center text-xs font-semibold text-[#6B635B] uppercase">Action</th>
                             </tr>
                         </thead>
 
@@ -113,43 +115,40 @@ export default function DocumentTable({ items, pageSize = 8, onOpen }: Props) {
                                     const StatusIcon = statusMeta.Icon;
 
                                     return (
-                                        <tr key={item.id} className="border-b border-[#F4EEE5] last:border-b-0">
-                                            <td className="px-6 py-4 align-top">
-                                                <div className="flex items-start gap-3">
-                                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#E7E1D7] bg-white">
+                                        <tr key={item.id} className="border-b border-[#E7E1D7] last:border-b-0 hover:bg-[#FAF6EF]">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-start gap-3 border border-[#E7E1D7] bg-[#FCFAF6] p-2">
+                                                    <div className="flex h-10 w-10 items-center justify-center border border-[#E7E1D7] bg-white">
                                                         <FileText className="h-4 w-4 text-[#7C7368]" />
                                                     </div>
-
-                                                    <div className="flex flex-col gap-1">
-                                                        <p className="text-sm font-medium text-[#1A1614]">{item.title}</p>
+                                                    <div className="flex flex-col gap-0.5">
+                                                        <p className="truncate text-sm font-medium text-[#1A1614]">{item.title}</p>
                                                         <p className="text-xs text-[#8A8178]">Created {item.createdAtLabel ?? 'N/A'}</p>
                                                     </div>
                                                 </div>
                                             </td>
 
-                                            <td className="px-6 py-4 align-top">
+                                            <td className="px-6 py-4">
                                                 <div className="flex flex-col gap-1">
                                                     <p className="text-sm text-[#1A1614]">{item.client.name ?? 'N/A'}</p>
                                                     <p className="text-xs text-[#8A8178]">{item.client.email ?? 'N/A'}</p>
                                                 </div>
                                             </td>
 
-                                            <td className="px-6 py-4 align-top">
+                                            <td className="px-6 py-4">
                                                 <span className={statusMeta.pillClassName}>
                                                     <StatusIcon className="h-3.5 w-3.5" />
                                                     {statusMeta.label}
                                                 </span>
                                             </td>
 
-                                            <td className="px-6 py-4 align-top text-sm text-[#3B332E]">{item.submittedAtLabel ?? 'N/A'}</td>
+                                            <td className="px-6 py-4 text-sm text-[#3B332E]">{item.submittedAtLabel ?? 'N/A'}</td>
+                                            <td className="px-6 py-4 text-sm text-[#3B332E]">{item.updatedAtLabel ?? 'N/A'}</td>
 
-                                            <td className="px-6 py-4 align-top text-sm text-[#3B332E]">{item.updatedAtLabel ?? 'N/A'}</td>
-
-                                            <td className="px-6 py-4 text-right align-top">
+                                            <td className="px-6 py-4 text-right">
                                                 <button
-                                                    type="button"
                                                     onClick={() => onOpen(item)}
-                                                    className="inline-flex items-center gap-2 rounded-xl bg-[#3D2B1F] px-3.5 py-2 text-sm font-medium text-white transition-all hover:bg-[#2E2017] hover:shadow-sm focus:ring-2 focus:ring-[#A68A64]/40 focus:outline-none"
+                                                    className="inline-flex cursor-pointer items-center gap-2 rounded-none bg-[#3D2B1F] px-3 py-1 text-sm font-medium text-white hover:bg-[#2E2017] focus:ring-2 focus:ring-[#A68A64]/40 focus:outline-none"
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                     {statusMeta.actionLabel}
@@ -169,34 +168,34 @@ export default function DocumentTable({ items, pageSize = 8, onOpen }: Props) {
                     </table>
                 </div>
 
-                <div className="flex items-center justify-between border-t border-[#EFE7DB] px-6 py-4">
-                    <p className="text-sm text-[#6B635B]">
-                        Showing {paginatedItems.length} of {filteredItems.length} document{filteredItems.length === 1 ? '' : 's'}
-                    </p>
+                {/* Pagination */}
+                <div className="flex flex-col items-center justify-between border-t border-[#E7E1D7] px-4 py-4 text-sm text-[#6B635B] md:flex-row md:px-6">
+                    <span className="mb-2 text-center md:mb-0 md:text-left">
+                        Showing <span className="font-medium text-[#1A1614]">{(page - 1) * pageSize + 1}</span> –{' '}
+                        <span className="font-medium text-[#1A1614]">{Math.min(page * pageSize, filteredItems.length)}</span> of{' '}
+                        <span className="font-medium text-[#1A1614]">{filteredItems.length}</span> document{filteredItems.length === 1 ? '' : 's'}
+                    </span>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 md:gap-3">
                         <button
-                            type="button"
                             onClick={handlePrev}
                             disabled={page === 1}
-                            className="inline-flex items-center gap-2 rounded-lg border border-[#E2DBD2] bg-white px-3 py-2 text-sm text-[#2F2A26] disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-none border border-[#E7E1D7] bg-white px-3 py-2 text-sm text-[#2F2A26] disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            <ArrowLeft className="h-4 w-4" />
                             Prev
                         </button>
 
-                        <span className="text-sm text-[#6B635B]">
-                            Page {page} of {totalPages}
+                        <span className="text-center">
+                            Page <span className="font-medium text-[#1A1614]">{page}</span> of{' '}
+                            <span className="font-medium text-[#1A1614]">{totalPages}</span>
                         </span>
 
                         <button
-                            type="button"
                             onClick={handleNext}
                             disabled={page === totalPages}
-                            className="inline-flex items-center gap-2 rounded-lg border border-[#E2DBD2] bg-white px-3 py-2 text-sm text-[#2F2A26] disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-none border border-[#E7E1D7] bg-white px-3 py-2 text-sm text-[#2F2A26] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             Next
-                            <ArrowRight className="h-4 w-4" />
                         </button>
                     </div>
                 </div>

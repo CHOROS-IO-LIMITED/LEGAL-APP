@@ -16,7 +16,7 @@ export type DocumentItem = {
     title: string;
     price: string;
     internalStatus: string;
-    dashboardStatus: 'pending_approval' | 'signature' | 'rejected' | 'completed' | 'draft';
+    dashboardStatus: 'pending_approval' | 'signature' | 'rejected' | 'completed';
 
     createdAtLabel: string | null;
     updatedAtLabel: string | null;

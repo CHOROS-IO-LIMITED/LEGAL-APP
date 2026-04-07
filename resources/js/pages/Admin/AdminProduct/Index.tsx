@@ -297,203 +297,212 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
         <AdminLayout user={user}>
             <main className="flex-1 overflow-y-auto bg-[#FCF9F2] p-4 md:p-6">
                 <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                        <div className="flex flex-col gap-1">
-                            <h1 className="text-2xl font-semibold tracking-tight text-[#1A1614]">Legal Products</h1>
-                            <p className="text-sm text-[#6B635B]">Manage all your legal documents here. Add, edit, or remove items as needed.</p>
-                        </div>
+                    {/* Header */}
+                    <div className="rounded-none border border-[#E7E1D7] bg-white p-6 shadow-sm">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            {/* Title & Description */}
+                            <div className="flex flex-col gap-1">
+                                <h1 className="text-2xl font-semibold tracking-tight text-[#1A1614]">Legal Products</h1>
+                                <p className="text-sm text-[#6B635B]">Manage all your legal documents here. Add, edit, or remove items as needed.</p>
+                            </div>
 
-                        {can.create_document && (
-                            <Dialog
-                                open={isCreateOpen}
-                                onOpenChange={(open) => {
-                                    setIsCreateOpen(open);
+                            {/* Add Document Button & Dialog */}
+                            {can.create_document && (
+                                <Dialog
+                                    open={isCreateOpen}
+                                    onOpenChange={(open) => {
+                                        setIsCreateOpen(open);
+                                        if (!open) resetCreateState();
+                                    }}
+                                >
+                                    <DialogTrigger asChild>
+                                        <Button className="inline-flex cursor-pointer items-center gap-2 rounded-none bg-[#3D2B1F] px-4 py-2 text-sm text-white shadow-sm hover:bg-[#2E2017] hover:shadow-md focus:ring-2 focus:ring-[#3D2B1F]/20">
+                                            <Plus className="h-4 w-4" />
+                                            Add Document
+                                        </Button>
+                                    </DialogTrigger>
 
-                                    if (!open) {
-                                        resetCreateState();
-                                    }
-                                }}
-                            >
-                                <DialogTrigger asChild>
-                                    <Button className="bg-[#3D2B1F] text-white hover:bg-[#5A4638]">
-                                        <Plus className="mr-2 h-4 w-4" />
-                                        Add Document
-                                    </Button>
-                                </DialogTrigger>
+                                    <DialogContent className="max-h-[90vh] overflow-y-auto rounded-none border border-[#E7E1D7] bg-white p-6 shadow-sm sm:max-w-2xl">
+                                        <DialogHeader>
+                                            <DialogTitle>Add Document</DialogTitle>
+                                            <DialogDescription>
+                                                Create a new legal document that will be available in your product catalog.
+                                            </DialogDescription>
+                                        </DialogHeader>
 
-                                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-                                    <DialogHeader>
-                                        <DialogTitle>Add Document</DialogTitle>
-                                        <DialogDescription>
-                                            Create a new legal document that will be available in your product catalog.
-                                        </DialogDescription>
-                                    </DialogHeader>
+                                        <form onSubmit={handleCreateSubmit} className="space-y-5 py-2">
+                                            {/* Preview Image & Product Info */}
+                                            <div className="grid gap-5 md:grid-cols-[160px_1fr]">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <Label htmlFor="image">Preview Image</Label>
+                                                    <label
+                                                        htmlFor="image"
+                                                        className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-none border border-dashed border-[#D6D0C4] bg-[#FCF9F2] text-center text-xs text-[#6B635B] transition hover:border-[#B8A893] hover:bg-[#F8F3EA]"
+                                                    >
+                                                        {createImagePreview ? (
+                                                            <img
+                                                                src={createImagePreview}
+                                                                alt="Selected preview"
+                                                                className="h-full w-full object-cover"
+                                                            />
+                                                        ) : selectedCreateImageName ? (
+                                                            <div className="px-2 text-xs text-[#3D2B1F]">
+                                                                <p className="font-medium">Selected</p>
+                                                                <p className="mt-1 line-clamp-2 break-words">{selectedCreateImageName}</p>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex flex-col items-center gap-2">
+                                                                <Upload className="h-4 w-4" />
+                                                                <span>Upload image</span>
+                                                            </div>
+                                                        )}
+                                                    </label>
+                                                    <Input
+                                                        id="image"
+                                                        type="file"
+                                                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                                                        className="hidden"
+                                                        onChange={handleCreateImageUpload}
+                                                    />
+                                                    {createForm.errors.image && (
+                                                        <p className="text-center text-xs text-red-500">{createForm.errors.image}</p>
+                                                    )}
+                                                </div>
 
-                                    <form onSubmit={handleCreateSubmit} className="space-y-5 py-2">
-                                        <div className="grid gap-5 md:grid-cols-[160px_1fr]">
-                                            <div className="flex flex-col items-center gap-2">
-                                                <Label htmlFor="image">Preview Image</Label>
+                                                <div className="flex flex-col gap-4">
+                                                    <div className="flex flex-col gap-2">
+                                                        <Label htmlFor="title">Product Name</Label>
+                                                        <Input
+                                                            id="title"
+                                                            placeholder="Employment Contract"
+                                                            value={createForm.data.title}
+                                                            onChange={(e) => createForm.setData('title', e.target.value)}
+                                                            className="rounded-none"
+                                                        />
+                                                        {createForm.errors.title && <p className="text-xs text-red-500">{createForm.errors.title}</p>}
+                                                    </div>
 
+                                                    <div className="flex flex-col gap-2">
+                                                        <Label htmlFor="price">Price (£)</Label>
+                                                        <Input
+                                                            id="price"
+                                                            type="number"
+                                                            step="0.01"
+                                                            min="0"
+                                                            placeholder="50"
+                                                            value={createForm.data.price}
+                                                            onChange={(e) => createForm.setData('price', e.target.value)}
+                                                            className="[appearance:textfield] rounded-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                                        />
+                                                        {createForm.errors.price && <p className="text-xs text-red-500">{createForm.errors.price}</p>}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Legal PDF Upload */}
+                                            <div className="flex flex-col gap-2">
+                                                <Label htmlFor="document">Legal Document (PDF)</Label>
                                                 <label
-                                                    htmlFor="image"
-                                                    className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-[#D6D0C4] bg-[#FCF9F2] text-center text-xs text-[#6B635B] transition hover:border-[#B8A893] hover:bg-[#F8F3EA]"
+                                                    htmlFor="document"
+                                                    className="flex cursor-pointer flex-col items-center justify-center rounded-none border border-dashed border-[#D6D0C4] bg-[#FCF9F2] px-4 py-6 text-sm text-[#6B635B] transition hover:border-[#B8A893] hover:bg-[#F8F3EA]"
                                                 >
-                                                    {createImagePreview ? (
-                                                        <img src={createImagePreview} alt="Selected preview" className="h-full w-full object-cover" />
-                                                    ) : selectedCreateImageName ? (
-                                                        <div className="px-2 text-[#3D2B1F]">
-                                                            <p className="font-medium">Selected</p>
-                                                            <p className="mt-1 line-clamp-2 text-[11px] break-words">{selectedCreateImageName}</p>
+                                                    {selectedCreateDocumentName ? (
+                                                        <div className="flex max-w-full items-center gap-2 text-[#1A1614]">
+                                                            <FileText className="h-4 w-4 shrink-0 text-[#A68A64]" />
+                                                            <span className="max-w-[260px] truncate text-[#A68A64]">
+                                                                {selectedCreateDocumentName}
+                                                            </span>
                                                         </div>
                                                     ) : (
-                                                        <div className="flex flex-col items-center gap-2">
-                                                            <Upload className="h-4 w-4" />
-                                                            <span>Upload image</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <FileText className="h-4 w-4" />
+                                                            <span>Upload PDF Template</span>
                                                         </div>
                                                     )}
                                                 </label>
-
                                                 <Input
-                                                    id="image"
+                                                    id="document"
                                                     type="file"
-                                                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                                                    accept="application/pdf"
+                                                    onChange={handleCreateDocumentUpload}
                                                     className="hidden"
-                                                    onChange={handleCreateImageUpload}
                                                 />
+                                                {createForm.errors.document && <p className="text-xs text-red-500">{createForm.errors.document}</p>}
 
-                                                {createForm.errors.image && (
-                                                    <p className="text-center text-xs text-red-500">{createForm.errors.image}</p>
-                                                )}
-                                            </div>
-
-                                            <div className="flex flex-col gap-4">
-                                                <div className="flex flex-col gap-2">
-                                                    <Label htmlFor="title">Product Name</Label>
-                                                    <Input
-                                                        id="title"
-                                                        placeholder="Employment Contract"
-                                                        value={createForm.data.title}
-                                                        onChange={(e) => createForm.setData('title', e.target.value)}
-                                                    />
-                                                    {createForm.errors.title && <p className="text-xs text-red-500">{createForm.errors.title}</p>}
-                                                </div>
-
-                                                <div className="flex flex-col gap-2">
-                                                    <Label htmlFor="price">Price (£)</Label>
-                                                    <Input
-                                                        id="price"
-                                                        type="number"
-                                                        step="0.01"
-                                                        min="0"
-                                                        placeholder="50"
-                                                        value={createForm.data.price}
-                                                        onChange={(e) => createForm.setData('price', e.target.value)}
-                                                        className="[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                                                    />
-                                                    {createForm.errors.price && <p className="text-xs text-red-500">{createForm.errors.price}</p>}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex flex-col gap-2">
-                                            <Label htmlFor="document">Legal Document (PDF)</Label>
-
-                                            <label
-                                                htmlFor="document"
-                                                className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#D6D0C4] bg-[#FCF9F2] px-4 py-6 text-sm text-[#6B635B] transition hover:border-[#B8A893] hover:bg-[#F8F3EA]"
-                                            >
-                                                {selectedCreateDocumentName ? (
-                                                    <div className="flex max-w-full items-center gap-2 text-[#1A1614]">
-                                                        <FileText className="h-4 w-4 shrink-0 text-[#A68A64]" />
-                                                        <span className="max-w-[260px] truncate text-[#A68A64]">{selectedCreateDocumentName}</span>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex items-center gap-2">
-                                                        <FileText className="h-4 w-4" />
-                                                        <span>Upload PDF Template</span>
-                                                    </div>
-                                                )}
-                                            </label>
-
-                                            <Input
-                                                id="document"
-                                                type="file"
-                                                accept="application/pdf"
-                                                onChange={handleCreateDocumentUpload}
-                                                className="hidden"
-                                            />
-
-                                            {createForm.errors.document && <p className="text-xs text-red-500">{createForm.errors.document}</p>}
-
-                                            {createDocumentPreview && (
-                                                <div className="rounded-2xl border border-[#E7E1D7] bg-white p-4 shadow-sm">
-                                                    <div className="flex items-center justify-between gap-3">
-                                                        <div className="flex min-w-0 items-center gap-3">
-                                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#E7E1D7] bg-[#F6F1E8]">
-                                                                <FileText className="h-4 w-4 text-[#A68A64]" />
+                                                {createDocumentPreview && (
+                                                    <div className="rounded-none border border-[#E7E1D7] bg-white p-4 shadow-sm">
+                                                        <div className="flex items-center justify-between gap-3">
+                                                            <div className="flex min-w-0 items-center gap-3">
+                                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-none border border-[#E7E1D7] bg-[#F6F1E8]">
+                                                                    <FileText className="h-4 w-4 text-[#A68A64]" />
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <p className="text-sm font-medium text-[#1A1614]">Selected PDF</p>
+                                                                    <p className="max-w-[220px] truncate text-xs text-[#6B635B]">
+                                                                        {selectedCreateDocumentName}
+                                                                    </p>
+                                                                </div>
                                                             </div>
 
-                                                            <div className="min-w-0">
-                                                                <p className="text-sm font-medium text-[#1A1614]">Selected PDF</p>
-                                                                <p className="max-w-[220px] truncate text-xs text-[#6B635B]">
-                                                                    {selectedCreateDocumentName}
-                                                                </p>
-                                                            </div>
+                                                            <Button
+                                                                type="button"
+                                                                size="icon"
+                                                                variant="outline"
+                                                                className="h-10 w-10 shrink-0 rounded-none border-[#D8CFC2] bg-[#FCF9F2] text-[#3D2B1F] hover:bg-[#F5EFE6]"
+                                                                onClick={() => openFileInNewTab(createDocumentPreview)}
+                                                                aria-label="Preview selected PDF"
+                                                            >
+                                                                <Eye className="h-4 w-4" />
+                                                            </Button>
                                                         </div>
-
-                                                        <Button
-                                                            type="button"
-                                                            size="icon"
-                                                            variant="outline"
-                                                            className="h-10 w-10 shrink-0 rounded-xl border-[#D8CFC2] bg-[#FCF9F2] text-[#3D2B1F] hover:bg-[#F5EFE6]"
-                                                            onClick={() => openFileInNewTab(createDocumentPreview)}
-                                                            aria-label="Preview selected PDF"
-                                                        >
-                                                            <Eye className="h-4 w-4" />
-                                                        </Button>
                                                     </div>
-                                                </div>
-                                            )}
-                                        </div>
+                                                )}
+                                            </div>
 
-                                        <div className="flex flex-col gap-2">
-                                            <Label htmlFor="description">Description</Label>
-                                            <Textarea
-                                                id="description"
-                                                placeholder="Write a short description for this legal document..."
-                                                className="min-h-[110px]"
-                                                value={createForm.data.description}
-                                                onChange={(e) => createForm.setData('description', e.target.value)}
-                                            />
-                                            {createForm.errors.description && <p className="text-xs text-red-500">{createForm.errors.description}</p>}
-                                        </div>
+                                            {/* Description */}
+                                            <div className="flex flex-col gap-2">
+                                                <Label htmlFor="description">Description</Label>
+                                                <Textarea
+                                                    id="description"
+                                                    placeholder="Write a short description for this legal document..."
+                                                    className="min-h-[110px] rounded-none"
+                                                    value={createForm.data.description}
+                                                    onChange={(e) => createForm.setData('description', e.target.value)}
+                                                />
+                                                {createForm.errors.description && (
+                                                    <p className="text-xs text-red-500">{createForm.errors.description}</p>
+                                                )}
+                                            </div>
 
-                                        <DialogFooter className="gap-2">
-                                            <DialogClose asChild>
-                                                <Button type="button" variant="outline" disabled={createForm.processing}>
-                                                    Close
+                                            {/* Dialog Footer */}
+                                            <DialogFooter className="gap-2">
+                                                <DialogClose asChild>
+                                                    <Button type="button" variant="outline" disabled={createForm.processing} className="rounded-none">
+                                                        Close
+                                                    </Button>
+                                                </DialogClose>
+
+                                                <Button
+                                                    type="submit"
+                                                    disabled={createForm.processing}
+                                                    className="rounded-none bg-[#3D2B1F] text-white hover:bg-[#2E2017]"
+                                                >
+                                                    {createForm.processing ? 'Adding...' : 'Add Document'}
                                                 </Button>
-                                            </DialogClose>
-
-                                            <Button
-                                                type="submit"
-                                                disabled={createForm.processing}
-                                                className="bg-[#3D2B1F] text-white hover:bg-[#5A4638]"
-                                            >
-                                                {createForm.processing ? 'Adding...' : 'Add Document'}
-                                            </Button>
-                                        </DialogFooter>
-                                    </form>
-                                </DialogContent>
-                            </Dialog>
-                        )}
+                                            </DialogFooter>
+                                        </form>
+                                    </DialogContent>
+                                </Dialog>
+                            )}
+                        </div>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        <Card>
+                        {/* Total Documents */}
+                        <Card className="rounded-none">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-[#6B635B]">Total Documents</CardTitle>
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E7E1D7] bg-[#F2EDE4]">
+                                <div className="flex h-8 w-8 items-center justify-center border border-[#E7E1D7] bg-[#F2EDE4]">
                                     <FileText className="h-4 w-4 text-[#A68A64]" />
                                 </div>
                             </CardHeader>
@@ -503,10 +512,11 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        {/* Active Products */}
+                        <Card className="rounded-none">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-[#6B635B]">Active Products</CardTitle>
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E7E1D7] bg-[#F2EDE4]">
+                                <div className="flex h-8 w-8 items-center justify-center border border-[#E7E1D7] bg-[#F2EDE4]">
                                     <Package className="h-4 w-4 text-[#A68A64]" />
                                 </div>
                             </CardHeader>
@@ -516,10 +526,11 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        {/* Draft Products */}
+                        <Card className="rounded-none">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-[#6B635B]">Draft Products</CardTitle>
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E7E1D7] bg-[#F2EDE4]">
+                                <div className="flex h-8 w-8 items-center justify-center border border-[#E7E1D7] bg-[#F2EDE4]">
                                     <FileClock className="h-4 w-4 text-[#A68A64]" />
                                 </div>
                             </CardHeader>
@@ -529,7 +540,8 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        {/* Top Product */}
+                        <Card className="rounded-none">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-[#6B635B]">Top Product</CardTitle>
                                 <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E7E1D7] bg-[#F2EDE4]">
@@ -544,50 +556,67 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                     </div>
 
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        {/* Search Input */}
                         <div className="w-full md:max-w-sm">
                             <Input
                                 placeholder="Search documents..."
-                                className="border-[#E7E1D7] bg-white"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
+                                className="h-10 rounded-none border-[#E7E1D7] bg-white focus:ring-2 focus:ring-[#3D2B1F]/20 focus:outline-none"
                             />
                         </div>
 
+                        {/* Filters */}
                         <div className="flex flex-wrap items-center gap-2">
+                            {/* Price Filter */}
                             <Select value={priceFilter} onValueChange={(value) => setPriceFilter(value as PriceFilter)}>
-                                <SelectTrigger className="w-[160px] border-[#E7E1D7] bg-white">
+                                <SelectTrigger className="h-10 w-[160px] rounded-none border-[#E7E1D7] bg-white focus:ring-2 focus:ring-[#3D2B1F]/20">
                                     <SelectValue placeholder="Price filter" />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All</SelectItem>
-                                    <SelectItem value="highest">Highest Price</SelectItem>
-                                    <SelectItem value="lowest">Lowest Price</SelectItem>
+                                <SelectContent className="rounded-none border-[#E7E1D7]">
+                                    <SelectItem value="all" className="rounded-none">
+                                        All
+                                    </SelectItem>
+                                    <SelectItem value="highest" className="rounded-none">
+                                        Highest Price
+                                    </SelectItem>
+                                    <SelectItem value="lowest" className="rounded-none">
+                                        Lowest Price
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
 
+                            {/* Sort Filter */}
                             <Select value={sortFilter} onValueChange={(value) => setSortFilter(value as SortFilter)}>
-                                <SelectTrigger className="w-[140px] border-[#E7E1D7] bg-white">
+                                <SelectTrigger className="h-10 w-[140px] rounded-none border-[#E7E1D7] bg-white focus:ring-2 focus:ring-[#3D2B1F]/20">
                                     <SelectValue placeholder="Sort" />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="az">Name A-Z</SelectItem>
-                                    <SelectItem value="za">Name Z-A</SelectItem>
+                                <SelectContent className="rounded-none border-[#E7E1D7]">
+                                    <SelectItem value="az" className="rounded-none">
+                                        Name A-Z
+                                    </SelectItem>
+                                    <SelectItem value="za" className="rounded-none">
+                                        Name Z-A
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
 
-                    <Card>
+                    <Card className="rounded-none border border-[#E7E1D7]">
+                        {/* Header */}
                         <CardHeader className="flex flex-row items-center justify-between border-b border-[#E7E1D7]">
-                            <CardTitle className="text-base font-semibold text-[#1A1614]">
+                            <CardTitle className="flex items-center gap-2 text-base font-semibold text-[#1A1614]">
+                                <FileText className="h-4 w-4 text-[#3D2B1F]" />
                                 Legal Documents <span className="text-[#6B635B]">({totalDocuments})</span>
                             </CardTitle>
                         </CardHeader>
 
+                        {/* Content */}
                         <CardContent className="p-6">
                             {paginatedDocuments.length === 0 ? (
-                                <div className="rounded-xl border border-dashed border-[#E7E1D7] bg-[#FCF9F2] px-6 py-10 text-center">
-                                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#F2EDE4]">
+                                <div className="border border-dashed border-[#E7E1D7] bg-[#FCF9F2] px-6 py-10 text-center">
+                                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center bg-[#F2EDE4]">
                                         <FileText className="h-5 w-5 text-[#A68A64]" />
                                     </div>
                                     <h3 className="text-base font-semibold text-[#1A1614]">No documents found</h3>
@@ -598,19 +627,25 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                     {paginatedDocuments.map((product) => (
                                         <div
                                             key={product.id}
-                                            className="flex flex-col gap-4 rounded-xl border border-[#E7E1D7] bg-white p-6 sm:flex-row sm:items-start sm:gap-6"
+                                            className="flex flex-col gap-4 border border-[#E7E1D7] bg-white p-6 hover:shadow-sm sm:flex-row sm:items-start sm:gap-6"
                                         >
-                                            <div className="h-40 w-full overflow-hidden rounded-lg border border-[#E7E1D7] bg-[#F2EDE4] sm:h-32 sm:w-32 sm:flex-shrink-0">
-                                                <img
-                                                    src={product.image_url || '/images/products/placeholder.webp'}
-                                                    alt={product.title}
-                                                    className="h-full w-full object-cover"
-                                                    onError={(e) => {
-                                                        e.currentTarget.src = '/images/products/placeholder.webp';
-                                                    }}
-                                                />
+                                            {/* Image with border */}
+                                            <div className="flex h-40 w-full items-center justify-center overflow-hidden border border-[#E7E1D7] bg-[#F2EDE4] sm:h-32 sm:w-32 sm:flex-shrink-0">
+                                                {product.image_url ? (
+                                                    <img
+                                                        src={product.image_url}
+                                                        alt={product.title}
+                                                        className="h-full w-full object-cover"
+                                                        onError={(e) => {
+                                                            e.currentTarget.src = '/images/products/placeholder.webp';
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <FileText className="h-6 w-6 text-[#A68A64]" />
+                                                )}
                                             </div>
 
+                                            {/* Info */}
                                             <div className="flex min-w-0 flex-1 flex-col gap-2">
                                                 <div className="flex items-center justify-between gap-3">
                                                     <TooltipProvider>
@@ -637,7 +672,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
 
                                                 <div className="flex flex-wrap items-center gap-2 pt-1">
                                                     <span
-                                                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                                                        className={`px-2.5 py-1 text-xs font-medium ${
                                                             product.is_active ? 'bg-[#EAF7EE] text-[#1F7A3D]' : 'bg-[#F5EDED] text-[#A94442]'
                                                         }`}
                                                     >
@@ -646,28 +681,32 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                 </div>
                                             </div>
 
+                                            {/* Actions */}
                                             <div className="flex items-center justify-end gap-2 sm:flex-col sm:items-center sm:justify-center">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
+                                                    className="cursor-pointer rounded-none border border-[#E7E1D7] p-2 hover:bg-[#F8F4EC]"
                                                     onClick={() => setViewingProduct(product)}
                                                     aria-label={`View ${product.title}`}
                                                 >
-                                                    <Eye className="h-4 w-4" />
+                                                    <Eye className="h-4 w-4 text-[#3D2B1F]" />
                                                 </Button>
 
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
+                                                    className="cursor-pointer rounded-none border border-[#E7E1D7] p-2 hover:bg-[#F8F4EC]"
                                                     onClick={() => setEditingProduct(product)}
                                                     aria-label={`Edit ${product.title}`}
                                                 >
-                                                    <Pencil className="h-4 w-4" />
+                                                    <Pencil className="h-4 w-4 text-[#3D2B1F]" />
                                                 </Button>
 
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
+                                                    className="cursor-pointer rounded-none border border-[#E7E1D7] p-2 hover:bg-[#F8F4EC]"
                                                     onClick={() => handleDelete(product)}
                                                     aria-label={`Delete ${product.title}`}
                                                 >
@@ -688,7 +727,13 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                             </span>
 
                             <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage((prev) => prev - 1)}>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="rounded-none border-[#E7E1D7] bg-white text-[#1A1614] hover:bg-[#F2EDE4]"
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage((prev) => prev - 1)}
+                                >
                                     Prev
                                 </Button>
 
@@ -700,6 +745,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                 <Button
                                     variant="outline"
                                     size="sm"
+                                    className="rounded-none border-[#E7E1D7] bg-white text-[#1A1614] hover:bg-[#F2EDE4]"
                                     disabled={currentPage === lastPage}
                                     onClick={() => setCurrentPage((prev) => prev + 1)}
                                 >
@@ -717,7 +763,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                             }
                         }}
                     >
-                        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+                        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-none border border-[#E7E1D7] bg-white p-6 shadow-sm sm:max-w-2xl">
                             <DialogHeader>
                                 <DialogTitle>Edit Document</DialogTitle>
                                 <DialogDescription>Update the details of this legal document.</DialogDescription>
@@ -726,19 +772,20 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                             {editingProduct && (
                                 <form onSubmit={handleEditSubmit} className="space-y-5 py-2">
                                     <div className="grid gap-5 md:grid-cols-[160px_1fr]">
+                                        {/* Image */}
                                         <div className="flex flex-col items-center gap-2">
                                             <Label htmlFor="edit-image">Image</Label>
 
                                             <label
                                                 htmlFor="edit-image"
-                                                className="flex h-32 w-32 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-[#D6D0C4] bg-[#FCF9F2]"
+                                                className="flex h-32 w-32 cursor-pointer items-center justify-center overflow-hidden rounded-none border border-dashed border-[#D6D0C4] bg-[#FCF9F2] text-center text-xs text-[#6B635B] transition hover:border-[#B8A893] hover:bg-[#F8F3EA]"
                                             >
                                                 {editImagePreview ? (
                                                     <img src={editImagePreview} alt="Selected preview" className="h-full w-full object-cover" />
                                                 ) : selectedEditImageName ? (
-                                                    <div className="px-2 text-center text-[#3D2B1F]">
+                                                    <div className="px-2 text-[#3D2B1F]">
                                                         <p className="font-medium">Selected</p>
-                                                        <p className="mt-1 line-clamp-2 text-[11px] break-words">{selectedEditImageName}</p>
+                                                        <p className="mt-1 line-clamp-2 break-words">{selectedEditImageName}</p>
                                                     </div>
                                                 ) : editingProduct.image_url ? (
                                                     <img
@@ -750,7 +797,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                         }}
                                                     />
                                                 ) : (
-                                                    <div className="flex flex-col items-center gap-2 text-xs text-[#6B635B]">
+                                                    <div className="flex flex-col items-center gap-2">
                                                         <Upload className="h-4 w-4" />
                                                         <span>Upload image</span>
                                                     </div>
@@ -768,6 +815,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                             {editForm.errors.image && <p className="text-center text-xs text-red-500">{editForm.errors.image}</p>}
                                         </div>
 
+                                        {/* Inputs */}
                                         <div className="flex flex-col gap-4">
                                             <div className="flex flex-col gap-2">
                                                 <Label htmlFor="edit-title">Document Name</Label>
@@ -775,6 +823,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                     id="edit-title"
                                                     value={editForm.data.title}
                                                     onChange={(e) => editForm.setData('title', e.target.value)}
+                                                    className="rounded-none"
                                                 />
                                                 {editForm.errors.title && <p className="text-xs text-red-500">{editForm.errors.title}</p>}
                                             </div>
@@ -788,19 +837,20 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                     min="0"
                                                     value={editForm.data.price}
                                                     onChange={(e) => editForm.setData('price', e.target.value)}
-                                                    className="[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                                    className="[appearance:textfield] rounded-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                                 />
                                                 {editForm.errors.price && <p className="text-xs text-red-500">{editForm.errors.price}</p>}
                                             </div>
                                         </div>
                                     </div>
 
+                                    {/* PDF Upload */}
                                     <div className="flex flex-col gap-2">
                                         <Label htmlFor="edit-document">Legal Document (PDF)</Label>
 
                                         <label
                                             htmlFor="edit-document"
-                                            className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#D6D0C4] bg-[#FCF9F2] px-4 py-6 text-sm text-[#6B635B] transition hover:border-[#B8A893] hover:bg-[#F8F3EA]"
+                                            className="flex cursor-pointer flex-col items-center justify-center rounded-none border border-dashed border-[#D6D0C4] bg-[#FCF9F2] px-4 py-6 text-sm text-[#6B635B] transition hover:border-[#B8A893] hover:bg-[#F8F3EA]"
                                         >
                                             {selectedEditDocumentName ? (
                                                 <div className="flex max-w-full items-center gap-2 text-[#1A1614]">
@@ -828,10 +878,10 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                         {editForm.errors.document && <p className="text-xs text-red-500">{editForm.errors.document}</p>}
 
                                         {(editDocumentPreview || editingProduct.document_url) && (
-                                            <div className="rounded-2xl border border-[#E7E1D7] bg-white p-4 shadow-sm">
+                                            <div className="rounded-none border border-[#E7E1D7] bg-white p-4 shadow-sm">
                                                 <div className="flex items-center justify-between gap-3">
                                                     <div className="flex min-w-0 items-center gap-3">
-                                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#E7E1D7] bg-[#F6F1E8]">
+                                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-none border border-[#E7E1D7] bg-[#F6F1E8]">
                                                             <FileText className="h-4 w-4 text-[#A68A64]" />
                                                         </div>
 
@@ -849,9 +899,8 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                         type="button"
                                                         size="icon"
                                                         variant="outline"
-                                                        className="h-10 w-10 shrink-0 rounded-xl border-[#D8CFC2] bg-[#FCF9F2] text-[#3D2B1F] hover:bg-[#F5EFE6]"
+                                                        className="h-10 w-10 shrink-0 cursor-pointer rounded-none border border-[#D8CFC2] bg-[#FCF9F2] text-[#3D2B1F] hover:bg-[#F5EFE6]"
                                                         onClick={() => openFileInNewTab(editDocumentPreview || editingProduct.document_url)}
-                                                        aria-label={`Preview PDF for ${editingProduct.title}`}
                                                     >
                                                         <Eye className="h-4 w-4" />
                                                     </Button>
@@ -860,25 +909,36 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                         )}
                                     </div>
 
+                                    {/* Description */}
                                     <div className="flex flex-col gap-2">
                                         <Label htmlFor="edit-description">Description</Label>
                                         <Textarea
                                             id="edit-description"
                                             value={editForm.data.description}
                                             onChange={(e) => editForm.setData('description', e.target.value)}
-                                            className="min-h-[110px]"
+                                            className="min-h-[110px] rounded-none"
                                         />
                                         {editForm.errors.description && <p className="text-xs text-red-500">{editForm.errors.description}</p>}
                                     </div>
 
+                                    {/* Footer */}
                                     <DialogFooter className="gap-2">
                                         <DialogClose asChild>
-                                            <Button type="button" variant="outline" disabled={editForm.processing}>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                disabled={editForm.processing}
+                                                className="cursor-pointer rounded-none"
+                                            >
                                                 Cancel
                                             </Button>
                                         </DialogClose>
 
-                                        <Button type="submit" disabled={editForm.processing} className="bg-[#3D2B1F] text-white hover:bg-[#5A4638]">
+                                        <Button
+                                            type="submit"
+                                            disabled={editForm.processing}
+                                            className="cursor-pointer rounded-none bg-[#3D2B1F] text-white hover:bg-[#2E2017]"
+                                        >
                                             {editForm.processing ? 'Saving...' : 'Save Changes'}
                                         </Button>
                                     </DialogFooter>
@@ -888,23 +948,22 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                     </Dialog>
 
                     <Dialog open={!!viewingProduct} onOpenChange={() => setViewingProduct(null)}>
-                        <DialogContent className="max-h-[85vh] max-w-4xl overflow-hidden p-0">
+                        <DialogContent className="max-h-[85vh] max-w-4xl overflow-hidden rounded-none border border-[#E7E1D7] bg-white p-6 shadow-sm">
                             <DialogHeader className="sr-only">
                                 <DialogTitle>Document Preview</DialogTitle>
                                 <DialogDescription>Preview the selected legal document and its uploaded file.</DialogDescription>
                             </DialogHeader>
 
                             {viewingProduct && (
-                                <div className="flex max-h-[85vh] min-w-0 flex-col overflow-y-auto p-6">
+                                <div className="flex max-h-[85vh] min-w-0 flex-col gap-6 overflow-y-auto">
+                                    {/* Top Section: Image + Info */}
                                     <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start">
-                                        <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-[#E7E1D7] bg-[#F2EDE4]">
+                                        <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-none border border-[#E7E1D7] bg-[#F2EDE4]">
                                             <img
                                                 src={viewingProduct.image_url || '/images/products/placeholder.webp'}
                                                 alt={viewingProduct.title}
                                                 className="h-full w-full object-cover"
-                                                onError={(e) => {
-                                                    e.currentTarget.src = '/images/products/placeholder.webp';
-                                                }}
+                                                onError={(e) => (e.currentTarget.src = '/images/products/placeholder.webp')}
                                             />
                                         </div>
 
@@ -917,7 +976,6 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                                 {viewingProduct.title}
                                                             </h2>
                                                         </TooltipTrigger>
-
                                                         <TooltipContent>
                                                             <p>{viewingProduct.title}</p>
                                                         </TooltipContent>
@@ -945,15 +1003,16 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                         </div>
                                     </div>
 
-                                    <div className="my-6 border-t border-[#E7E1D7]" />
+                                    <div className="border-t border-[#E7E1D7]" />
 
+                                    {/* PDF Section */}
                                     <div className="flex min-w-0 flex-col gap-3">
                                         <h3 className="text-sm font-medium text-[#1A1614]">Legal Template Preview</h3>
 
-                                        <div className="min-w-0 overflow-hidden rounded-2xl border border-[#E7E1D7] bg-gradient-to-br from-white to-[#FCF9F2] p-5 shadow-sm">
+                                        <div className="min-w-0 overflow-hidden rounded-none border border-[#E7E1D7] bg-gradient-to-br from-white to-[#FCF9F2] p-5 shadow-sm">
                                             <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                                 <div className="flex min-w-0 items-center gap-3 overflow-hidden">
-                                                    <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-[#E7E1D7] bg-[#F6F1E8]">
+                                                    <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-none border border-[#E7E1D7] bg-[#F6F1E8]">
                                                         <FileText className="h-5 w-5 text-[#A68A64]" />
                                                     </div>
 
@@ -971,7 +1030,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                     variant="outline"
                                                     disabled={!viewingProduct.document_url}
                                                     onClick={() => openFileInNewTab(viewingProduct.document_url)}
-                                                    className="h-10 w-10 flex-shrink-0 rounded-xl border-[#D8CFC2] bg-[#FCF9F2] text-[#3D2B1F] hover:bg-[#F5EFE6] disabled:cursor-not-allowed disabled:border-[#E7E1D7] disabled:bg-[#F5F2EC] disabled:text-[#B7AEA2]"
+                                                    className="h-10 w-10 flex-shrink-0 cursor-pointer rounded-none border border-[#D8CFC2] bg-[#FCF9F2] text-[#3D2B1F] hover:bg-[#F5EFE6] disabled:cursor-not-allowed disabled:border-[#E7E1D7] disabled:bg-[#F5F2EC] disabled:text-[#B7AEA2]"
                                                     aria-label={`Open PDF for ${viewingProduct.title}`}
                                                 >
                                                     <Eye className="h-4 w-4" />
