@@ -8,7 +8,17 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Link } from '@inertiajs/react';
-import { ChevronDown, ClipboardPlus, Globe, LayoutDashboard, PanelLeftClose, Receipt, ReceiptPoundSterling, Settings } from 'lucide-react';
+import {
+    ChevronDown,
+    ChevronsUpDown,
+    ClipboardPlus,
+    Globe,
+    LayoutDashboard,
+    PanelLeftClose,
+    Receipt,
+    ReceiptPoundSterling,
+    Settings,
+} from 'lucide-react';
 import { useState } from 'react';
 
 interface User {
@@ -72,7 +82,7 @@ export default function UserLayout({ user, children }: UserLayoutProps) {
                     transition: 'opacity 0.2s ease',
                 }}
             >
-                <span className="block h-px w-6 bg-[#6B635B]/40 dark:bg-gray-600" />
+                <span className="block h-px w-6 bg-[#6B635B]/50 dark:bg-gray-600" />
             </span>
         </div>
     );
@@ -90,15 +100,21 @@ export default function UserLayout({ user, children }: UserLayoutProps) {
             >
                 <div className="flex w-full flex-col border-r bg-white dark:border-gray-700 dark:bg-gray-800" style={{ overflow: 'hidden' }}>
                     {/* Header */}
-                    <div className="flex h-16 items-center justify-center border-b px-4 dark:border-gray-700">
-                        <Link href="/dashboard" className="flex items-center gap-3 overflow-hidden">
-                            <img src="/images/logo/dd-logo.png" alt="LegalDocs" className="h-10 w-auto flex-shrink-0 object-contain" />
-                            <span
-                                className="bg-gradient-to-r from-[#3D2B1F] to-[#A68A64] bg-clip-text text-lg font-semibold tracking-tight text-transparent"
-                                style={labelStyle}
-                            >
-                                Daver & Daver
-                            </span>
+                    <div className="flex h-16 items-center border-b px-4 dark:border-gray-700">
+                        <Link href="/dashboard" className="flex w-full items-center justify-center overflow-hidden">
+                            <img
+                                src="/images/logo/dd-logo.png"
+                                alt="LegalDocs"
+                                className={`flex-shrink-0 object-contain transition-all duration-200 ${collapsed ? 'h-8' : 'h-10'}`}
+                            />
+                            {!collapsed && (
+                                <span
+                                    className="ml-3 bg-gradient-to-r from-[#3D2B1F] to-[#A68A64] bg-clip-text text-lg font-semibold tracking-tight text-transparent transition-all duration-200"
+                                    style={labelStyle}
+                                >
+                                    Daver & Daver
+                                </span>
+                            )}
                         </Link>
                     </div>
 
@@ -179,19 +195,24 @@ export default function UserLayout({ user, children }: UserLayoutProps) {
                     <div className="border-t border-[#E7E1D7] px-4 py-3">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <button className="group flex w-full items-center gap-3 rounded-none px-2 py-2 text-sm font-medium hover:bg-[#F4EFE6] focus:ring-2 focus:ring-[#3D2B1F] focus:outline-none dark:hover:bg-gray-700">
+                                <button
+                                    className={`group flex w-full items-center ${
+                                        collapsed ? 'justify-center' : 'justify-between'
+                                    } gap-3 px-2 py-2 text-sm font-medium hover:bg-[#F4EFE6] focus:ring-2 focus:ring-[#3D2B1F] focus:outline-none dark:hover:bg-gray-700`}
+                                >
                                     <Avatar className="h-8 w-8 flex-shrink-0 rounded-none">
                                         <AvatarImage src="/api/placeholder/32/32" />
                                         <AvatarFallback className="bg-[#A68A64] text-white">{user.name.slice(0, 2).toUpperCase()}</AvatarFallback>
                                     </Avatar>
-                                    <div className="flex min-w-0 flex-col text-left" style={labelStyle}>
-                                        <span className="text-sm text-[#1A1614]">{user.name}</span>
-                                        <span className="text-xs text-[#6B635B]">{user.email}</span>
-                                    </div>
-                                    <ChevronDown
-                                        className="ml-auto h-4 w-4 flex-shrink-0 text-[#A68A64] group-data-[state=open]:rotate-180"
-                                        style={labelStyle}
-                                    />
+
+                                    {!collapsed && (
+                                        <div className="flex flex-1 flex-col px-2">
+                                            <span className="text-sm text-[#1A1614]">{user.name}</span>
+                                            <span className="text-xs text-[#6B635B]">{user.email}</span>
+                                        </div>
+                                    )}
+
+                                    {!collapsed && <ChevronsUpDown className="h-4 w-4 flex-shrink-0 text-[#A68A64]" />}
                                 </button>
                             </DropdownMenuTrigger>
 
