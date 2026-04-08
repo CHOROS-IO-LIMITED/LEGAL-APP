@@ -2,7 +2,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Head, useForm } from '@inertiajs/react';
-import { MoveLeft } from 'lucide-react';
+import { Eye, EyeOff, MoveLeft } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { route } from 'ziggy-js';
 
@@ -48,7 +48,7 @@ export default function Login({ flash }: LoginProps) {
             },
         });
     };
-
+    const [showPassword, setShowPassword] = useState(false);
     return (
         <>
             <Head title="Login" />
@@ -146,20 +146,36 @@ export default function Login({ flash }: LoginProps) {
                                         {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
                                     </div>
 
-                                    {/* PASSWORD */}
-                                    <div className="flex flex-col">
+                                    <div className="relative flex flex-col">
+                                        {/* LABEL */}
                                         <label className="mb-1 text-sm font-medium text-[#1A1614]">Password</label>
 
-                                        <Input
-                                            type="password"
-                                            value={data.password}
-                                            onChange={(e) => setData('password', e.target.value)}
-                                            placeholder="Enter your password"
-                                            className="rounded-none border-[#E8E2D6] focus:ring-2 focus:ring-[#A68A64]"
-                                        />
+                                        {/* INPUT + ICON WRAPPER */}
+                                        <div className="relative">
+                                            <Input
+                                                type={showPassword ? 'text' : 'password'}
+                                                value={data.password}
+                                                onChange={(e) => setData('password', e.target.value)}
+                                                placeholder="Enter your password"
+                                                className="rounded-none border-[#E8E2D6] pr-10 focus:ring-2 focus:ring-[#A68A64]"
+                                            />
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute inset-y-0 right-2 flex items-center text-gray-400"
+                                            >
+                                                {showPassword ? (
+                                                    <EyeOff size={18} className="text-[#3D2B1F]" />
+                                                ) : (
+                                                    <Eye size={18} className="text-[#3D2B1F]" />
+                                                )}
+                                            </button>
+                                        </div>
 
                                         {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
 
+                                        {/* REMEMBER ME + FORGOT */}
                                         <div className="mt-2 flex items-center justify-between text-sm">
                                             <label className="flex items-center gap-2 text-[#1A1614]">
                                                 <input type="checkbox" className="h-4 w-4 rounded-none border-[#E8E2D6] accent-[#3D2B1F]" />
