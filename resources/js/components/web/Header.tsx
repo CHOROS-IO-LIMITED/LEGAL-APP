@@ -76,15 +76,15 @@ export default function Header() {
 
     return (
         <header className="sticky top-0 z-50 border-b border-[#E8E2D6] bg-white">
-            <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+            <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-2">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-3">
-                    <img src="/images/logo/dd-logo.png" alt="LegalDocs" className="h-10 w-auto object-contain" />
-                    <span className="bg-gradient-to-r from-[#3D2B1F] to-[#A68A64] bg-clip-text text-lg font-semibold tracking-tight text-transparent">
-                        Daver & Daver
-                    </span>
+                <Link href="/" className="flex items-center">
+                    <img
+                        src="/images/logo/daver-logo.png"
+                        alt="LegalDocs"
+                        className="h-16 w-auto object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.25)]"
+                    />
                 </Link>
-
                 {/* Mobile Toggle */}
                 <button onClick={() => setMobileOpen((prev) => !prev)} className="md:hidden">
                     {mobileOpen ? <X className="h-6 w-6 text-[#3D2B1F]" /> : <Menu className="h-6 w-6 text-[#3D2B1F]" />}

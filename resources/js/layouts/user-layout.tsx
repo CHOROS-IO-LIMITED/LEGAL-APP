@@ -100,21 +100,16 @@ export default function UserLayout({ user, children }: UserLayoutProps) {
             >
                 <div className="flex w-full flex-col border-r bg-white dark:border-gray-700 dark:bg-gray-800" style={{ overflow: 'hidden' }}>
                     {/* Header */}
-                    <div className="flex h-16 items-center border-b px-4 dark:border-gray-700">
-                        <Link href="/dashboard" className="flex w-full items-center justify-center overflow-hidden">
+
+                    <div className="flex h-16 items-center justify-center border-b px-4 dark:border-gray-700">
+                        <Link href="/dashboard" className="flex w-full items-center justify-center">
                             <img
-                                src="/images/logo/dd-logo.png"
-                                alt="LegalDocs"
-                                className={`flex-shrink-0 object-contain transition-all duration-200 ${collapsed ? 'h-8' : 'h-10'}`}
+                                src={collapsed ? '/images/logo/icon-logo.png' : '/images/logo/daver-logo.png'}
+                                alt="Daver"
+                                className={`object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.25)] transition-all duration-200 ${
+                                    collapsed ? 'h-8' : 'h-14'
+                                }`}
                             />
-                            {!collapsed && (
-                                <span
-                                    className="ml-3 bg-gradient-to-r from-[#3D2B1F] to-[#A68A64] bg-clip-text text-lg font-semibold tracking-tight text-transparent transition-all duration-200"
-                                    style={labelStyle}
-                                >
-                                    Daver & Daver
-                                </span>
-                            )}
                         </Link>
                     </div>
 
@@ -243,7 +238,7 @@ export default function UserLayout({ user, children }: UserLayoutProps) {
 
                 <button
                     onClick={toggleCollapsed}
-                    className="group absolute top-5 -right-3 z-10 flex h-6 w-6 cursor-pointer items-center justify-center border border-[#E7E1D7] bg-white shadow-sm transition hover:scale-105 hover:bg-[#F4EFE6] active:scale-95 dark:border-gray-700 dark:bg-gray-800"
+                    className="group absolute top-5 -right-3 z-10 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border border-[#E7E1D7] bg-white shadow-sm transition hover:scale-105 hover:bg-[#F4EFE6] active:scale-95 dark:border-gray-700 dark:bg-gray-800"
                 >
                     <PanelLeftClose
                         size={14}

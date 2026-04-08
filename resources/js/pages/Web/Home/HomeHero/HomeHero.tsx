@@ -5,7 +5,7 @@ import React from 'react';
 
 const Hero: React.FC = () => {
     return (
-        <section className="bg-[#FCF9F2] font-sans">
+        <section className="min-h-[calc(100vh-80px)] bg-[#FCF9F2] font-sans">
             <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-12 px-8 py-24 md:flex-row md:gap-16">
                 {/* Left Content */}
                 <motion.div
@@ -83,7 +83,7 @@ const Hero: React.FC = () => {
                     viewport={{ once: true }}
                     transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
                 >
-                    <div className="flex h-[400px] w-full max-w-md items-center justify-center rounded-xl border-2 border-dashed border-[#E8E2D6] bg-white/20 text-lg font-semibold text-[#70665E]">
+                    <div className="flex h-[400px] w-full max-w-md items-center justify-center border-2 border-dashed border-[#E8E2D6] bg-white/20 text-lg font-semibold text-[#70665E]">
                         Demo video will be placed here...
                     </div>
                 </motion.div>

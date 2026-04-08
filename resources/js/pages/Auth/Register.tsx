@@ -46,15 +46,25 @@ export default function Register() {
 
                         <div className="mb-15 flex flex-1 items-center justify-center">
                             <div className="flex flex-col items-center gap-4 text-center">
-                                <img src="/images/logo/dd-logo.png" alt="Daver & Daver Logo" className="h-40 w-40 object-contain" />
+                                <img
+                                    src="/images/logo/icon-logo.png"
+                                    alt="Daver Logo"
+                                    className="h-40 w-40 object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.25)]"
+                                />
 
                                 <p className="max-w-sm text-base leading-relaxed">
-                                    Create an account to access legal documents, manage purchases, and complete verification securely.
+                                    Sign in to access your legal documents, manage purchases, and securely complete your verification process.
                                 </p>
                             </div>
                         </div>
 
-                        <div className="mt-auto text-center text-sm tracking-wide">© 2026 Daver & Daver</div>
+                        <div className="mt-auto text-center text-sm tracking-wide">
+                            <img
+                                src="/images/logo/text-logo.png"
+                                alt="Daver & Daver"
+                                className="inline-block h-10 w-auto object-contain align-middle drop-shadow-[0_4px_6px_rgba(0,0,0,0.25)]"
+                            />
+                        </div>
                     </div>
 
                     {/* RIGHT PANEL */}
