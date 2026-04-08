@@ -163,7 +163,7 @@ export default function Login({ flash }: LoginProps) {
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute inset-y-0 right-2 flex items-center text-gray-400"
+                                                className="absolute inset-y-0 right-2 flex cursor-pointer items-center text-gray-400"
                                             >
                                                 {showPassword ? (
                                                     <EyeOff size={18} className="text-[#3D2B1F]" />
