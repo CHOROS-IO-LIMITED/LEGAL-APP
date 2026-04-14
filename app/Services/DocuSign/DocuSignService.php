@@ -7,6 +7,7 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
@@ -102,7 +103,6 @@ class DocuSignService
         }
 
         $pdfBinary = $storage->get($userDocument->generated_pdf_path);
-
         $recipients = $this->buildSigners($userDocument);
 
         if (count($recipients) === 0) {
@@ -123,10 +123,27 @@ class DocuSignService
             ],
         ];
 
+        Log::info('DocuSign create envelope request.', [
+            'user_document_id' => $userDocument->id,
+            'document_title' => $userDocument->document?->title,
+            'generated_pdf_path' => $userDocument->generated_pdf_path,
+            'generated_pdf_original_name' => $userDocument->generated_pdf_original_name,
+            'recipient_count' => count($recipients),
+            'recipients' => $recipients,
+            'email_subject' => $payload['emailSubject'],
+        ]);
+
         $response = $this->api()
             ->post($this->accountApiPath('/envelopes'), $payload)
             ->throw()
             ->json();
+
+        Log::info('DocuSign create envelope response.', [
+            'user_document_id' => $userDocument->id,
+            'envelope_id' => $response['envelopeId'] ?? null,
+            'status' => $response['status'] ?? null,
+            'uri' => $response['uri'] ?? null,
+        ]);
 
         return $response;
     }
@@ -137,12 +154,22 @@ class DocuSignService
             'returnUrl' => $returnUrl,
         ];
 
+        Log::info('DocuSign create sender view request.', [
+            'envelope_id' => $envelopeId,
+            'return_url' => $returnUrl,
+        ]);
+
         $response = $this->api()
             ->post($this->accountApiPath("/envelopes/{$envelopeId}/views/sender"), $payload)
             ->throw()
             ->json();
 
         $url = (string) ($response['url'] ?? '');
+
+        Log::info('DocuSign create sender view response.', [
+            'envelope_id' => $envelopeId,
+            'has_url' => $url !== '',
+        ]);
 
         if ($url === '') {
             throw new RuntimeException('DocuSign sender view URL was not returned.');
@@ -153,22 +180,57 @@ class DocuSignService
 
     public function getEnvelope(string $envelopeId): array
     {
-        return $this->api()
+        $response = $this->api()
             ->get($this->accountApiPath("/envelopes/{$envelopeId}"))
             ->throw()
             ->json();
+
+        Log::info('DocuSign get envelope response.', [
+            'envelope_id' => $envelopeId,
+            'status' => $response['status'] ?? null,
+            'email_subject' => $response['emailSubject'] ?? null,
+            'sent_date_time' => $response['sentDateTime'] ?? null,
+            'completed_date_time' => $response['completedDateTime'] ?? null,
+        ]);
+
+        return $response;
     }
 
     public function listRecipients(string $envelopeId): array
     {
-        return $this->api()
+        $response = $this->api()
             ->get($this->accountApiPath("/envelopes/{$envelopeId}/recipients"))
             ->throw()
             ->json();
+
+        Log::info('DocuSign list recipients response.', [
+            'envelope_id' => $envelopeId,
+            'recipient_count' => $response['recipientCount'] ?? null,
+            'current_routing_order' => $response['currentRoutingOrder'] ?? null,
+            'signers' => collect($response['signers'] ?? [])->map(function (array $signer) {
+                return [
+                    'name' => $signer['name'] ?? null,
+                    'email' => $signer['email'] ?? null,
+                    'recipient_id' => $signer['recipientId'] ?? null,
+                    'routing_order' => $signer['routingOrder'] ?? null,
+                    'status' => $signer['status'] ?? null,
+                    'delivery_method' => $signer['deliveryMethod'] ?? null,
+                    'sent_date_time' => $signer['sentDateTime'] ?? null,
+                    'delivered_date_time' => $signer['deliveredDateTime'] ?? null,
+                    'completed_date_time' => $signer['completedDateTime'] ?? null,
+                ];
+            })->values()->all(),
+        ]);
+
+        return $response;
     }
 
     public function downloadCombinedDocuments(string $envelopeId): string
     {
+        Log::info('DocuSign download combined document request.', [
+            'envelope_id' => $envelopeId,
+        ]);
+
         return $this->api()
             ->get($this->accountApiPath("/envelopes/{$envelopeId}/documents/combined"))
             ->throw()
@@ -193,7 +255,6 @@ class DocuSignService
             }
         }
 
-        $ownerEmail = strtolower(trim((string) $userDocument->user?->email));
         $signers = [];
 
         foreach (array_values($recipients) as $index => $recipient) {
@@ -201,69 +262,28 @@ class DocuSignService
             $email = trim((string) ($recipient['email'] ?? ''));
 
             if ($name === '' || $email === '') {
+                Log::warning('DocuSign skipped invalid signer.', [
+                    'user_document_id' => $userDocument->id,
+                    'index' => $index,
+                    'recipient' => $recipient,
+                ]);
+
                 continue;
             }
 
-            $recipientId = (string) ($index + 1);
-            $isOwner = $ownerEmail !== '' && strtolower($email) === $ownerEmail;
-
-            $signer = [
+            $signers[] = [
                 'name' => $name,
                 'email' => $email,
-                'recipientId' => $recipientId,
+                'recipientId' => (string) ($index + 1),
                 'routingOrder' => (string) ($recipient['routing_order'] ?? ($index + 1)),
             ];
-
-            if ($isOwner) {
-                $signer['clientUserId'] = $recipientId;
-                $signer['embeddedRecipientStartURL'] = 'SIGN_AT_DOCUSIGN';
-            }
-
-            $signers[] = $signer;
         }
+
+        Log::info('DocuSign build signers result.', [
+            'user_document_id' => $userDocument->id,
+            'signers' => $signers,
+        ]);
 
         return $signers;
-    }
-
-    public function createRecipientView(
-        string $envelopeId,
-        array $recipient,
-        string $returnUrl,
-        string $clientUserId
-    ): string {
-        $name = trim((string) ($recipient['name'] ?? ''));
-        $email = trim((string) ($recipient['email'] ?? ''));
-        $recipientId = (string) ($recipient['recipient_id'] ?? $recipient['recipientId'] ?? '');
-        $routingOrder = (string) ($recipient['routing_order'] ?? $recipient['routingOrder'] ?? '');
-
-        if ($name === '' || $email === '' || $recipientId === '') {
-            throw new RuntimeException('Recipient data is incomplete for embedded signing.');
-        }
-
-        $payload = [
-            'returnUrl' => $returnUrl,
-            'authenticationMethod' => 'none',
-            'email' => $email,
-            'userName' => $name,
-            'recipientId' => $recipientId,
-            'clientUserId' => $clientUserId,
-        ];
-
-        if ($routingOrder !== '') {
-            $payload['routingOrder'] = $routingOrder;
-        }
-
-        $response = $this->api()
-            ->post($this->accountApiPath("/envelopes/{$envelopeId}/views/recipient"), $payload)
-            ->throw()
-            ->json();
-
-        $url = (string) ($response['url'] ?? '');
-
-        if ($url === '') {
-            throw new RuntimeException('DocuSign recipient signing URL was not returned.');
-        }
-
-        return $url;
     }
 }

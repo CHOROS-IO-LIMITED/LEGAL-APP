@@ -45,6 +45,7 @@ class AdminDocumentController extends Controller
 
         DB::transaction(function () use ($request, $document, $storeDocumentFiles, $syncDocumentSchemas) {
             $payload = $storeDocumentFiles->handle($request->validated(), $document);
+
             $document->update($payload);
             $document->refresh();
 

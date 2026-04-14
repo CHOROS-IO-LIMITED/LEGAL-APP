@@ -2,30 +2,23 @@
 
 namespace App\Services\Admin\Documents;
 
+use App\Enums\DocumentType;
 use App\Models\Document;
 use App\Support\Documents\LoanAgreement\LoanAgreementQuestionSchema;
-use App\Support\Documents\LoanAgreement\LoanAgreementTemplateSchema;
 
 class DocumentSchemaRegistry
 {
     public function questionSchema(Document $document): ?array
     {
-        return $this->isLoanAgreement($document)
-            ? LoanAgreementQuestionSchema::make()
-            : null;
+        return $this->questionSchemaByType((string) $document->document_type);
     }
 
-    public function templateSchema(Document $document): ?array
+    public function questionSchemaByType(string $documentType): ?array
     {
-        return $this->isLoanAgreement($document)
-            ? LoanAgreementTemplateSchema::make()
-            : null;
-    }
-
-    protected function isLoanAgreement(Document $document): bool
-    {
-        $title = strtolower(trim((string) $document->title));
-
-        return $title === 'loan agreement' || str_contains($title, 'loan agreement');
+        return match ($documentType) {
+            DocumentType::LOAN_AGREEMENT->value => LoanAgreementQuestionSchema::make(),
+            DocumentType::NDA->value => null,
+            default => null,
+        };
     }
 }

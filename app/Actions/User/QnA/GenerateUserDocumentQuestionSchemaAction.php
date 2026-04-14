@@ -18,14 +18,14 @@ class GenerateUserDocumentQuestionSchemaAction
         if (
             ! $force &&
             is_array($userDocument->question_schema_json) &&
-            ! empty($userDocument->question_schema_json['questions'])
+            ! empty($userDocument->question_schema_json['steps'])
         ) {
             return $userDocument->question_schema_json;
         }
 
         $schema = $userDocument->document->default_question_schema_json;
 
-        if (! is_array($schema) || empty($schema['questions'])) {
+        if (! is_array($schema) || empty($schema['steps'])) {
             throw new RuntimeException('No default question schema is configured for this document.');
         }
 

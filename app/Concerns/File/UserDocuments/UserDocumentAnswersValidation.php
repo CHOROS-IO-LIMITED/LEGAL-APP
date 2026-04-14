@@ -21,12 +21,12 @@ class UserDocumentAnswersValidation implements ValidationRule
 
         $schema = $this->userDocument->question_schema_json;
 
-        if (! is_array($schema) || ! isset($schema['questions']) || ! is_array($schema['questions'])) {
+        if (! is_array($schema) || ! isset($schema['steps']) || ! is_array($schema['steps'])) {
             $fail('Question schema is missing or invalid.');
             return;
         }
 
-        $visibleQuestions = $this->flattenVisibleQuestions($schema['questions'], $value);
+        $visibleQuestions = $this->flattenVisibleQuestionsFromSteps($schema['steps'], $value);
 
         foreach ($visibleQuestions as $question) {
             $key = $question['key'] ?? null;
@@ -49,6 +49,37 @@ class UserDocumentAnswersValidation implements ValidationRule
         }
     }
 
+    /**
+     * @param array<int, mixed> $steps
+     * @param array<string, mixed> $answers
+     * @return array<int, array<string, mixed>>
+     */
+    protected function flattenVisibleQuestionsFromSteps(array $steps, array $answers): array
+    {
+        $result = [];
+
+        foreach ($steps as $step) {
+            if (! is_array($step)) {
+                continue;
+            }
+
+            $questions = $step['questions'] ?? [];
+
+            if (! is_array($questions)) {
+                continue;
+            }
+
+            $result = array_merge($result, $this->flattenVisibleQuestions($questions, $answers));
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array<int, mixed> $questions
+     * @param array<string, mixed> $answers
+     * @return array<int, array<string, mixed>>
+     */
     protected function flattenVisibleQuestions(array $questions, array $answers): array
     {
         $result = [];

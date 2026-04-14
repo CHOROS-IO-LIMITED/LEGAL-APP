@@ -54,6 +54,7 @@ class QuestionController extends Controller
                     'id' => $userDocument->document?->id,
                     'title' => $userDocument->document?->title,
                     'description' => $userDocument->document?->description,
+                    'document_type' => $userDocument->document?->document_type,
                 ],
             ],
         ]);
@@ -75,6 +76,6 @@ class QuestionController extends Controller
 
         return redirect()
             ->route('user.dashboard')
-            ->with('success', 'Questions completed and PDF generated successfully.');
+            ->with('success', 'Questions completed and document generated successfully.');
     }
 }
