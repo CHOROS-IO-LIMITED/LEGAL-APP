@@ -21,7 +21,7 @@ final class GenerateLoanAgreementPdfAction
 
         $viewData = $this->mapper->map($answers);
 
-        $pdf = Pdf::loadView('pdf.loan-agreement', [
+        $pdf = Pdf::loadView('pdf.loan-agreement.document', [
             'data' => $viewData,
             'userDocument' => $userDocument,
         ])->setPaper('a4', 'portrait');
