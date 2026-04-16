@@ -15,31 +15,64 @@ class StoreDocumentFiles
         $disk = config('filesystems.default');
         $payload = Arr::except($data, ['image', 'document']);
 
-        if (isset($data['image']) && $data['image'] instanceof UploadedFile) {
+        if (($data['image'] ?? null) instanceof UploadedFile) {
             if ($document?->image_path) {
                 Storage::disk($disk)->delete($document->image_path);
             }
 
-            $payload['image_path'] = $data['image']->store('documents/images', $disk);
-            $payload['image_original_name'] = $data['image']->getClientOriginalName();
-            $payload['image_mime'] = $data['image']->getClientMimeType();
-            $payload['image_size'] = $data['image']->getSize();
+            /** @var UploadedFile $image */
+            $image = $data['image'];
+
+            $payload['image_path'] = $image->store('documents/images', $disk);
+            $payload['image_original_name'] = $image->getClientOriginalName();
+            $payload['image_mime'] = $image->getClientMimeType();
+            $payload['image_size'] = $image->getSize();
         }
 
-        if (isset($data['document']) && $data['document'] instanceof UploadedFile) {
+        if (($data['document'] ?? null) instanceof UploadedFile) {
             if ($document?->document_path) {
                 Storage::disk($disk)->delete($document->document_path);
             }
 
-            $payload['document_path'] = $data['document']->store('documents/files', $disk);
-            $payload['document_original_name'] = $data['document']->getClientOriginalName();
-            $payload['document_mime'] = $data['document']->getClientMimeType();
-            $payload['document_size'] = $data['document']->getSize();
+            /** @var UploadedFile $uploadedDocument */
+            $uploadedDocument = $data['document'];
+
+            $payload['document_path'] = $uploadedDocument->store('documents/files', $disk);
+            $payload['document_original_name'] = $uploadedDocument->getClientOriginalName();
+            $payload['document_mime'] = $uploadedDocument->getClientMimeType();
+            $payload['document_size'] = $uploadedDocument->getSize();
         }
 
-        $baseTitle = $payload['title'] ?? $document?->title ?? Str::random(8);
-        $payload['slug'] = Str::slug($baseTitle) . '-' . Str::lower(Str::random(6));
+        $baseTitle = trim((string) ($payload['title'] ?? $document?->title ?? Str::random(8)));
+
+        if (! $document || $baseTitle !== $document->title) {
+            $payload['slug'] = $this->generateUniqueSlug($baseTitle, $document);
+        }
 
         return $payload;
+    }
+
+    protected function generateUniqueSlug(string $title, ?Document $document = null): string
+    {
+        $base = Str::slug($title);
+
+        if ($base === '') {
+            $base = Str::lower(Str::random(8));
+        }
+
+        $slug = $base;
+        $counter = 1;
+
+        while (
+            Document::query()
+            ->when($document, fn($query) => $query->whereKeyNot($document->getKey()))
+            ->where('slug', $slug)
+            ->exists()
+        ) {
+            $slug = "{$base}-{$counter}";
+            $counter++;
+        }
+
+        return $slug;
     }
 }

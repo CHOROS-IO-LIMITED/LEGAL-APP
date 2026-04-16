@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Document;
+use App\Enums\DocumentType;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -15,7 +15,7 @@ class AdminProductController extends Controller
     {
         $this->authorize('viewAny', Document::class);
 
-        $user = Auth::user();
+        $user = $request->user();
 
         $documents = Document::query()
             ->with('user:id,name,email')
@@ -31,12 +31,13 @@ class AdminProductController extends Controller
             'stats' => [
                 'total_documents' => Document::count(),
                 'active_products' => Document::where('is_active', true)->count(),
-                'draft_products' => Document::whereNull('document_path')->count(),
+                'draft_products' => Document::query()->where('is_active', false)->count(),
                 'top_product' => Document::query()->latest()->value('title'),
             ],
             'can' => [
                 'create_document' => $request->user()->can('create', Document::class),
             ],
+            'documentTypes' => DocumentType::options(),
         ]);
     }
 }

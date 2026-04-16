@@ -27,6 +27,7 @@ type SortFilter = 'az' | 'za';
 type CreateDocumentForm = {
     title: string;
     price: string;
+    document_type: string;
     description: string;
     image: File | null;
     document: File | null;
@@ -35,6 +36,7 @@ type CreateDocumentForm = {
 type EditDocumentForm = {
     title: string;
     price: string;
+    document_type: string;
     description: string;
     image: File | null;
     document: File | null;
@@ -63,7 +65,7 @@ function revokePreview(url: string | null) {
     if (url) URL.revokeObjectURL(url);
 }
 
-export default function ProductIndex({ user, documents, stats, can }: ProductIndexProps) {
+export default function ProductIndex({ user, documents, stats, can, documentTypes }: ProductIndexProps) {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<DocumentItem | null>(null);
     const [viewingProduct, setViewingProduct] = useState<DocumentItem | null>(null);
@@ -83,6 +85,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
     const createForm = useForm<CreateDocumentForm>({
         title: '',
         price: '',
+        document_type: '',
         description: '',
         image: null,
         document: null,
@@ -91,6 +94,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
     const editForm = useForm<EditDocumentForm>({
         title: '',
         price: '',
+        document_type: '',
         description: '',
         image: null,
         document: null,
@@ -142,6 +146,7 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
         editForm.setData({
             title: editingProduct.title ?? '',
             price: editingProduct.price ? String(editingProduct.price) : '',
+            document_type: editingProduct.document_type ?? '',
             description: editingProduct.description ?? '',
             image: null,
             document: null,
@@ -396,6 +401,26 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                         />
                                                         {createForm.errors.price && <p className="text-xs text-red-500">{createForm.errors.price}</p>}
                                                     </div>
+                                                </div>
+
+                                                <div className="flex flex-col gap-2">
+                                                    <Label htmlFor="document_type">Document Type</Label>
+                                                    <select
+                                                        id="document_type"
+                                                        value={createForm.data.document_type}
+                                                        onChange={(e) => createForm.setData('document_type', e.target.value)}
+                                                        className="w-full rounded-none border border-[#D6D0C4] bg-white px-3 py-2 text-sm text-[#1A1614] outline-none focus:border-[#A68A64]"
+                                                    >
+                                                        <option value="">Select document type</option>
+                                                        {documentTypes.map((item) => (
+                                                            <option key={item.value} value={item.value}>
+                                                                {item.label}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    {createForm.errors.document_type && (
+                                                        <p className="text-xs text-red-500">{createForm.errors.document_type}</p>
+                                                    )}
                                                 </div>
                                             </div>
 
@@ -841,6 +866,24 @@ export default function ProductIndex({ user, documents, stats, can }: ProductInd
                                                 />
                                                 {editForm.errors.price && <p className="text-xs text-red-500">{editForm.errors.price}</p>}
                                             </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-2">
+                                            <Label htmlFor="edit-document-type">Document Type</Label>
+                                            <select
+                                                id="edit-document-type"
+                                                value={editForm.data.document_type}
+                                                onChange={(e) => editForm.setData('document_type', e.target.value)}
+                                                className="w-full rounded-none border border-[#D6D0C4] bg-white px-3 py-2 text-sm text-[#1A1614] outline-none focus:border-[#A68A64]"
+                                            >
+                                                <option value="">Select document type</option>
+                                                {documentTypes.map((item) => (
+                                                    <option key={item.value} value={item.value}>
+                                                        {item.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            {editForm.errors.document_type && <p className="text-xs text-red-500">{editForm.errors.document_type}</p>}
                                         </div>
                                     </div>
 

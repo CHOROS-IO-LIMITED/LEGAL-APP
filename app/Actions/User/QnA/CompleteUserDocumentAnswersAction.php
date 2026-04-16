@@ -3,17 +3,22 @@
 namespace App\Actions\User\QnA;
 
 use App\Models\UserDocument;
+use Illuminate\Support\Carbon;
 
 class CompleteUserDocumentAnswersAction
 {
-    public function handle(UserDocument $userDocument, array $answers): UserDocument
+    /**
+     * @param array<string, mixed> $answers
+     */
+    public function handle(UserDocument $userDocument, array $answers,  array $warnings = []): UserDocument
     {
-        $userDocument->update([
+        $userDocument->forceFill([
             'answers_json' => $answers,
+            'ai_warnings_json' => $warnings,
             'status' => UserDocument::STATUS_QNA_COMPLETED,
-            'qna_completed_at' => now(),
-        ]);
+            'qna_completed_at' => Carbon::now(),
+        ])->save();
 
-        return $userDocument->refresh();
+        return $userDocument->fresh();
     }
 }

@@ -8,6 +8,7 @@ export type DocumentItem = {
     title: string;
     slug: string | null;
     price: string | number;
+    document_type: string | null;
     description: string | null;
     short_description?: string | null;
     image_path?: string | null;
@@ -38,9 +39,15 @@ export interface DocumentPermissions {
     create_document: boolean;
 }
 
+export type DocumentTypeOption = {
+    value: string;
+    label: string;
+};
+
 export interface ProductIndexProps {
     user: User;
     documents: DocumentItem[];
     stats: DocumentStats;
     can: DocumentPermissions;
+    documentTypes: DocumentTypeOption[];
 }

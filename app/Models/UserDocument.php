@@ -69,6 +69,7 @@ class UserDocument extends Model
         'rejected_at',
         'completed_at',
         'signature_completed_at',
+        'ai_warnings_json',
     ];
 
     protected $casts = [

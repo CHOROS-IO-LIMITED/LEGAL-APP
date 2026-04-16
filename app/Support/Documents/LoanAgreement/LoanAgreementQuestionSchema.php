@@ -2,73 +2,176 @@
 
 namespace App\Support\Documents\LoanAgreement;
 
-class LoanAgreementQuestionSchema
+use App\Enums\DocumentType;
+
+final class LoanAgreementQuestionSchema
 {
     public static function make(): array
     {
         return [
-            'document_type' => 'loan_agreement',
-            'questions' => [
+            'document_type' => DocumentType::LOAN_AGREEMENT->value,
+            'version' => 5,
+            'title' => 'Loan Agreement',
+            'steps' => [
                 [
-                    'key' => 'agreement_date',
-                    'label' => 'What is the agreement date?',
-                    'type' => 'date',
-                    'required' => true,
-                ],
-                [
-                    'key' => 'confirm_same_person',
-                    'label' => 'Are you the same person previously identified for this matter?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['yes', 'no'],
-                ],
-                [
-                    'key' => 'party_role',
-                    'label' => 'Are you completing this as the lender or the borrower?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['lender', 'borrower'],
-                ],
-                [
-                    'key' => 'acting_capacity',
-                    'label' => 'Are you acting personally or on behalf of a company you own or are a director of?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['personally', 'company'],
-                    'follow_ups' => [
+                    'key' => 'agreement_details',
+                    'title' => 'Agreement Details',
+                    'description' => 'Basic agreement information.',
+                    'questions' => [
                         [
-                            'when' => [
-                                'field' => 'acting_capacity',
-                                'operator' => 'equals',
-                                'value' => 'company',
-                            ],
-                            'questions' => [
+                            'key' => 'agreement_date',
+                            'label' => 'What is the agreement date?',
+                            'type' => 'date',
+                            'required' => true,
+                        ],
+                        [
+                            'key' => 'confirm_same_person',
+                            'label' => 'Are you the same person who was previously identified (ID’d)?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['yes', 'no'],
+                        ],
+                    ],
+                ],
+                [
+                    'key' => 'form_completion',
+                    'title' => 'Who is Completing the Form',
+                    'description' => 'Identify who is answering the questions.',
+                    'questions' => [
+                        [
+                            'key' => 'answering_party_role',
+                            'label' => 'Who is completing this form?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['lender', 'borrower'],
+                        ],
+                    ],
+                ],
+                [
+                    'key' => 'lender_details',
+                    'title' => 'Lender Details',
+                    'description' => 'Provide the lender details.',
+                    'questions' => [
+                        [
+                            'key' => 'lender_entity_type',
+                            'label' => 'Is the lender an individual or a company?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['individual', 'company'],
+                            'follow_ups' => [
                                 [
-                                    'key' => 'client_company_name',
-                                    'label' => 'What is the full company name?',
-                                    'type' => 'text',
-                                    'required' => true,
-                                    'help_text' => 'Please enter the exact company name manually.',
+                                    'when' => [
+                                        'field' => 'lender_entity_type',
+                                        'operator' => 'equals',
+                                        'value' => 'individual',
+                                    ],
+                                    'questions' => [
+                                        [
+                                            'key' => 'lender_first_name',
+                                            'label' => 'Lender first name',
+                                            'type' => 'text',
+                                            'required' => true,
+                                        ],
+                                        [
+                                            'key' => 'lender_middle_name',
+                                            'label' => 'Lender middle name',
+                                            'type' => 'text',
+                                            'required' => false,
+                                        ],
+                                        [
+                                            'key' => 'lender_last_name',
+                                            'label' => 'Lender last name',
+                                            'type' => 'text',
+                                            'required' => true,
+                                        ],
+                                        [
+                                            'key' => 'lender_home_address',
+                                            'label' => 'Lender full home address',
+                                            'type' => 'textarea',
+                                            'required' => true,
+                                        ],
+                                    ],
                                 ],
                                 [
-                                    'key' => 'client_is_director',
-                                    'label' => 'Are you a director of that company?',
-                                    'type' => 'select',
-                                    'required' => true,
-                                    'options' => ['yes', 'no'],
-                                    'follow_ups' => [
+                                    'when' => [
+                                        'field' => 'lender_entity_type',
+                                        'operator' => 'equals',
+                                        'value' => 'company',
+                                    ],
+                                    'questions' => [
                                         [
-                                            'when' => [
-                                                'field' => 'client_is_director',
-                                                'operator' => 'equals',
-                                                'value' => 'yes',
-                                            ],
-                                            'questions' => [
+                                            'key' => 'lender_company_name',
+                                            'label' => 'Lender company full name',
+                                            'type' => 'text',
+                                            'required' => true,
+                                        ],
+                                        [
+                                            'key' => 'lender_company_number',
+                                            'label' => 'Lender company number',
+                                            'type' => 'text',
+                                            'required' => true,
+                                        ],
+                                        [
+                                            'key' => 'lender_company_address',
+                                            'label' => 'Lender registered office address',
+                                            'type' => 'textarea',
+                                            'required' => true,
+                                        ],
+                                        [
+                                            'key' => 'lender_is_director',
+                                            'label' => 'Are you a director of the lender company?',
+                                            'type' => 'radio',
+                                            'required' => true,
+                                            'options' => ['yes', 'no'],
+                                        ],
+                                        [
+                                            'key' => 'lender_director_will_sign',
+                                            'label' => 'Will you be signing the document for the lender company?',
+                                            'type' => 'radio',
+                                            'required' => true,
+                                            'options' => ['yes', 'no'],
+                                            'follow_ups' => [
                                                 [
-                                                    'key' => 'client_signatory_full_name',
-                                                    'label' => 'What is your full legal name for the signatory section?',
-                                                    'type' => 'text',
-                                                    'required' => true,
+                                                    'when' => [
+                                                        'field' => 'lender_is_director',
+                                                        'operator' => 'equals',
+                                                        'value' => 'no',
+                                                    ],
+                                                    'questions' => [
+                                                        [
+                                                            'key' => 'lender_company_position',
+                                                            'label' => 'What is your position in the lender company?',
+                                                            'type' => 'text',
+                                                            'required' => true,
+                                                        ],
+                                                    ],
+                                                ],
+                                                [
+                                                    'when' => [
+                                                        'field' => 'lender_director_will_sign',
+                                                        'operator' => 'equals',
+                                                        'value' => 'yes',
+                                                    ],
+                                                    'questions' => [
+                                                        [
+                                                            'key' => 'lender_signatory_first_name',
+                                                            'label' => 'Lender signatory first name',
+                                                            'type' => 'text',
+                                                            'required' => true,
+                                                        ],
+                                                        [
+                                                            'key' => 'lender_signatory_middle_name',
+                                                            'label' => 'Lender signatory middle name',
+                                                            'type' => 'text',
+                                                            'required' => false,
+                                                        ],
+                                                        [
+                                                            'key' => 'lender_signatory_last_name',
+                                                            'label' => 'Lender signatory last name',
+                                                            'type' => 'text',
+                                                            'required' => true,
+                                                        ],
+                                                    ],
                                                 ],
                                             ],
                                         ],
@@ -79,116 +182,375 @@ class LoanAgreementQuestionSchema
                     ],
                 ],
                 [
-                    'key' => 'lender_entity_type',
-                    'label' => 'Is the lender an individual or a company?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['individual', 'company'],
-                    'follow_ups' => [
+                    'key' => 'borrower_details',
+                    'title' => 'Borrower Details',
+                    'description' => 'Provide the borrower details.',
+                    'questions' => [
                         [
-                            'when' => ['field' => 'lender_entity_type', 'operator' => 'equals', 'value' => 'individual'],
-                            'questions' => [
-                                [
-                                    'key' => 'lender_full_name',
-                                    'label' => 'What is the lender’s full legal name?',
-                                    'type' => 'text',
-                                    'required' => true,
-                                ],
-                                [
-                                    'key' => 'lender_address',
-                                    'label' => 'What is the lender’s full address?',
-                                    'type' => 'textarea',
-                                    'required' => true,
-                                ],
-                                [
-                                    'key' => 'lender_signatory_name',
-                                    'label' => 'What is the lender signatory name?',
-                                    'type' => 'text',
-                                    'required' => true,
-                                ],
-                            ],
+                            'key' => 'borrower_count',
+                            'label' => 'How many borrowers are there?',
+                            'type' => 'number',
+                            'required' => true,
+                            'min' => 1,
                         ],
                         [
-                            'when' => ['field' => 'lender_entity_type', 'operator' => 'equals', 'value' => 'company'],
-                            'questions' => [
+                            'key' => 'borrower_entity_type',
+                            'label' => 'Is the borrower an individual or a company?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['individual', 'company'],
+                            'follow_ups' => [
                                 [
-                                    'key' => 'lender_company_name',
-                                    'label' => 'What is the lender company’s full name?',
-                                    'type' => 'text',
-                                    'required' => true,
+                                    'when' => [
+                                        'field' => 'borrower_entity_type',
+                                        'operator' => 'equals',
+                                        'value' => 'individual',
+                                    ],
+                                    'questions' => [
+                                        [
+                                            'key' => 'borrower_first_name',
+                                            'label' => 'Borrower first name',
+                                            'type' => 'text',
+                                            'required' => true,
+                                        ],
+                                        [
+                                            'key' => 'borrower_middle_name',
+                                            'label' => 'Borrower middle name',
+                                            'type' => 'text',
+                                            'required' => false,
+                                        ],
+                                        [
+                                            'key' => 'borrower_last_name',
+                                            'label' => 'Borrower last name',
+                                            'type' => 'text',
+                                            'required' => true,
+                                        ],
+                                        [
+                                            'key' => 'borrower_home_address',
+                                            'label' => 'Borrower full home address',
+                                            'type' => 'textarea',
+                                            'required' => true,
+                                        ],
+                                    ],
                                 ],
                                 [
-                                    'key' => 'lender_company_number',
-                                    'label' => 'What is the lender company number?',
-                                    'type' => 'text',
-                                    'required' => true,
-                                ],
-                                [
-                                    'key' => 'lender_registered_office_address',
-                                    'label' => 'What is the lender company’s registered office address?',
-                                    'type' => 'textarea',
-                                    'required' => true,
-                                ],
-                                [
-                                    'key' => 'lender_signatory_name',
-                                    'label' => 'What is the full legal name of the lender’s signatory?',
-                                    'type' => 'text',
-                                    'required' => true,
+                                    'when' => [
+                                        'field' => 'borrower_entity_type',
+                                        'operator' => 'equals',
+                                        'value' => 'company',
+                                    ],
+                                    'questions' => [
+                                        [
+                                            'key' => 'borrower_company_name',
+                                            'label' => 'Borrower company full name',
+                                            'type' => 'text',
+                                            'required' => true,
+                                        ],
+                                        [
+                                            'key' => 'borrower_company_number',
+                                            'label' => 'Borrower company number',
+                                            'type' => 'text',
+                                            'required' => true,
+                                        ],
+                                        [
+                                            'key' => 'borrower_company_address',
+                                            'label' => 'Borrower registered office address',
+                                            'type' => 'textarea',
+                                            'required' => true,
+                                        ],
+                                        [
+                                            'key' => 'borrower_is_director',
+                                            'label' => 'Are you a director of the borrower company?',
+                                            'type' => 'radio',
+                                            'required' => true,
+                                            'options' => ['yes', 'no'],
+                                        ],
+                                        [
+                                            'key' => 'borrower_director_will_sign',
+                                            'label' => 'Will you be signing the document for the borrower company?',
+                                            'type' => 'radio',
+                                            'required' => true,
+                                            'options' => ['yes', 'no'],
+                                            'follow_ups' => [
+                                                [
+                                                    'when' => [
+                                                        'field' => 'borrower_is_director',
+                                                        'operator' => 'equals',
+                                                        'value' => 'no',
+                                                    ],
+                                                    'questions' => [
+                                                        [
+                                                            'key' => 'borrower_company_position',
+                                                            'label' => 'What is your position in the borrower company?',
+                                                            'type' => 'text',
+                                                            'required' => true,
+                                                        ],
+                                                    ],
+                                                ],
+                                                [
+                                                    'when' => [
+                                                        'field' => 'borrower_director_will_sign',
+                                                        'operator' => 'equals',
+                                                        'value' => 'yes',
+                                                    ],
+                                                    'questions' => [
+                                                        [
+                                                            'key' => 'borrower_signatory_first_name',
+                                                            'label' => 'Borrower signatory first name',
+                                                            'type' => 'text',
+                                                            'required' => true,
+                                                        ],
+                                                        [
+                                                            'key' => 'borrower_signatory_middle_name',
+                                                            'label' => 'Borrower signatory middle name',
+                                                            'type' => 'text',
+                                                            'required' => false,
+                                                        ],
+                                                        [
+                                                            'key' => 'borrower_signatory_last_name',
+                                                            'label' => 'Borrower signatory last name',
+                                                            'type' => 'text',
+                                                            'required' => true,
+                                                        ],
+                                                    ],
+                                                ],
+                                            ],
+                                        ],
+                                        [
+                                            'key' => 'borrower_operational_information_required',
+                                            'label' => 'Does the lender want the borrower to provide ongoing information about its operations?',
+                                            'type' => 'radio',
+                                            'required' => false,
+                                            'options' => ['yes', 'no'],
+                                            'follow_ups' => [
+                                                [
+                                                    'when' => [
+                                                        'field' => 'borrower_operational_information_required',
+                                                        'operator' => 'equals',
+                                                        'value' => 'yes',
+                                                    ],
+                                                    'questions' => [
+                                                        [
+                                                            'key' => 'borrower_operational_information_items',
+                                                            'label' => 'What information should the borrower provide to the lender?',
+                                                            'type' => 'checkbox',
+                                                            'required' => true,
+                                                            'options' => [
+                                                                'audited_annual_accounts',
+                                                                'monthly_management_accounts',
+                                                                'shareholder_or_creditor_notices',
+                                                                'other_reasonably_requested_information',
+                                                            ],
+                                                            'option_labels' => [
+                                                                'audited_annual_accounts' => 'Within 180 days (or sooner if available) after each financial year, audited consolidated accounts',
+                                                                'monthly_management_accounts' => 'Within 30 days after the end of each month, monthly management accounts',
+                                                                'shareholder_or_creditor_notices' => 'Promptly, all notices or other documents sent to shareholders or creditors generally',
+                                                                'other_reasonably_requested_information' => 'Promptly, such financial or other information as the lender may reasonably request from time to time',
+                                                            ],
+                                                        ],
+                                                    ],
+                                                ],
+                                            ],
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
                     ],
                 ],
                 [
-                    'key' => 'borrower_entity_type',
-                    'label' => 'Is the borrower an individual or a company?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['individual', 'company'],
-                    'follow_ups' => [
+                    'key' => 'loan_terms',
+                    'title' => 'Loan Terms',
+                    'description' => 'Provide the commercial terms of the loan.',
+                    'questions' => [
                         [
-                            'when' => ['field' => 'borrower_entity_type', 'operator' => 'equals', 'value' => 'individual'],
-                            'questions' => [
+                            'key' => 'loan_amount',
+                            'label' => 'How much is the loan for?',
+                            'type' => 'number',
+                            'required' => true,
+                            'min' => 1,
+                            'placeholder' => '50000',
+                        ],
+                        [
+                            'key' => 'loan_security_type',
+                            'label' => 'Is the loan secured or unsecured?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['secured', 'unsecured'],
+                            'follow_ups' => [
                                 [
-                                    'key' => 'borrower_full_name',
-                                    'label' => 'What is the borrower’s full legal name?',
-                                    'type' => 'text',
-                                    'required' => true,
-                                ],
-                                [
-                                    'key' => 'borrower_address',
-                                    'label' => 'What is the borrower’s full address?',
-                                    'type' => 'textarea',
-                                    'required' => true,
-                                ],
-                                [
-                                    'key' => 'borrower_signatory_name',
-                                    'label' => 'What is the borrower signatory name?',
-                                    'type' => 'text',
-                                    'required' => true,
-                                ],
-                                [
-                                    'key' => 'multiple_borrowers',
-                                    'label' => 'Is there more than one borrower?',
-                                    'type' => 'select',
-                                    'required' => true,
-                                    'options' => ['yes', 'no'],
-                                    'follow_ups' => [
+                                    'when' => [
+                                        'field' => 'loan_security_type',
+                                        'operator' => 'equals',
+                                        'value' => 'secured',
+                                    ],
+                                    'questions' => [
                                         [
-                                            'when' => ['field' => 'multiple_borrowers', 'operator' => 'equals', 'value' => 'yes'],
-                                            'questions' => [
-                                                [
-                                                    'key' => 'joint_and_several_acknowledgement',
-                                                    'label' => 'Do you understand that the borrowers’ liabilities under the loan agreement will be joint and several?',
-                                                    'type' => 'checkbox',
-                                                    'required' => true,
-                                                    'options' => ['I understand'],
+                                            'key' => 'security_types',
+                                            'label' => 'What security is being offered for the loan?',
+                                            'type' => 'checkbox',
+                                            'required' => true,
+                                            'options' => [
+                                                'first_charge',
+                                                'second_charge',
+                                                'debenture',
+                                                'personal_guarantee',
+                                            ],
+                                            'option_labels' => [
+                                                'first_charge' => 'First charge on a property',
+                                                'second_charge' => 'Second charge on a property',
+                                                'debenture' => 'Debenture',
+                                                'personal_guarantee' => 'Personal guarantee',
+                                            ],
+                                            'option_visibility' => [
+                                                'debenture' => [
+                                                    'field' => 'borrower_entity_type',
+                                                    'operator' => 'equals',
+                                                    'value' => 'company',
                                                 ],
+                                            ],
+                                        ],
+                                        [
+                                            'key' => 'security_type_explanation',
+                                            'label' => 'Guidance',
+                                            'type' => 'info',
+                                            'required' => false,
+                                            'content' => 'A first charge usually gives the lender first priority over the property. A second charge ranks behind an existing first charge. A debenture is generally used where the borrower is a company. A personal guarantee requires one or more guarantors to guarantee the borrower’s obligations.',
+                                        ],
+                                        [
+                                            'key' => 'security_first_charge_group',
+                                            'label' => 'First charge details',
+                                            'type' => 'group',
+                                            'required' => false,
+                                            'follow_ups' => [
                                                 [
-                                                    'key' => 'additional_borrower_details',
-                                                    'label' => 'Please provide the full names and addresses of the additional borrower(s).',
-                                                    'type' => 'textarea',
-                                                    'required' => true,
+                                                    'when' => [
+                                                        'field' => 'security_types',
+                                                        'operator' => 'contains',
+                                                        'value' => 'first_charge',
+                                                    ],
+                                                    'questions' => [
+                                                        [
+                                                            'key' => 'first_charge_property_address',
+                                                            'label' => 'What is the property address for the first charge?',
+                                                            'type' => 'textarea',
+                                                            'required' => true,
+                                                        ],
+                                                        [
+                                                            'key' => 'first_charge_title_number',
+                                                            'label' => 'What is the Land Registry title number for the first charge property?',
+                                                            'type' => 'text',
+                                                            'required' => false,
+                                                        ],
+                                                    ],
+                                                ],
+                                            ],
+                                        ],
+                                        [
+                                            'key' => 'security_second_charge_group',
+                                            'label' => 'Second charge details',
+                                            'type' => 'group',
+                                            'required' => false,
+                                            'follow_ups' => [
+                                                [
+                                                    'when' => [
+                                                        'field' => 'security_types',
+                                                        'operator' => 'contains',
+                                                        'value' => 'second_charge',
+                                                    ],
+                                                    'questions' => [
+                                                        [
+                                                            'key' => 'second_charge_property_address',
+                                                            'label' => 'What is the property address for the second charge?',
+                                                            'type' => 'textarea',
+                                                            'required' => true,
+                                                        ],
+                                                        [
+                                                            'key' => 'second_charge_title_number',
+                                                            'label' => 'What is the Land Registry title number for the second charge property?',
+                                                            'type' => 'text',
+                                                            'required' => false,
+                                                        ],
+                                                        [
+                                                            'key' => 'second_charge_consent_required',
+                                                            'label' => 'Does the borrower need consent from the first charge holder for the second charge?',
+                                                            'type' => 'radio',
+                                                            'required' => true,
+                                                            'options' => ['yes', 'no', 'unknown'],
+                                                        ],
+                                                    ],
+                                                ],
+                                            ],
+                                        ],
+                                        [
+                                            'key' => 'security_debenture_group',
+                                            'label' => 'Debenture details',
+                                            'type' => 'group',
+                                            'required' => false,
+                                            'follow_ups' => [
+                                                [
+                                                    'when' => [
+                                                        'field' => 'security_types',
+                                                        'operator' => 'contains',
+                                                        'value' => 'debenture',
+                                                    ],
+                                                    'questions' => [
+                                                        [
+                                                            'key' => 'debenture_secured_assets_description',
+                                                            'label' => 'Describe the secured assets or business assets, if needed',
+                                                            'type' => 'textarea',
+                                                            'required' => false,
+                                                            'placeholder' => 'Optional drafting detail',
+                                                        ],
+                                                    ],
+                                                ],
+                                            ],
+                                        ],
+                                        [
+                                            'key' => 'security_personal_guarantee_group',
+                                            'label' => 'Personal guarantee details',
+                                            'type' => 'group',
+                                            'required' => false,
+                                            'follow_ups' => [
+                                                [
+                                                    'when' => [
+                                                        'field' => 'security_types',
+                                                        'operator' => 'contains',
+                                                        'value' => 'personal_guarantee',
+                                                    ],
+                                                    'questions' => [
+                                                        [
+                                                            'key' => 'guarantors',
+                                                            'label' => 'Guarantors',
+                                                            'type' => 'repeater',
+                                                            'required' => true,
+                                                            'min_items' => 1,
+                                                            'item_label' => 'Guarantor',
+                                                            'add_button_label' => 'Add guarantor',
+                                                            'fields' => [
+                                                                [
+                                                                    'key' => 'name',
+                                                                    'label' => 'What is the guarantor’s full name?',
+                                                                    'type' => 'text',
+                                                                    'required' => true,
+                                                                ],
+                                                                [
+                                                                    'key' => 'connection',
+                                                                    'label' => 'What is the guarantor’s connection to the borrower?',
+                                                                    'type' => 'text',
+                                                                    'required' => false,
+                                                                    'placeholder' => 'Director, shareholder, spouse, friend, etc.',
+                                                                ],
+                                                                [
+                                                                    'key' => 'is_director_of_borrower',
+                                                                    'label' => 'Is this guarantor a director of the borrower?',
+                                                                    'type' => 'radio',
+                                                                    'required' => false,
+                                                                    'options' => ['yes', 'no'],
+                                                                ],
+                                                            ],
+                                                        ],
+                                                    ],
                                                 ],
                                             ],
                                         ],
@@ -197,356 +559,306 @@ class LoanAgreementQuestionSchema
                             ],
                         ],
                         [
-                            'when' => ['field' => 'borrower_entity_type', 'operator' => 'equals', 'value' => 'company'],
-                            'questions' => [
-                                [
-                                    'key' => 'borrower_company_name',
-                                    'label' => 'What is the borrower company’s full name?',
-                                    'type' => 'text',
-                                    'required' => true,
-                                ],
-                                [
-                                    'key' => 'borrower_company_number',
-                                    'label' => 'What is the borrower company number?',
-                                    'type' => 'text',
-                                    'required' => true,
-                                ],
-                                [
-                                    'key' => 'borrower_registered_office_address',
-                                    'label' => 'What is the borrower company’s registered office address?',
-                                    'type' => 'textarea',
-                                    'required' => true,
-                                ],
-                                [
-                                    'key' => 'borrower_signatory_name',
-                                    'label' => 'What is the full legal name of the borrower’s signatory?',
-                                    'type' => 'text',
-                                    'required' => true,
-                                ],
-                            ],
+                            'key' => 'loan_drawdown_type',
+                            'label' => 'Will the loan be taken all at once or in stages?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['all_at_once', 'in_stages'],
                         ],
-                    ],
-                ],
-                [
-                    'key' => 'loan_amount_gbp',
-                    'label' => 'How much is the loan for in pounds sterling?',
-                    'type' => 'number',
-                    'required' => true,
-                    'min' => 1,
-                ],
-                [
-                    'key' => 'secured_or_unsecured',
-                    'label' => 'Is the loan secured or unsecured?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['secured', 'unsecured'],
-                ],
-                [
-                    'key' => 'drawdown_method',
-                    'label' => 'Will the loan be taken all at once or in stages?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['all_at_once', 'in_stages'],
-                ],
-                [
-                    'key' => 'loan_term_months',
-                    'label' => 'How many months is the loan term?',
-                    'type' => 'number',
-                    'required' => true,
-                    'min' => 1,
-                ],
-                [
-                    'key' => 'repayment_terms',
-                    'label' => 'Can the loan be repaid early or paid off in stages?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['early_repayment_allowed', 'stage_repayments_allowed', 'both', 'neither'],
-                ],
-                [
-                    'key' => 'repayment_bank_account_type',
-                    'label' => 'Will repayments be made to a UK bank account or an overseas bank account?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['uk', 'overseas'],
-                ],
-                [
-                    'key' => 'security_types',
-                    'label' => 'What security is being offered for the loan?',
-                    'type' => 'checkbox',
-                    'required' => true,
-                    'options' => ['first_charge_property', 'second_charge_property', 'debenture', 'personal_guarantee'],
-                    'help_text' => 'You may choose more than one option.',
-                ],
-                [
-                    'key' => 'first_charge_property_address',
-                    'label' => 'What is the full address of the property for the first charge?',
-                    'type' => 'textarea',
-                    'required' => false,
-                    'follow_ups' => [
                         [
-                            'when' => ['field' => 'security_types', 'operator' => 'equals', 'value' => 'first_charge_property'],
-                            'questions' => [
-                                [
-                                    'key' => 'first_charge_title_number',
-                                    'label' => 'What is the title number for the first charge property?',
-                                    'type' => 'text',
-                                    'required' => true,
-                                ],
-                            ],
+                            'key' => 'loan_term_months',
+                            'label' => 'How long is the loan for (in months)?',
+                            'type' => 'number',
+                            'required' => true,
+                            'min' => 1,
+                            'placeholder' => '12',
                         ],
-                    ],
-                ],
-                [
-                    'key' => 'second_charge_property_address',
-                    'label' => 'What is the full address of the property for the second charge?',
-                    'type' => 'textarea',
-                    'required' => false,
-                ],
-                [
-                    'key' => 'second_charge_title_number',
-                    'label' => 'What is the title number for the second charge property?',
-                    'type' => 'text',
-                    'required' => false,
-                ],
-                [
-                    'key' => 'personal_guarantor_details',
-                    'label' => 'Please provide the full details of the person giving the personal guarantee.',
-                    'type' => 'textarea',
-                    'required' => false,
-                ],
-                [
-                    'key' => 'personal_guarantor_connection',
-                    'label' => 'What is that person’s connection to the borrower?',
-                    'type' => 'text',
-                    'required' => false,
-                ],
-                [
-                    'key' => 'upsell_pg_agreement',
-                    'label' => 'Would you like to add a Personal Guarantee agreement for a discounted price after completing this agreement?',
-                    'type' => 'select',
-                    'required' => false,
-                    'options' => ['yes', 'no'],
-                    'is_upsell' => true,
-                ],
-                [
-                    'key' => 'loan_purpose',
-                    'label' => 'What is the purpose of the loan?',
-                    'type' => 'textarea',
-                    'required' => true,
-                ],
-                [
-                    'key' => 'loan_purpose_property_related',
-                    'label' => 'Is the loan purpose related to any kind of property development?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['yes', 'no'],
-                    'follow_ups' => [
                         [
-                            'when' => ['field' => 'loan_purpose_property_related', 'operator' => 'equals', 'value' => 'yes'],
-                            'questions' => [
-                                [
-                                    'key' => 'property_project_type',
-                                    'label' => 'Is the property being created or renovated to be sold, rented, or either?',
-                                    'type' => 'select',
-                                    'required' => true,
-                                    'options' => ['sold', 'rented', 'either'],
-                                ],
-                                [
-                                    'key' => 'property_control_information_level',
-                                    'label' => 'How much control information about the property should be included?',
-                                    'type' => 'textarea',
-                                    'required' => true,
-                                ],
-                                [
-                                    'key' => 'property_restriction_occupy',
-                                    'label' => 'Should there be an occupation restriction?',
-                                    'type' => 'select',
-                                    'required' => true,
-                                    'options' => ['yes', 'no'],
-                                ],
-                                [
-                                    'key' => 'property_restriction_third_party_interest',
-                                    'label' => 'Should there be a third-party interest restriction?',
-                                    'type' => 'select',
-                                    'required' => true,
-                                    'options' => ['yes', 'no'],
-                                ],
-                                [
-                                    'key' => 'property_restriction_renting',
-                                    'label' => 'Should there be a renting restriction?',
-                                    'type' => 'select',
-                                    'required' => true,
-                                    'options' => ['yes', 'no'],
-                                ],
-                            ],
+                            'key' => 'loan_purpose_guidance',
+                            'label' => 'Purpose guidance',
+                            'type' => 'info',
+                            'required' => false,
+                            'content' => 'The agreement will state the Purpose of the loan. That means the Borrower may only use the funds for that stated Purpose. The Purpose should therefore be as specific and clear as possible.',
                         ],
-                    ],
-                ],
-                [
-                    'key' => 'interest_structure',
-                    'label' => 'Is interest charged as a rate or as a fixed amount?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['rate', 'fixed_amount'],
-                    'follow_ups' => [
                         [
-                            'when' => ['field' => 'interest_structure', 'operator' => 'equals', 'value' => 'rate'],
-                            'questions' => [
+                            'key' => 'loan_purpose',
+                            'label' => 'What is the purpose of the loan?',
+                            'type' => 'textarea',
+                            'required' => true,
+                            'placeholder' => 'For example: to fund the deposit and acquisition costs for the purchase of 10 High Street, London',
+                        ],
+                        [
+                            'key' => 'purpose_is_property_development',
+                            'label' => 'Is the purpose related to any kind of property development?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['yes', 'no'],
+                            'follow_ups' => [
                                 [
-                                    'key' => 'interest_rate_value',
-                                    'label' => 'What is the interest rate?',
-                                    'type' => 'text',
-                                    'required' => true,
-                                    'placeholder' => 'Example: 10',
-                                ],
-                                [
-                                    'key' => 'interest_payment_timing',
-                                    'label' => 'Will interest be paid monthly, yearly, rolled up and compounded, or rolled up without compounding?',
-                                    'type' => 'select',
-                                    'required' => true,
-                                    'options' => ['monthly', 'yearly', 'rolled_up_compound', 'rolled_up_simple'],
+                                    'when' => [
+                                        'field' => 'purpose_is_property_development',
+                                        'operator' => 'equals',
+                                        'value' => 'yes',
+                                    ],
+                                    'questions' => [
+                                        [
+                                            'key' => 'development_property_address',
+                                            'label' => 'What is the address of the development property?',
+                                            'type' => 'textarea',
+                                            'required' => false,
+                                        ],
+                                        [
+                                            'key' => 'development_type',
+                                            'label' => 'Is the loan for the creation of a property, renovation of a property, or both?',
+                                            'type' => 'radio',
+                                            'required' => true,
+                                            'options' => ['creation', 'renovation', 'both'],
+                                        ],
+                                        [
+                                            'key' => 'development_exit_strategy',
+                                            'label' => 'Once completed, is the property intended to be sold, rented, or either?',
+                                            'type' => 'radio',
+                                            'required' => true,
+                                            'options' => ['sold', 'rented', 'either'],
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
                         [
-                            'when' => ['field' => 'interest_structure', 'operator' => 'equals', 'value' => 'fixed_amount'],
-                            'questions' => [
+                            'key' => 'property_control_required',
+                            'label' => 'If the loan relates to a property, should the borrower need the lender’s prior written consent before dealing with that property?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['yes', 'no'],
+                            'follow_ups' => [
                                 [
-                                    'key' => 'fixed_interest_amount',
-                                    'label' => 'What is the fixed interest amount?',
-                                    'type' => 'number',
-                                    'required' => true,
-                                    'min' => 0,
+                                    'when' => [
+                                        'field' => 'property_control_required',
+                                        'operator' => 'equals',
+                                        'value' => 'yes',
+                                    ],
+                                    'questions' => [
+                                        [
+                                            'key' => 'property_control_occupy_restriction',
+                                            'label' => 'Should there be a restriction on occupying the property without the lender’s prior written consent?',
+                                            'type' => 'radio',
+                                            'required' => true,
+                                            'options' => ['yes', 'no'],
+                                        ],
+                                        [
+                                            'key' => 'property_control_create_interest_restriction',
+                                            'label' => 'Should there be a restriction on creating or granting any interest in the property in favour of a third party without the lender’s prior written consent?',
+                                            'type' => 'radio',
+                                            'required' => true,
+                                            'options' => ['yes', 'no'],
+                                        ],
+                                        [
+                                            'key' => 'property_control_rent_restriction',
+                                            'label' => 'Should there be a restriction on renting out the property without the lender’s prior written consent?',
+                                            'type' => 'radio',
+                                            'required' => true,
+                                            'options' => ['yes', 'no'],
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
-                    ],
-                ],
-                [
-                    'key' => 'default_interest_rate',
-                    'label' => 'What default interest rate above the Bank of England base rate should apply?',
-                    'type' => 'number',
-                    'required' => true,
-                    'min' => 0,
-                ],
-                [
-                    'key' => 'borrower_company_operations_info_required',
-                    'label' => 'If the borrower is a company, does the lender want significant information about the borrower’s operations?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['yes', 'no'],
-                    'follow_ups' => [
                         [
-                            'when' => ['field' => 'borrower_company_operations_info_required', 'operator' => 'equals', 'value' => 'yes'],
-                            'questions' => [
+                            'key' => 'interest_structure',
+                            'label' => 'Is the interest a fixed amount irrespective of time, or a rate of interest?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['fixed_amount', 'rate'],
+                            'option_labels' => [
+                                'fixed_amount' => 'Fixed amount irrespective of time',
+                                'rate' => 'Rate of interest',
+                            ],
+                            'follow_ups' => [
                                 [
-                                    'key' => 'company_info_audited_accounts',
-                                    'label' => 'Require audited consolidated accounts?',
-                                    'type' => 'select',
-                                    'required' => true,
-                                    'options' => ['yes', 'no'],
+                                    'when' => [
+                                        'field' => 'interest_structure',
+                                        'operator' => 'equals',
+                                        'value' => 'fixed_amount',
+                                    ],
+                                    'questions' => [
+                                        [
+                                            'key' => 'fixed_interest_amount',
+                                            'label' => 'What fixed amount of interest will be charged for the loan term?',
+                                            'type' => 'number',
+                                            'required' => true,
+                                            'min' => 0,
+                                            'placeholder' => '10000',
+                                        ],
+                                        [
+                                            'key' => 'fixed_interest_irrespective_of_duration',
+                                            'label' => 'Should that fixed interest still be payable even if the borrower repays earlier during the term?',
+                                            'type' => 'radio',
+                                            'required' => true,
+                                            'options' => ['yes', 'no'],
+                                        ],
+                                    ],
                                 ],
                                 [
-                                    'key' => 'company_info_monthly_management_accounts',
-                                    'label' => 'Require monthly management accounts?',
-                                    'type' => 'select',
-                                    'required' => true,
-                                    'options' => ['yes', 'no'],
-                                ],
-                                [
-                                    'key' => 'company_info_notices_to_shareholders_creditors',
-                                    'label' => 'Require notices to shareholders/creditors?',
-                                    'type' => 'select',
-                                    'required' => true,
-                                    'options' => ['yes', 'no'],
-                                ],
-                                [
-                                    'key' => 'company_info_other_reasonable_requests',
-                                    'label' => 'Require other reasonable information requests?',
-                                    'type' => 'select',
-                                    'required' => true,
-                                    'options' => ['yes', 'no'],
+                                    'when' => [
+                                        'field' => 'interest_structure',
+                                        'operator' => 'equals',
+                                        'value' => 'rate',
+                                    ],
+                                    'questions' => [
+                                        [
+                                            'key' => 'interest_rate_percent',
+                                            'label' => 'What is the interest rate (%)?',
+                                            'type' => 'number',
+                                            'required' => true,
+                                            'min' => 0,
+                                            'placeholder' => '10',
+                                        ],
+                                        [
+                                            'key' => 'interest_payment_timing',
+                                            'label' => 'How will the interest be paid?',
+                                            'type' => 'radio',
+                                            'required' => true,
+                                            'options' => ['monthly', 'yearly', 'rolled_up'],
+                                            'option_labels' => [
+                                                'monthly' => 'Monthly',
+                                                'yearly' => 'Yearly',
+                                                'rolled_up' => 'Rolled up and paid at the end',
+                                            ],
+                                            'follow_ups' => [
+                                                [
+                                                    'when' => [
+                                                        'field' => 'interest_payment_timing',
+                                                        'operator' => 'equals',
+                                                        'value' => 'rolled_up',
+                                                    ],
+                                                    'questions' => [
+                                                        [
+                                                            'key' => 'rolled_up_interest_compounds',
+                                                            'label' => 'If interest is rolled up, should it compound (interest on interest)?',
+                                                            'type' => 'radio',
+                                                            'required' => true,
+                                                            'options' => ['yes', 'no'],
+                                                        ],
+                                                    ],
+                                                ],
+                                            ],
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
-                    ],
-                ],
-                [
-                    'key' => 'lender_assignment_allowed',
-                    'label' => 'Can the lender assign the agreement?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['yes', 'no'],
-                ],
-                [
-                    'key' => 'borrower_assignment_allowed',
-                    'label' => 'Can the borrower assign the agreement?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['yes', 'no'],
-                ],
-                [
-                    'key' => 'upsell_execution_service',
-                    'label' => 'Would you like to execute the completed document via an e-signature facility?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['yes', 'no'],
-                    'is_upsell' => true,
-                ],
-                [
-                    'key' => 'jurisdiction_exclusive',
-                    'label' => 'Are you happy for the courts of England and Wales to have exclusive jurisdiction over disputes?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['yes', 'no'],
-                    'follow_ups' => [
                         [
-                            'when' => ['field' => 'jurisdiction_exclusive', 'operator' => 'equals', 'value' => 'no'],
-                            'questions' => [
+                            'key' => 'default_interest_rate_percent',
+                            'label' => 'What default interest rate should apply on late payment above the Bank of England base rate (%)?',
+                            'type' => 'number',
+                            'required' => false,
+                            'min' => 0,
+                            'placeholder' => '4',
+                        ],
+                        [
+                            'key' => 'repayment_account_location',
+                            'label' => 'Will repayments be made to a UK bank account or an overseas bank account?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['uk', 'overseas'],
+                            'option_labels' => [
+                                'uk' => 'UK bank account',
+                                'overseas' => 'Overseas bank account',
+                            ],
+                            'follow_ups' => [
                                 [
-                                    'key' => 'jurisdiction_requested_location',
-                                    'label' => 'If not, where would you want disputes to be dealt with?',
-                                    'type' => 'text',
-                                    'required' => true,
+                                    'when' => [
+                                        'field' => 'repayment_account_location',
+                                        'operator' => 'equals',
+                                        'value' => 'overseas',
+                                    ],
+                                    'questions' => [
+                                        [
+                                            'key' => 'repayment_overseas_bank_country',
+                                            'label' => 'Which country is the repayment bank account located in?',
+                                            'type' => 'text',
+                                            'required' => false,
+                                        ],
+                                    ],
                                 ],
                             ],
+                        ],
+                        [
+                            'key' => 'lender_assignment_allowed',
+                            'label' => 'Can the lender assign or transfer its rights and/or obligations under the agreement?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['yes', 'no'],
+                        ],
+                        [
+                            'key' => 'borrower_assignment_allowed',
+                            'label' => 'Can the borrower assign or transfer its rights and/or obligations under the agreement?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['yes', 'no'],
+                        ],
+                        [
+                            'key' => 'execution_method',
+                            'label' => 'How should the completed document be executed?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['wet_ink_or_electronic', 'electronic_only'],
+                            'option_labels' => [
+                                'wet_ink_or_electronic' => 'Wet-ink or electronic signature',
+                                'electronic_only' => 'Electronic signature only (including DocuSign-style signing)',
+                            ],
+                        ],
+                        [
+                            'key' => 'use_docusign_execution',
+                            'label' => 'Does the person answering want to execute the completed document via a DocuSign-type facility?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['yes', 'no'],
+                        ],
+                        [
+                            'key' => 'exclusive_jurisdiction',
+                            'label' => 'Are you happy for the courts of England and Wales to have exclusive jurisdiction over any dispute or claim connected with the agreement?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['yes', 'no'],
+                        ],
+                        [
+                            'key' => 'jurisdiction_guidance',
+                            'label' => 'Jurisdiction guidance',
+                            'type' => 'info',
+                            'required' => false,
+                            'content' => 'This agreement is drafted under the laws of England and Wales and that cannot be changed. It is usual for the courts of England and Wales to have exclusive jurisdiction. If you choose no, the clause will instead state that the courts of England and Wales have non-exclusive jurisdiction.',
                         ],
                     ],
                 ],
                 [
-                    'key' => 'additional_company_info_required',
-                    'label' => 'If the borrower is a company, what additional information does the lender want on the company, directors, or shareholders before giving the loan?',
-                    'type' => 'textarea',
-                    'required' => false,
-                ],
-                [
-                    'key' => 'upsell_board_resolutions',
-                    'label' => 'Would you like board resolutions approving entry into the agreement?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['yes', 'no'],
-                    'is_upsell' => true,
-                ],
-                [
-                    'key' => 'upsell_shareholder_resolution',
-                    'label' => 'Would you like a shareholder resolution approving the loan and security documents?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['yes', 'no'],
-                    'is_upsell' => true,
-                ],
-                [
-                    'key' => 'bankruptcy_search_requested',
-                    'label' => 'Would you like a clear bankruptcy search against the guarantor, borrower, and all directors/shareholders?',
-                    'type' => 'select',
-                    'required' => true,
-                    'options' => ['yes', 'no'],
-                ],
-                [
-                    'key' => 'anything_else',
-                    'label' => 'Is there anything else not already covered that should be passed to the human creator?',
-                    'type' => 'textarea',
-                    'required' => false,
+                    'key' => 'conditions_precedent',
+                    'title' => 'Conditions Precedent',
+                    'description' => 'Additional lender requirements before the loan is advanced.',
+                    'questions' => [
+                        [
+                            'key' => 'include_board_resolutions',
+                            'label' => 'Should board resolutions from the borrower company be required?',
+                            'type' => 'radio',
+                            'options' => ['yes', 'no'],
+                            'required' => false,
+                        ],
+                        [
+                            'key' => 'include_shareholder_resolutions',
+                            'label' => 'Should shareholder resolutions be required?',
+                            'type' => 'radio',
+                            'options' => ['yes', 'no'],
+                            'required' => false,
+                        ],
+                        [
+                            'key' => 'require_bankruptcy_search',
+                            'label' => 'Should bankruptcy searches be required?',
+                            'type' => 'radio',
+                            'options' => ['yes', 'no'],
+                            'required' => false,
+                        ],
+                    ],
                 ],
             ],
         ];
