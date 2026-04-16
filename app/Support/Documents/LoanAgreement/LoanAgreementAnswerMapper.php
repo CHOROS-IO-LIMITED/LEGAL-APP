@@ -36,6 +36,27 @@ final class LoanAgreementAnswerMapper
         $interestPaymentTiming = $this->string($answers, 'interest_payment_timing');
         $repaymentAccountLocation = $this->string($answers, 'repayment_account_location');
 
+        $borrowerOperationalInformationRequired = $this->string($answers, 'borrower_operational_information_required');
+        $borrowerOperationalInformationItems = $this->array($answers, 'borrower_operational_information_items');
+
+        $lenderAssignmentAllowed = $this->string($answers, 'lender_assignment_allowed');
+        $borrowerAssignmentAllowed = $this->string($answers, 'borrower_assignment_allowed');
+
+        $executionMethod = $this->string($answers, 'execution_method');
+        $useDocusignExecution = $this->string($answers, 'use_docusign_execution');
+
+        $exclusiveJurisdiction = $this->string($answers, 'exclusive_jurisdiction');
+
+        $includeBoardResolutions = $this->string($answers, 'include_board_resolutions') === 'yes';
+        $includeShareholderResolutions = $this->string($answers, 'include_shareholder_resolutions') === 'yes';
+        $requireBankruptcySearch = $this->string($answers, 'require_bankruptcy_search') === 'yes';
+
+        $hasFirstCharge = in_array('first_charge', $securityTypes, true);
+        $hasSecondCharge = in_array('second_charge', $securityTypes, true);
+        $hasDebenture = in_array('debenture', $securityTypes, true);
+        $hasPersonalGuarantee = in_array('personal_guarantee', $securityTypes, true);
+        $hasSecurityDocuments = $securityTypes !== [];
+
         return [
             'agreement_date' => $agreementDate,
             'agreement_year' => $this->extractYear($agreementDate),
@@ -91,10 +112,11 @@ final class LoanAgreementAnswerMapper
 
             'security_types' => $securityTypes,
             'security_items' => $this->mapSecurityItems($answers),
-            'has_first_charge' => in_array('first_charge', $securityTypes, true),
-            'has_second_charge' => in_array('second_charge', $securityTypes, true),
-            'has_debenture' => in_array('debenture', $securityTypes, true),
-            'has_personal_guarantee' => in_array('personal_guarantee', $securityTypes, true),
+            'has_first_charge' => $hasFirstCharge,
+            'has_second_charge' => $hasSecondCharge,
+            'has_debenture' => $hasDebenture,
+            'has_personal_guarantee' => $hasPersonalGuarantee,
+            'has_security_documents' => $hasSecurityDocuments,
 
             'first_charge_property_address' => $this->string($answers, 'first_charge_property_address'),
             'first_charge_title_number' => $this->string($answers, 'first_charge_title_number'),
@@ -102,6 +124,7 @@ final class LoanAgreementAnswerMapper
             'second_charge_property_address' => $this->string($answers, 'second_charge_property_address'),
             'second_charge_title_number' => $this->string($answers, 'second_charge_title_number'),
             'second_charge_consent_required' => $this->string($answers, 'second_charge_consent_required'),
+            'requires_second_charge_holder_confirmation' => $hasSecondCharge,
 
             'debenture_secured_assets_description' => $this->string($answers, 'debenture_secured_assets_description'),
 
@@ -110,6 +133,58 @@ final class LoanAgreementAnswerMapper
 
             'borrower_count' => $borrowerCount,
             'has_multiple_borrowers' => $borrowerCount > 1,
+
+            'borrower_operational_information_required' => $borrowerOperationalInformationRequired,
+            'borrower_operational_information_items' => $borrowerOperationalInformationItems,
+            'has_borrower_operational_information_covenant' => $borrowerEntityType === 'company'
+                && $borrowerOperationalInformationRequired === 'yes',
+            'has_audited_annual_accounts_covenant' => in_array(
+                'audited_annual_accounts',
+                $borrowerOperationalInformationItems,
+                true
+            ),
+            'has_monthly_management_accounts_covenant' => in_array(
+                'monthly_management_accounts',
+                $borrowerOperationalInformationItems,
+                true
+            ),
+            'has_shareholder_or_creditor_notices_covenant' => in_array(
+                'shareholder_or_creditor_notices',
+                $borrowerOperationalInformationItems,
+                true
+            ),
+            'has_other_reasonably_requested_information_covenant' => in_array(
+                'other_reasonably_requested_information',
+                $borrowerOperationalInformationItems,
+                true
+            ),
+
+            'lender_assignment_allowed' => $lenderAssignmentAllowed,
+            'borrower_assignment_allowed' => $borrowerAssignmentAllowed,
+
+            'execution_method' => $executionMethod,
+            'use_docusign_execution' => $useDocusignExecution,
+            'uses_electronic_execution_only' => $executionMethod === 'electronic_only',
+            'uses_docusign_execution' => $useDocusignExecution === 'yes',
+
+            'exclusive_jurisdiction' => $exclusiveJurisdiction,
+            'jurisdiction_type' => $exclusiveJurisdiction === 'no' ? 'non-exclusive' : 'exclusive',
+            'governing_law' => 'England and Wales',
+
+            'include_schedule_1' => true,
+            'include_schedule_1_paragraph_1' => $borrowerEntityType === 'company',
+            'include_board_resolutions' => $includeBoardResolutions,
+            'include_shareholder_resolutions' => $includeShareholderResolutions,
+            'require_bankruptcy_search' => $requireBankruptcySearch,
+            'include_schedule_1_finance_documents_section' => true,
+            'include_schedule_1_security_documents' => $hasSecurityDocuments,
+            'include_schedule_1_second_charge_confirmation' => $hasSecondCharge,
+            'include_schedule_1_financial_information_section' => true,
+            'include_schedule_1_bankruptcy_searches_section' => $requireBankruptcySearch,
+            'include_schedule_1_guarantor_bankruptcy_search' => $requireBankruptcySearch && $hasPersonalGuarantee && count($guarantors) > 0,
+            'include_schedule_1_other_documents_section' => true,
+
+            'include_guarantors_schedule' => $hasPersonalGuarantee && count($guarantors) > 0,
 
             'lender' => $lender,
             'borrower' => $borrower,
@@ -159,11 +234,15 @@ final class LoanAgreementAnswerMapper
         $companyName = $this->string($answers, "{$prefix}_company_name");
         $companyNumber = $this->string($answers, "{$prefix}_company_number");
         $companyAddress = $this->string($answers, "{$prefix}_company_address");
-
+        $directorWillSign = $this->string($answers, "{$prefix}_director_will_sign");
         $signatoryFirst = $this->string($answers, "{$prefix}_signatory_first_name");
         $signatoryMiddle = $this->string($answers, "{$prefix}_signatory_middle_name");
         $signatoryLast = $this->string($answers, "{$prefix}_signatory_last_name");
         $signatoryName = $this->combineName($signatoryFirst, $signatoryMiddle, $signatoryLast);
+
+        if ($directorWillSign !== 'yes') {
+            $signatoryName = null;
+        }
 
         return [
             'entity_type' => 'company',
@@ -178,7 +257,9 @@ final class LoanAgreementAnswerMapper
             'company_position' => $this->string($answers, "{$prefix}_company_position"),
             'signatory' => [
                 'name' => $signatoryName,
-                'title' => $this->resolveCompanySignatoryTitle($answers, $prefix),
+                'title' => $signatoryName
+                    ? $this->resolveCompanySignatoryTitle($answers, $prefix)
+                    : null,
             ],
         ];
     }

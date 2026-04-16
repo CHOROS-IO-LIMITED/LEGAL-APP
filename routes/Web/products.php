@@ -8,6 +8,7 @@ use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\ProductDetailsController;
 use App\Http\Controllers\Web\QnA\QuestionController;
 use App\Http\Controllers\User\UserDocumentSelectionController;
+use App\Http\Controllers\Web\AI\LoanAgreementChatController;
 use Illuminate\Support\Facades\Route;
 
 // public route
@@ -38,6 +39,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/details/qna', [QuestionController::class, 'show'])->name('product.qna.show');
     Route::put('/products/details/qna/{userDocument}', [QuestionController::class, 'update'])->name('product.qna.update');
     Route::post('/user-documents/{userDocument}/legal-intake-ai', [LegalIntakeAiController::class, 'assist'])->name('documents.legal-intake-ai.assist');
+
+    // Ai Bot
+    Route::post('/ai/loan-agreement/chat/{userDocument}', LoanAgreementChatController::class)->name('ai.loan-agreement.chat');
 });
 
 // step 1: product detail

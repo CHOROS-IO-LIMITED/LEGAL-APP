@@ -10,7 +10,7 @@ final class LoanAgreementQuestionSchema
     {
         return [
             'document_type' => DocumentType::LOAN_AGREEMENT->value,
-            'version' => 3,
+            'version' => 5,
             'title' => 'Loan Agreement',
             'steps' => [
                 [
@@ -316,6 +316,42 @@ final class LoanAgreementQuestionSchema
                                                 ],
                                             ],
                                         ],
+                                        [
+                                            'key' => 'borrower_operational_information_required',
+                                            'label' => 'Does the lender want the borrower to provide ongoing information about its operations?',
+                                            'type' => 'radio',
+                                            'required' => false,
+                                            'options' => ['yes', 'no'],
+                                            'follow_ups' => [
+                                                [
+                                                    'when' => [
+                                                        'field' => 'borrower_operational_information_required',
+                                                        'operator' => 'equals',
+                                                        'value' => 'yes',
+                                                    ],
+                                                    'questions' => [
+                                                        [
+                                                            'key' => 'borrower_operational_information_items',
+                                                            'label' => 'What information should the borrower provide to the lender?',
+                                                            'type' => 'checkbox',
+                                                            'required' => true,
+                                                            'options' => [
+                                                                'audited_annual_accounts',
+                                                                'monthly_management_accounts',
+                                                                'shareholder_or_creditor_notices',
+                                                                'other_reasonably_requested_information',
+                                                            ],
+                                                            'option_labels' => [
+                                                                'audited_annual_accounts' => 'Within 180 days (or sooner if available) after each financial year, audited consolidated accounts',
+                                                                'monthly_management_accounts' => 'Within 30 days after the end of each month, monthly management accounts',
+                                                                'shareholder_or_creditor_notices' => 'Promptly, all notices or other documents sent to shareholders or creditors generally',
+                                                                'other_reasonably_requested_information' => 'Promptly, such financial or other information as the lender may reasonably request from time to time',
+                                                            ],
+                                                        ],
+                                                    ],
+                                                ],
+                                            ],
+                                        ],
                                     ],
                                 ],
                             ],
@@ -537,7 +573,6 @@ final class LoanAgreementQuestionSchema
                             'min' => 1,
                             'placeholder' => '12',
                         ],
-
                         [
                             'key' => 'loan_purpose_guidance',
                             'label' => 'Purpose guidance',
@@ -557,7 +592,7 @@ final class LoanAgreementQuestionSchema
                             'label' => 'Is the purpose related to any kind of property development?',
                             'type' => 'radio',
                             'required' => true,
-                            'options' => ['yes', 'no', 'unclear'],
+                            'options' => ['yes', 'no'],
                             'follow_ups' => [
                                 [
                                     'when' => [
@@ -748,6 +783,80 @@ final class LoanAgreementQuestionSchema
                                     ],
                                 ],
                             ],
+                        ],
+                        [
+                            'key' => 'lender_assignment_allowed',
+                            'label' => 'Can the lender assign or transfer its rights and/or obligations under the agreement?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['yes', 'no'],
+                        ],
+                        [
+                            'key' => 'borrower_assignment_allowed',
+                            'label' => 'Can the borrower assign or transfer its rights and/or obligations under the agreement?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['yes', 'no'],
+                        ],
+                        [
+                            'key' => 'execution_method',
+                            'label' => 'How should the completed document be executed?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['wet_ink_or_electronic', 'electronic_only'],
+                            'option_labels' => [
+                                'wet_ink_or_electronic' => 'Wet-ink or electronic signature',
+                                'electronic_only' => 'Electronic signature only (including DocuSign-style signing)',
+                            ],
+                        ],
+                        [
+                            'key' => 'use_docusign_execution',
+                            'label' => 'Does the person answering want to execute the completed document via a DocuSign-type facility?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['yes', 'no'],
+                        ],
+                        [
+                            'key' => 'exclusive_jurisdiction',
+                            'label' => 'Are you happy for the courts of England and Wales to have exclusive jurisdiction over any dispute or claim connected with the agreement?',
+                            'type' => 'radio',
+                            'required' => true,
+                            'options' => ['yes', 'no'],
+                        ],
+                        [
+                            'key' => 'jurisdiction_guidance',
+                            'label' => 'Jurisdiction guidance',
+                            'type' => 'info',
+                            'required' => false,
+                            'content' => 'This agreement is drafted under the laws of England and Wales and that cannot be changed. It is usual for the courts of England and Wales to have exclusive jurisdiction. If you choose no, the clause will instead state that the courts of England and Wales have non-exclusive jurisdiction.',
+                        ],
+                    ],
+                ],
+                [
+                    'key' => 'conditions_precedent',
+                    'title' => 'Conditions Precedent',
+                    'description' => 'Additional lender requirements before the loan is advanced.',
+                    'questions' => [
+                        [
+                            'key' => 'include_board_resolutions',
+                            'label' => 'Should board resolutions from the borrower company be required?',
+                            'type' => 'radio',
+                            'options' => ['yes', 'no'],
+                            'required' => false,
+                        ],
+                        [
+                            'key' => 'include_shareholder_resolutions',
+                            'label' => 'Should shareholder resolutions be required?',
+                            'type' => 'radio',
+                            'options' => ['yes', 'no'],
+                            'required' => false,
+                        ],
+                        [
+                            'key' => 'require_bankruptcy_search',
+                            'label' => 'Should bankruptcy searches be required?',
+                            'type' => 'radio',
+                            'options' => ['yes', 'no'],
+                            'required' => false,
                         ],
                     ],
                 ],

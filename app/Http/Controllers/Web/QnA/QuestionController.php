@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Web\QnA;
 use App\Actions\User\QnA\CompleteUserDocumentAnswersAction;
 use App\Actions\User\QnA\GenerateUserDocumentPdfAction;
 use App\Actions\User\QnA\GenerateUserDocumentQuestionSchemaAction;
+use App\Actions\User\QnA\NormalizeUserDocumentAnswersAction;
+use App\Exceptions\GeminiException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Qna\UpdateUserDocumentAnswersRequest;
 use App\Models\UserDocument;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -63,12 +66,29 @@ class QuestionController extends Controller
     public function update(
         UpdateUserDocumentAnswersRequest $request,
         UserDocument $userDocument,
+        NormalizeUserDocumentAnswersAction $normalizeAnswers,
         CompleteUserDocumentAnswersAction $completeAnswers,
         GenerateUserDocumentPdfAction $generatePdf
     ): RedirectResponse {
         $this->authorize('answerQuestions', $userDocument);
 
-        $completeAnswers->handle($userDocument, $request->validated('answers'));
+        $validatedAnswers = $request->validated('answers');
+
+        try {
+            $normalization = $normalizeAnswers->handle($userDocument, $validatedAnswers);
+            $answersToSave = $normalization['merged_answers'];
+            $warnings = $normalization['warnings'];
+        } catch (GeminiException $e) {
+            Log::warning('Gemini normalization failed. Falling back to raw answers.', [
+                'user_document_id' => $userDocument->id,
+                'message' => $e->getMessage(),
+            ]);
+
+            $answersToSave = $validatedAnswers;
+            $warnings = ['AI normalization could not be completed, so your original answers were used.'];
+        }
+
+        $completeAnswers->handle($userDocument, $answersToSave, $warnings);
 
         $userDocument->refresh();
 
@@ -76,6 +96,7 @@ class QuestionController extends Controller
 
         return redirect()
             ->route('user.dashboard')
-            ->with('success', 'Questions completed and document generated successfully.');
+            ->with('success', 'Questions completed and document generated successfully.')
+            ->with('ai_warnings', $warnings);
     }
 }

@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import Header from '@/components/web/Header';
 import Stepper from '@/components/web/Stepper';
 import { router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import axios from 'axios';
+import { ArrowLeft, Loader2, MessageSquare, Plus, Send, Sparkles, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 type Primitive = string | number | boolean | null;
@@ -88,6 +89,18 @@ type Props = {
 type FlattenedQuestion = Question;
 type AnswerRecord = Record<string, FormValue>;
 
+type ChatMessage = {
+    role: 'user' | 'assistant';
+    content: string;
+};
+
+type ChatResponse = {
+    message: string;
+    next_question_key: string | null;
+    follow_up_needed: boolean;
+    warnings: string[];
+};
+
 const checkoutSteps = ['Products', 'KYC', 'Payment', 'Q&A'];
 
 export default function QuestionAndAnswer({ userDocument }: Props) {
@@ -96,6 +109,15 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [attemptedNext, setAttemptedNext] = useState(false);
     const [attemptedGenerate, setAttemptedGenerate] = useState(false);
+
+    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+        {
+            role: 'assistant',
+            content: 'Hi — I can help explain the questions, clarify legal terms, and guide you through this loan agreement.',
+        },
+    ]);
+    const [chatInput, setChatInput] = useState('');
+    const [chatLoading, setChatLoading] = useState(false);
 
     if (!userDocument) {
         return <div className="p-10 text-center text-gray-500">User document not found.</div>;
@@ -226,6 +248,54 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
         });
     };
 
+    const getVisibleQuestions = (questions: Question[], allAnswers: AnswerRecord): FlattenedQuestion[] => {
+        const result: FlattenedQuestion[] = [];
+
+        for (const question of questions) {
+            if (!isVisibleQuestion(question, allAnswers)) {
+                continue;
+            }
+
+            result.push(question);
+
+            if (question.follow_ups?.length) {
+                for (const followUp of question.follow_ups) {
+                    if (matchesCondition(followUp.when, allAnswers)) {
+                        result.push(...getVisibleQuestions(followUp.questions, allAnswers));
+                    }
+                }
+            }
+        }
+
+        return result;
+    };
+
+    const findQuestionInTree = (questions: Question[], targetKey: string): boolean => {
+        for (const question of questions) {
+            if (question.key === targetKey) {
+                return true;
+            }
+
+            if (question.type === 'repeater' && Array.isArray(question.fields) && findQuestionInTree(question.fields, targetKey)) {
+                return true;
+            }
+
+            if (question.follow_ups?.length) {
+                for (const followUp of question.follow_ups) {
+                    if (findQuestionInTree(followUp.questions, targetKey)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    };
+
+    const findStepIndexForQuestionKey = (targetKey: string): number => {
+        return schema.steps.findIndex((step) => findQuestionInTree(step.questions, targetKey));
+    };
+
     const isQuestionAnswered = (question: Question, value: FormValue | undefined, rootAnswers?: AnswerRecord): boolean => {
         if (!question.required) {
             return true;
@@ -271,28 +341,6 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
         return !isEmptyValue(value);
     };
 
-    const getVisibleQuestions = (questions: Question[], allAnswers: AnswerRecord): FlattenedQuestion[] => {
-        const result: FlattenedQuestion[] = [];
-
-        for (const question of questions) {
-            if (!isVisibleQuestion(question, allAnswers)) {
-                continue;
-            }
-
-            result.push(question);
-
-            if (question.follow_ups?.length) {
-                for (const followUp of question.follow_ups) {
-                    if (matchesCondition(followUp.when, allAnswers)) {
-                        result.push(...getVisibleQuestions(followUp.questions, allAnswers));
-                    }
-                }
-            }
-        }
-
-        return result;
-    };
-
     const visibleQuestions = useMemo(() => {
         return schema.steps.flatMap((step) => getVisibleQuestions(step.questions, answers));
     }, [schema.steps, answers]);
@@ -308,6 +356,9 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
     const currentStepMissing = currentStepQuestions.filter(
         (q) => q.type !== 'info' && q.type !== 'group' && !isQuestionAnswered(q, answers[q.key], answers),
     );
+
+    const currentAnswerableStepQuestions = currentStepQuestions.filter((q) => q.type !== 'info' && q.type !== 'group');
+    const currentActiveQuestion = currentAnswerableStepQuestions.find((q) => !isQuestionAnswered(q, answers[q.key], answers)) ?? null;
 
     const normalizeInputValue = (value: FormValue) => {
         if (typeof value === 'string' || typeof value === 'number') {
@@ -395,6 +446,100 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
             question.key,
             items.filter((_, index) => index !== itemIndex),
         );
+    };
+
+    const appendAssistantMessage = (message: string, warnings?: string[]) => {
+        const textParts = [message];
+
+        if (Array.isArray(warnings) && warnings.length > 0) {
+            textParts.push('');
+            textParts.push('Warnings:');
+            warnings.forEach((warning) => {
+                textParts.push(`- ${warning}`);
+            });
+        }
+
+        setChatMessages((prev) => [
+            ...prev,
+            {
+                role: 'assistant',
+                content: textParts.join('\n'),
+            },
+        ]);
+    };
+
+    const sendChatMessage = async (message: string, overrideQuestion?: Question | null) => {
+        const trimmed = message.trim();
+
+        if (!trimmed || chatLoading) {
+            return;
+        }
+
+        const activeQuestion = overrideQuestion ?? currentActiveQuestion ?? null;
+
+        setChatMessages((prev) => [
+            ...prev,
+            {
+                role: 'user',
+                content: trimmed,
+            },
+        ]);
+
+        setChatLoading(true);
+
+        try {
+            const response = await axios.post(route('ai.loan-agreement.chat', userDocument.id), {
+                answers,
+                current_question: activeQuestion?.key ?? null,
+                message: trimmed,
+            });
+
+            const result = response.data as ChatResponse;
+
+            if (result.next_question_key) {
+                const matchingStepIndex = findStepIndexForQuestionKey(result.next_question_key);
+
+                if (matchingStepIndex >= 0) {
+                    setCurrentStepIndex(matchingStepIndex);
+                }
+            }
+
+            appendAssistantMessage(result.message, result.warnings);
+        } catch (error: any) {
+            console.error('AI chat failed:', error);
+
+            const serverMessage = error?.response?.data?.message || error?.message || 'Sorry, I could not process that right now.';
+
+            const warnings = Array.isArray(error?.response?.data?.warnings) ? error.response.data.warnings : [];
+
+            appendAssistantMessage(serverMessage, warnings);
+        } finally {
+            setChatLoading(false);
+        }
+    };
+
+    const handleSendChat = async () => {
+        const trimmed = chatInput.trim();
+
+        if (!trimmed || chatLoading) {
+            return;
+        }
+
+        setChatInput('');
+        await sendChatMessage(trimmed);
+    };
+
+    const handleChatKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            void handleSendChat();
+        }
+    };
+
+    const handleExplainQuestion = async (question: Question) => {
+        const prompt = `Explain this question in plain English and help me answer it:\nQuestion key: ${question.key}\nQuestion label: ${question.label}`;
+
+        await sendChatMessage(prompt, question);
     };
 
     const RadioGroup = ({
@@ -656,10 +801,23 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
 
                                     return (
                                         <div key={`${question.key}-${itemIndex}-${field.key}`} className="space-y-2">
-                                            <label className="block text-sm font-semibold text-[#1A1614]">
-                                                {field.label}
-                                                {field.required && <span className="ml-1 text-[#A63D40]">*</span>}
-                                            </label>
+                                            <div className="flex items-start justify-between gap-3">
+                                                <label className="block text-sm font-semibold text-[#1A1614]">
+                                                    {field.label}
+                                                    {field.required && <span className="ml-1 text-[#A63D40]">*</span>}
+                                                </label>
+
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    onClick={() => void handleExplainQuestion(field)}
+                                                    disabled={chatLoading}
+                                                    className="h-8 rounded-xl border-[#D8D1C5] px-3 text-xs"
+                                                >
+                                                    <Sparkles className="mr-1 h-3.5 w-3.5" />
+                                                    Ask AI
+                                                </Button>
+                                            </div>
 
                                             {renderInput(field, {
                                                 value: fieldValue,
@@ -718,10 +876,23 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
         return (
             <div key={question.key} className="mt-6">
                 <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-[#1A1614]">
-                        {question.label}
-                        {question.required && <span className="ml-1 text-[#A63D40]">*</span>}
-                    </label>
+                    <div className="flex items-start justify-between gap-3">
+                        <label className="block text-sm font-semibold text-[#1A1614]">
+                            {question.label}
+                            {question.required && <span className="ml-1 text-[#A63D40]">*</span>}
+                        </label>
+
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => void handleExplainQuestion(question)}
+                            disabled={chatLoading}
+                            className="h-8 rounded-xl border-[#D8D1C5] px-3 text-xs"
+                        >
+                            <Sparkles className="mr-1 h-3.5 w-3.5" />
+                            Ask AI
+                        </Button>
+                    </div>
 
                     {renderInput(question)}
 
@@ -771,8 +942,7 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
 
         if (missingRequired.length > 0) {
             const firstMissing = missingRequired[0];
-
-            const stepIndex = schema.steps.findIndex((step) => getVisibleQuestions(step.questions, answers).some((q) => q.key === firstMissing.key));
+            const stepIndex = findStepIndexForQuestionKey(firstMissing.key);
 
             if (stepIndex >= 0) {
                 setCurrentStepIndex(stepIndex);
@@ -832,7 +1002,7 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
         <div className="min-h-screen bg-[#FCF9F2] font-sans">
             <Header />
 
-            <section className="mx-auto max-w-5xl space-y-8 px-8 py-10">
+            <section className="mx-auto max-w-7xl space-y-8 px-8 py-10">
                 <Stepper steps={checkoutSteps} currentStep={3} />
 
                 <div className="text-center">
@@ -865,14 +1035,76 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
                     })}
                 </div>
 
-                <Card className="rounded-2xl border-[#E7E1D7] bg-white shadow-sm">
-                    <CardHeader className="border-b border-[#EFE8DC]">
-                        <CardTitle className="text-xl text-[#1A1614]">{currentStep.title}</CardTitle>
-                        {currentStep.description && <p className="text-sm text-[#6B635B]">{currentStep.description}</p>}
-                    </CardHeader>
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+                    <Card className="rounded-2xl border-[#E7E1D7] bg-white shadow-sm">
+                        <CardHeader className="border-b border-[#EFE8DC]">
+                            <CardTitle className="text-xl text-[#1A1614]">{currentStep.title}</CardTitle>
+                            {currentStep.description && <p className="text-sm text-[#6B635B]">{currentStep.description}</p>}
+                        </CardHeader>
 
-                    <CardContent className="pt-6">{renderQuestions(currentStepQuestions)}</CardContent>
-                </Card>
+                        <CardContent className="pt-6">{renderQuestions(currentStepQuestions)}</CardContent>
+                    </Card>
+
+                    <Card className="rounded-2xl border-[#E7E1D7] bg-white shadow-sm">
+                        <CardHeader className="border-b border-[#EFE8DC]">
+                            <div className="flex items-center gap-2">
+                                <MessageSquare className="h-5 w-5 text-[#3D2B1F]" />
+                                <CardTitle className="text-xl text-[#1A1614]">AI Assistant</CardTitle>
+                            </div>
+
+                            <p className="text-sm text-[#6B635B]">Ask about the current question, legal meanings, or what to answer next.</p>
+
+                            {currentActiveQuestion && (
+                                <p className="text-xs text-[#8A7F75]">
+                                    Current question: <span className="font-medium">{currentActiveQuestion.label}</span>
+                                </p>
+                            )}
+                        </CardHeader>
+
+                        <CardContent className="flex h-[600px] flex-col gap-4 pt-6">
+                            <div className="flex-1 space-y-3 overflow-y-auto rounded-xl border border-[#EFE8DC] bg-[#FCFAF6] p-4">
+                                {chatMessages.map((message, index) => (
+                                    <div
+                                        key={index}
+                                        className={`max-w-[90%] rounded-2xl px-4 py-3 text-sm whitespace-pre-line ${
+                                            message.role === 'user'
+                                                ? 'ml-auto bg-[#3D2B1F] text-white'
+                                                : 'border border-[#E7E1D7] bg-white text-[#1A1614]'
+                                        }`}
+                                    >
+                                        {message.content}
+                                    </div>
+                                ))}
+
+                                {chatLoading && (
+                                    <div className="flex items-center gap-2 rounded-2xl border border-[#E7E1D7] bg-white px-4 py-3 text-sm text-[#6B635B]">
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Thinking...
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <Input
+                                    value={chatInput}
+                                    onChange={(e) => setChatInput(e.target.value)}
+                                    onKeyDown={handleChatKeyDown}
+                                    placeholder="Ask about this question..."
+                                    className="rounded-xl border-[#D8D1C5]"
+                                />
+
+                                <Button
+                                    type="button"
+                                    onClick={() => void handleSendChat()}
+                                    disabled={chatLoading || !chatInput.trim()}
+                                    className="rounded-xl bg-[#3D2B1F] text-white hover:bg-[#52382a]"
+                                >
+                                    {chatLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
 
                 <div className="flex items-center justify-between">
                     <Button type="button" variant="outline" onClick={handleBack} className="rounded-xl border-[#D8D1C5]">

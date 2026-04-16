@@ -108,6 +108,18 @@
             }
         }
 
+        $borrowerOperationalInformationRequired = $data['borrower_operational_information_required'] ?? null;
+        $borrowerOperationalInformationItems = $data['borrower_operational_information_items'] ?? [];
+
+        $hasBorrowerOperationalInformationCovenant =
+            (bool) ($data['has_borrower_operational_information_covenant'] ?? false);
+        $hasAuditedAnnualAccountsCovenant = (bool) ($data['has_audited_annual_accounts_covenant'] ?? false);
+        $hasMonthlyManagementAccountsCovenant = (bool) ($data['has_monthly_management_accounts_covenant'] ?? false);
+        $hasShareholderOrCreditorNoticesCovenant =
+            (bool) ($data['has_shareholder_or_creditor_notices_covenant'] ?? false);
+        $hasOtherReasonablyRequestedInformationCovenant =
+            (bool) ($data['has_other_reasonably_requested_information_covenant'] ?? false);
+
         $landTitleNumber = $hasFirstCharge
             ? ($firstChargeTitleNumber ?:
             '[ENTER TITLE NUMBER HERE]')
@@ -121,9 +133,65 @@
             : ($secondChargePropertyAddress ?:
             ($developmentPropertyAddress ?:
             '[ENTER DEVELOPMENT ADDRESS THAT MAY HAVE THE CHARGE HERE]'));
+
+        $contents = [
+            ['number' => '1.', 'title' => 'DEFINITIONS AND INTERPRETATION', 'page' => 3],
+            ['number' => '2.', 'title' => 'THE FACILITY', 'page' => 8],
+            ['number' => '3.', 'title' => 'PURPOSE', 'page' => 9],
+            ['number' => '4.', 'title' => 'TERM', 'page' => 9],
+        ];
+
+        if ($isPropertyDevelopment) {
+            $contents[] = ['number' => '5.', 'title' => 'DEVELOPMENT OBLIGATIONS', 'page' => 9];
+        }
+
+        $contents[] = ['number' => '6.', 'title' => 'CONDITIONS PRECEDENT', 'page' => 10];
+        $contents[] = ['number' => '7.', 'title' => 'INTEREST', 'page' => 10];
+        $contents[] = ['number' => '8.', 'title' => 'REPAYMENT', 'page' => 12];
+        $contents[] = ['number' => '9.', 'title' => 'COSTS', 'page' => 12];
+        $contents[] = ['number' => '10.', 'title' => 'PAYMENTS', 'page' => 12];
+
+        if ($loanSecurityType === 'secured') {
+            $contents[] = ['number' => '11.', 'title' => 'SECURITY', 'page' => 13];
+        }
+
+        $contents[] = ['number' => '12.', 'title' => 'INSURANCE', 'page' => 15];
+        $contents[] = ['number' => '13.', 'title' => 'LEASES AND LICENCES', 'page' => 16];
+        $contents[] = ['number' => '14.', 'title' => 'REPRESENTATIONS AND WARRANTIES', 'page' => 16];
+        $contents[] = ['number' => '15.', 'title' => 'REPETITION OF WARRANTIES', 'page' => 18];
+        $contents[] = ['number' => '16.', 'title' => 'COVENANTS', 'page' => 19];
+        $contents[] = ['number' => '17.', 'title' => 'EVENTS OF DEFAULT', 'page' => 21];
+        $contents[] = ['number' => '18.', 'title' => 'SET-OFF', 'page' => 23];
+        $contents[] = ['number' => '19.', 'title' => 'CALCULATIONS, ACCOUNTS AND CERTIFICATES', 'page' => 24];
+        $contents[] = ['number' => '20.', 'title' => 'AMENDMENTS, WAIVERS, REMEDIES', 'page' => 24];
+        $contents[] = ['number' => '21.', 'title' => 'SEVERANCE', 'page' => 25];
+
+        if ($hasMultipleBorrowers) {
+            $contents[] = ['number' => '22.', 'title' => 'LIABILITY', 'page' => 25];
+        }
+
+        $contents[] = ['number' => '23.', 'title' => 'ASSIGNMENT', 'page' => 25];
+        $contents[] = ['number' => '24.', 'title' => 'CHANGE OF CONTROL', 'page' => 25];
+        $contents[] = ['number' => '25.', 'title' => 'RAO EXEMPTION', 'page' => 25];
+        $contents[] = ['number' => '26.', 'title' => 'COUNTERPARTS', 'page' => 26];
+        $contents[] = ['number' => '27.', 'title' => 'EXECUTION', 'page' => 26];
+        $contents[] = ['number' => '28.', 'title' => 'THIRD PARTY RIGHTS', 'page' => 26];
+        $contents[] = ['number' => '29.', 'title' => 'NOTICES', 'page' => 27];
+        $contents[] = ['number' => '30.', 'title' => 'ENTIRE AGREEMENT', 'page' => 27];
+        $contents[] = ['number' => '31.', 'title' => 'GOVERNING LAW AND JURISDICTION', 'page' => 28];
+
+        $schedules = [['number' => '1.', 'title' => 'CONDITIONS PRECEDENT', 'page' => 29]];
+
+        if ($hasPersonalGuarantee && !empty($guarantors)) {
+            $schedules[] = ['number' => '2.', 'title' => 'GUARANTORS', 'page' => 31];
+        }
     @endphp
 
     @include('pdf.loan-agreement.components.cover-page')
+
+    <div class="page-break"></div>
+
+    @include('pdf.loan-agreement.components.contents-page')
 
     <div class="page-break"></div>
 
@@ -140,6 +208,29 @@
     @include('pdf.loan-agreement.clauses.clause-8-repayment')
     @include('pdf.loan-agreement.clauses.clause-9-costs')
     @include('pdf.loan-agreement.clauses.clause-10-payments')
+    @include('pdf.loan-agreement.clauses.clause-11-security')
+    @include('pdf.loan-agreement.clauses.clause-12-insurance')
+    @include('pdf.loan-agreement.clauses.clause-13-leases-and-licences')
+    @include('pdf.loan-agreement.clauses.clause-14-representations-and-warranties')
+    @include('pdf.loan-agreement.clauses.clause-15-repetition-of-warranties')
+    @include('pdf.loan-agreement.clauses.clause-16-covenants')
+    @include('pdf.loan-agreement.clauses.clause-17-events-of-default')
+    @include('pdf.loan-agreement.clauses.clause-18-set-off')
+    @include('pdf.loan-agreement.clauses.clause-19-calculations-accounts-certificates')
+    @include('pdf.loan-agreement.clauses.clause-20-amendments-waivers-remedies')
+    @include('pdf.loan-agreement.clauses.clause-21-severance')
+    @include('pdf.loan-agreement.clauses.clause-22-liability')
+    @include('pdf.loan-agreement.clauses.clause-23-assignment')
+    @include('pdf.loan-agreement.clauses.clause-24-change-of-control')
+    @include('pdf.loan-agreement.clauses.clause-25-rao-exemption')
+    @include('pdf.loan-agreement.clauses.clause-26-counterparts')
+    @include('pdf.loan-agreement.clauses.clause-27-execution')
+    @include('pdf.loan-agreement.clauses.clause-28-third-party-rights')
+    @include('pdf.loan-agreement.clauses.clause-29-notices')
+    @include('pdf.loan-agreement.clauses.clause-30-entire-agreement')
+    @include('pdf.loan-agreement.clauses.clause-31-governing-law-and-jurisdiction')
+    @include('pdf.loan-agreement.schedules.schedule-1')
+    @include('pdf.loan-agreement.schedules.schedule-2')
 
     <div class="page-break"></div>
 
