@@ -481,7 +481,7 @@ final class LoanAgreementQuestionSchema
                                                             'label' => 'Does the borrower need consent from the first charge holder for the second charge?',
                                                             'type' => 'radio',
                                                             'required' => true,
-                                                            'options' => ['yes', 'no', 'unknown'],
+                                                            'options' => ['yes', 'no'],
                                                         ],
                                                     ],
                                                 ],
