@@ -843,18 +843,35 @@ final class LoanAgreementQuestionSchema
                     'description' => 'Additional lender requirements before the loan is advanced.',
                     'questions' => [
                         [
-                            'key' => 'include_board_resolutions',
-                            'label' => 'Should board resolutions from the borrower company be required?',
-                            'type' => 'radio',
-                            'options' => ['yes', 'no'],
+                            'key' => 'borrower_company_conditions_group',
+                            'label' => 'Borrower company conditions',
+                            'type' => 'group',
                             'required' => false,
-                        ],
-                        [
-                            'key' => 'include_shareholder_resolutions',
-                            'label' => 'Should shareholder resolutions be required?',
-                            'type' => 'radio',
-                            'options' => ['yes', 'no'],
-                            'required' => false,
+                            'follow_ups' => [
+                                [
+                                    'when' => [
+                                        'field' => 'borrower_entity_type',
+                                        'operator' => 'equals',
+                                        'value' => 'company',
+                                    ],
+                                    'questions' => [
+                                        [
+                                            'key' => 'include_board_resolutions',
+                                            'label' => 'Should board resolutions from the borrower company be required?',
+                                            'type' => 'radio',
+                                            'options' => ['yes', 'no'],
+                                            'required' => false,
+                                        ],
+                                        [
+                                            'key' => 'include_shareholder_resolutions',
+                                            'label' => 'Should shareholder resolutions be required?',
+                                            'type' => 'radio',
+                                            'options' => ['yes', 'no'],
+                                            'required' => false,
+                                        ],
+                                    ],
+                                ],
+                            ],
                         ],
                         [
                             'key' => 'require_bankruptcy_search',
