@@ -6,12 +6,18 @@ use App\Exceptions\GeminiException;
 use App\Services\AI\Contracts\AnswerNormalizer;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use JsonException;
+use Throwable;
 
 final class GeminiAnswerNormalizer implements AnswerNormalizer
 {
+    private const MAX_ATTEMPTS = 5;
+    private const BASE_DELAY_MS = 800;
+    private const MAX_DELAY_MS = 8000;
+
     public function __construct(
         private readonly HttpFactory $http
     ) {}
@@ -37,10 +43,14 @@ final class GeminiAnswerNormalizer implements AnswerNormalizer
 
         $apiKey = (string) config('services.gemini.key');
         $model = (string) config('services.gemini.model');
-        $timeout = (int) config('services.gemini.timeout');
+        $timeout = (int) config('services.gemini.timeout', 60);
 
         if ($apiKey === '') {
             throw new GeminiException('Gemini API key is not configured.');
+        }
+
+        if ($model === '') {
+            throw new GeminiException('Gemini model is not configured.');
         }
 
         $allowedKeys = $this->extractSchemaKeys($schema);
@@ -53,55 +63,54 @@ final class GeminiAnswerNormalizer implements AnswerNormalizer
         ]);
 
         try {
-            $response = $this->http
-                ->timeout($timeout)
-                ->acceptJson()
-                ->post(
-                    sprintf(
-                        'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s',
-                        $model,
-                        $apiKey
-                    ),
-                    [
-                        'contents' => [
-                            [
-                                'role' => 'user',
-                                'parts' => [
-                                    [
-                                        'text' => $systemPrompt,
-                                    ],
-                                ],
-                            ],
-                        ],
-                        'generationConfig' => [
-                            'temperature' => 0,
-                            'topP' => 0.1,
-                            'topK' => 1,
-                            'responseMimeType' => 'application/json',
-                        ],
-                    ]
-                )
-                ->throw();
-        } catch (RequestException $e) {
-            Log::error('Gemini request failed.', [
+            $response = $this->sendGenerateContentRequest(
+                model: $model,
+                apiKey: $apiKey,
+                timeout: $timeout,
+                prompt: $systemPrompt
+            );
+        } catch (GeminiException $e) {
+            Log::warning('Gemini normalization unavailable after retries.', [
                 'message' => $e->getMessage(),
-                'response' => $e->response?->json(),
             ]);
 
-            throw new GeminiException('Gemini request failed.', previous: $e);
+            return [
+                'normalized_answers' => [],
+                'warnings' => ['AI normalization is temporarily unavailable. Your original answers were kept unchanged.'],
+                'raw_text' => null,
+            ];
         }
 
         $text = (string) data_get($response->json(), 'candidates.0.content.parts.0.text', '');
 
         Log::info('Gemini raw response received.', [
-            'raw_text' => $text,
+            'raw_text_preview' => mb_substr($text, 0, 2000),
+            'raw_text_length' => mb_strlen($text),
         ]);
 
         if ($text === '') {
-            throw new GeminiException('Gemini returned an empty response.');
+            Log::warning('Gemini returned an empty response.');
+
+            return [
+                'normalized_answers' => [],
+                'warnings' => ['AI normalization returned an empty response. Your original answers were kept unchanged.'],
+                'raw_text' => null,
+            ];
         }
 
-        $decoded = $this->decodeJson($text);
+        try {
+            $decoded = $this->decodeJson($text);
+        } catch (GeminiException $e) {
+            Log::warning('Gemini returned invalid JSON after successful request.', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return [
+                'normalized_answers' => [],
+                'warnings' => ['AI normalization returned an invalid response. Your original answers were kept unchanged.'],
+                'raw_text' => $text,
+            ];
+        }
 
         if (! isset($decoded['normalized_answers']) || ! isset($decoded['warnings'])) {
             Log::warning('Gemini response missing expected keys.', [
@@ -133,7 +142,7 @@ final class GeminiAnswerNormalizer implements AnswerNormalizer
 
         if (empty($filteredAnswers) && empty($warnings)) {
             Log::warning('Gemini returned no usable normalization and no warnings.', [
-                'raw_text' => $text,
+                'raw_text_preview' => mb_substr($text, 0, 1000),
             ]);
         }
 
@@ -152,6 +161,147 @@ final class GeminiAnswerNormalizer implements AnswerNormalizer
             'warnings' => $cleanWarnings,
             'raw_text' => $text,
         ];
+    }
+
+    private function sendGenerateContentRequest(
+        string $model,
+        string $apiKey,
+        int $timeout,
+        string $prompt
+    ): Response {
+        $url = sprintf(
+            'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s',
+            $model,
+            $apiKey
+        );
+
+        $payload = [
+            'contents' => [
+                [
+                    'role' => 'user',
+                    'parts' => [
+                        [
+                            'text' => $prompt,
+                        ],
+                    ],
+                ],
+            ],
+            'generationConfig' => [
+                'temperature' => 0,
+                'topP' => 0.1,
+                'topK' => 1,
+                'responseMimeType' => 'application/json',
+            ],
+        ];
+
+        $lastException = null;
+
+        for ($attempt = 1; $attempt <= self::MAX_ATTEMPTS; $attempt++) {
+            try {
+                $response = $this->http
+                    ->timeout($timeout)
+                    ->connectTimeout(min($timeout, 15))
+                    ->acceptJson()
+                    ->asJson()
+                    ->post($url, $payload);
+
+                if ($response->successful()) {
+                    if ($attempt > 1) {
+                        Log::info('Gemini request succeeded after retry.', [
+                            'attempt' => $attempt,
+                            'status' => $response->status(),
+                        ]);
+                    }
+
+                    return $response;
+                }
+
+                if (! $this->isRetryableStatus($response->status())) {
+                    Log::error('Gemini request failed with non-retryable status.', [
+                        'attempt' => $attempt,
+                        'status' => $response->status(),
+                        'body' => $response->json() ?: $response->body(),
+                    ]);
+
+                    throw new GeminiException(
+                        sprintf('Gemini request failed with status %d.', $response->status())
+                    );
+                }
+
+                if ($attempt === self::MAX_ATTEMPTS) {
+                    Log::error('Gemini request failed after max retries.', [
+                        'attempt' => $attempt,
+                        'status' => $response->status(),
+                        'body' => $response->json() ?: $response->body(),
+                    ]);
+
+                    throw new GeminiException('Gemini request failed after retries.');
+                }
+
+                $delayMs = $this->backoffDelayMs($attempt);
+
+                Log::warning('Transient Gemini error; retrying.', [
+                    'attempt' => $attempt,
+                    'status' => $response->status(),
+                    'delay_ms' => $delayMs,
+                ]);
+
+                usleep($delayMs * 1000);
+            } catch (RequestException $e) {
+                $lastException = $e;
+
+                $status = $e->response?->status();
+
+                if ($status === null || ! $this->isRetryableStatus($status) || $attempt === self::MAX_ATTEMPTS) {
+                    Log::error('Gemini request exception.', [
+                        'attempt' => $attempt,
+                        'message' => $e->getMessage(),
+                        'status' => $status,
+                        'response' => $e->response?->json(),
+                    ]);
+
+                    throw new GeminiException('Gemini request failed after retries.', previous: $e);
+                }
+
+                $delayMs = $this->backoffDelayMs($attempt);
+
+                Log::warning('Transient Gemini exception; retrying.', [
+                    'attempt' => $attempt,
+                    'message' => $e->getMessage(),
+                    'status' => $status,
+                    'delay_ms' => $delayMs,
+                ]);
+
+                usleep($delayMs * 1000);
+            } catch (Throwable $e) {
+                $lastException = $e;
+
+                Log::error('Unexpected Gemini client failure.', [
+                    'attempt' => $attempt,
+                    'message' => $e->getMessage(),
+                ]);
+
+                throw new GeminiException('Unexpected Gemini client failure.', previous: $e);
+            }
+        }
+
+        throw new GeminiException(
+            'Gemini request failed after retries.',
+            previous: $lastException instanceof Throwable ? $lastException : null
+        );
+    }
+
+    private function isRetryableStatus(int $status): bool
+    {
+        return in_array($status, [429, 500, 502, 503, 504], true);
+    }
+
+    private function backoffDelayMs(int $attempt): int
+    {
+        $base = min(self::MAX_DELAY_MS, self::BASE_DELAY_MS * (2 ** ($attempt - 1)));
+        $jitter = random_int(0, 400);
+
+        return min(self::MAX_DELAY_MS, $base + $jitter);
     }
 
     /**
@@ -295,7 +445,7 @@ PROMPT;
             }
         }
 
-        return array_values(array_unique($keys));
+        return array_values(array_unique(array_filter($keys, static fn($key) => $key !== '')));
     }
 
     /**
@@ -315,17 +465,23 @@ PROMPT;
             $fields = $question['fields'] ?? [];
 
             if (is_array($fields)) {
+                $hasTextField = false;
+
                 foreach ($fields as $field) {
                     if (! is_array($field)) {
                         continue;
                     }
 
                     $fieldType = $field['type'] ?? null;
-                    $fieldKey = $field['key'] ?? null;
 
-                    if (in_array($fieldType, ['text', 'textarea'], true) && is_string($fieldKey) && $fieldKey !== '') {
-                        $keys[] = $question['key'] ?? '';
+                    if (in_array($fieldType, ['text', 'textarea'], true)) {
+                        $hasTextField = true;
+                        break;
                     }
+                }
+
+                if ($hasTextField && is_string($key) && $key !== '') {
+                    $keys[] = $key;
                 }
             }
         }
@@ -362,7 +518,6 @@ PROMPT;
     private function extractSchemaKeys(array $schema): array
     {
         $keys = [];
-
         $steps = $schema['steps'] ?? [];
 
         if (! is_array($steps)) {
@@ -381,7 +536,7 @@ PROMPT;
             }
         }
 
-        return array_values(array_unique($keys));
+        return array_values(array_unique(array_filter($keys, static fn($key) => $key !== '')));
     }
 
     /**
@@ -400,10 +555,6 @@ PROMPT;
 
             if (is_string($key) && $key !== '' && ! in_array($type, ['info', 'group'], true)) {
                 $keys[] = $key;
-            }
-
-            if ($type === 'repeater' && isset($question['key']) && is_string($question['key'])) {
-                $keys[] = $question['key'];
             }
 
             $followUps = $question['follow_ups'] ?? [];
@@ -435,7 +586,7 @@ PROMPT;
             $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException $e) {
             Log::warning('Gemini returned invalid JSON.', [
-                'raw_text' => $json,
+                'raw_text_preview' => mb_substr($json, 0, 2000),
                 'error' => $e->getMessage(),
                 'json_length' => strlen($json),
             ]);

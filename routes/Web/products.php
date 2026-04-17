@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\User\LegalIntakeAiController;
 use App\Http\Controllers\Web\KYCController;
 use App\Http\Controllers\Web\Payment\EmailVerificationController;
 use App\Http\Controllers\Web\Payment\PaymentController;
@@ -38,7 +37,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/products/details/qna', [QuestionController::class, 'show'])->name('product.qna.show');
     Route::put('/products/details/qna/{userDocument}', [QuestionController::class, 'update'])->name('product.qna.update');
-    Route::post('/user-documents/{userDocument}/legal-intake-ai', [LegalIntakeAiController::class, 'assist'])->name('documents.legal-intake-ai.assist');
 
     // Ai Bot
     Route::post('/ai/loan-agreement/chat/{userDocument}', LoanAgreementChatController::class)->name('ai.loan-agreement.chat');
