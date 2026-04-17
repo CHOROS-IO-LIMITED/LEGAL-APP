@@ -1,11 +1,30 @@
 @php
     $includeCompanySection = $borrowerIsCompany;
-    $requireBoardResolutions = (bool) ($data['include_board_resolutions'] ?? false);
-    $requireShareholderResolutions = (bool) ($data['include_shareholder_resolutions'] ?? false);
-    $requireBankruptcySearches = (bool) ($data['require_bankruptcy_search'] ?? false);
+
+    $requireBoardResolutions = ($data['include_board_resolutions'] ?? null) === 'yes';
+    $requireShareholderResolutions = ($data['include_shareholder_resolutions'] ?? null) === 'yes';
+    $requireBankruptcySearches = ($data['require_bankruptcy_search'] ?? null) === 'yes';
+
     $requireSecondChargeConfirmation = $hasSecondCharge;
     $hasSecurityDocuments = !empty($securityItems);
     $hasGuarantors = $hasPersonalGuarantee && !empty($guarantors);
+
+    $scheduleNumber = 1;
+
+    $constitutionalNumber = null;
+    if ($includeCompanySection) {
+        $constitutionalNumber = (string) $scheduleNumber++;
+    }
+
+    $financeDocumentsNumber = (string) $scheduleNumber++;
+    $financialInformationNumber = (string) $scheduleNumber++;
+
+    $bankruptcySearchesNumber = null;
+    if ($requireBankruptcySearches) {
+        $bankruptcySearchesNumber = (string) $scheduleNumber++;
+    }
+
+    $otherDocumentsNumber = (string) $scheduleNumber++;
 @endphp
 
 <div class="page-break"></div>
@@ -16,18 +35,18 @@
 
 @if ($includeCompanySection)
     @include('pdf.loan-agreement.components.clause-heading', [
-        'number' => '1.',
+        'number' => $constitutionalNumber . '.',
         'title' => 'Constitutional Documents',
     ])
 
     @include('pdf.loan-agreement.components.clause-row', [
-        'number' => '1.1',
+        'number' => $constitutionalNumber . '.1',
         'text' => 'A copy of the constitutional documents of the Borrower.',
     ])
 
     @if ($requireBoardResolutions)
         @include('pdf.loan-agreement.components.clause-row', [
-            'number' => '1.2',
+            'number' => $constitutionalNumber . '.2',
             'text' => 'A copy of the resolutions duly passed by the Borrower\'s board of directors:',
         ])
 
@@ -67,7 +86,7 @@
 
     @if ($requireShareholderResolutions)
         @include('pdf.loan-agreement.components.clause-row', [
-            'number' => '1.3',
+            'number' => $constitutionalNumber . '.3',
             'text' =>
                 'A copy of a resolution signed by all the holders of the issued shares in the Borrower, approving Finance Documents.',
         ])
@@ -75,49 +94,49 @@
 @endif
 
 @include('pdf.loan-agreement.components.clause-heading', [
-    'number' => '2.',
+    'number' => $financeDocumentsNumber . '.',
     'title' => 'Finance Documents',
 ])
 
 @include('pdf.loan-agreement.components.clause-row', [
-    'number' => '2.1',
+    'number' => $financeDocumentsNumber . '.1',
     'text' => 'This agreement, duly executed by the Borrower.',
 ])
 
 @if ($hasSecurityDocuments)
     @include('pdf.loan-agreement.components.clause-row', [
-        'number' => '2.2',
+        'number' => $financeDocumentsNumber . '.2',
         'text' => 'The Security Documents duly executed by the Borrower and/or Guarantors, as necessary.',
     ])
 @endif
 
 @if ($requireSecondChargeConfirmation)
     @include('pdf.loan-agreement.components.clause-row', [
-        'number' => '2.3',
+        'number' => $financeDocumentsNumber . '.3',
         'text' =>
             'If the Lender is to receive a Second Charge over the Property, a confirmation from any First Charge holder that the registration of the Restriction is permitted against the title of the Property.',
     ])
 @endif
 
 @include('pdf.loan-agreement.components.clause-heading', [
-    'number' => '3.',
+    'number' => $financialInformationNumber . '.',
     'title' => 'Financial Information',
 ])
 
 @include('pdf.loan-agreement.components.clause-row', [
-    'number' => '3.1',
+    'number' => $financialInformationNumber . '.1',
     'text' =>
         'All information required by the Lender to enable it to comply with all "know your customer" or similar identification procedures under all applicable laws and regulations.',
 ])
 
 @if ($requireBankruptcySearches)
     @include('pdf.loan-agreement.components.clause-heading', [
-        'number' => '4.',
+        'number' => $bankruptcySearchesNumber . '.',
         'title' => 'Bankruptcy Searches',
     ])
 
     @include('pdf.loan-agreement.components.clause-row', [
-        'number' => '4.1',
+        'number' => $bankruptcySearchesNumber . '.1',
         'text' => $borrowerIsCompany
             ? 'A clear bankruptcy search against the Borrower and all company directors and shareholders of the Borrower including and excluding any middle names;'
             : 'A clear bankruptcy search against the Borrower including and excluding any middle names;',
@@ -125,7 +144,7 @@
 
     @if ($hasGuarantors)
         @include('pdf.loan-agreement.components.clause-row', [
-            'number' => '4.2',
+            'number' => $bankruptcySearchesNumber . '.2',
             'text' =>
                 'A clear bankruptcy search against all the Guarantors including and excluding any middle names.',
         ])
@@ -133,12 +152,12 @@
 @endif
 
 @include('pdf.loan-agreement.components.clause-heading', [
-    'number' => '5.',
+    'number' => $otherDocumentsNumber . '.',
     'title' => 'Other documents and evidence',
 ])
 
 @include('pdf.loan-agreement.components.clause-row', [
-    'number' => '5.1',
+    'number' => $otherDocumentsNumber . '.1',
     'text' =>
         'A copy of any other authorisation, document, opinion or assurance which the Lender considers necessary or desirable for the entry into, and performance of, the transactions contemplated by the Finance Documents, or for the Finance Documents to be valid and enforceable.',
 ])
