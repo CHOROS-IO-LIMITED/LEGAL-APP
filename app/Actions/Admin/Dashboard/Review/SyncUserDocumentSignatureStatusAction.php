@@ -56,7 +56,7 @@ class SyncUserDocumentSignatureStatusAction
                     if (! empty($combinedPdf)) {
                         $directory = "generated/user-documents/{$userDocument->id}";
                         $filename = $envelopeStatus === 'completed'
-                            ? 'signed-' . $userDocument->id . '.pdf'
+                            ?  $userDocument->id . '.pdf'
                             : 'signature-preview-' . $userDocument->id . '.pdf';
 
                         $path = "{$directory}/{$filename}";
@@ -65,7 +65,7 @@ class SyncUserDocumentSignatureStatusAction
 
                         if ($envelopeStatus === 'completed') {
                             $update['signed_pdf_path'] = $path;
-                            $update['signed_pdf_original_name'] = 'signed-' . ($userDocument->generated_pdf_original_name ?: 'document.pdf');
+                            $update['signed_pdf_original_name'] =  ($userDocument->generated_pdf_original_name ?: 'document.pdf');
                             $update['signed_pdf_mime'] = 'application/pdf';
                             $update['signed_pdf_size'] = strlen($combinedPdf);
                         } else {

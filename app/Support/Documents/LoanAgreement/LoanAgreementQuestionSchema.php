@@ -10,7 +10,7 @@ final class LoanAgreementQuestionSchema
     {
         return [
             'document_type' => DocumentType::LOAN_AGREEMENT->value,
-            'version' => 5,
+            'version' => 6,
             'title' => 'Loan Agreement',
             'steps' => [
                 [
@@ -35,15 +35,20 @@ final class LoanAgreementQuestionSchema
                 ],
                 [
                     'key' => 'form_completion',
-                    'title' => 'Who is Completing the Form',
-                    'description' => 'Identify who is answering the questions.',
+                    'title' => 'Form Completion',
+                    'description' => 'Tell us who is answering the form so we can show the most relevant section first.',
                     'questions' => [
                         [
                             'key' => 'answering_party_role',
-                            'label' => 'Who is completing this form?',
+                            'label' => 'Who are you completing this form on behalf of?',
                             'type' => 'radio',
                             'required' => true,
                             'options' => ['lender', 'borrower'],
+                            'option_labels' => [
+                                'lender' => 'I am completing this for the lender',
+                                'borrower' => 'I am completing this for the borrower',
+                            ],
+                            'help_text' => 'We will show that party’s details first to make the form easier to complete.',
                         ],
                     ],
                 ],

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\AI\Prompts;
+namespace App\Services\Ai\Prompts;
 
 final class LoanAgreementChatPrompt
 {
