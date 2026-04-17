@@ -1,14 +1,15 @@
-@if ($useLandDefinition)
-    @php
-        $insurancePaymentSuffix = $hasSecondCharge
-            ? ' after any allocation payable to any First Charge holder are made'
-            : '';
-    @endphp
+@php
+    $insurancePaymentSuffix = $hasSecondCharge
+        ? ' after any allocation payable to any First Charge holder are made'
+        : '';
+@endphp
 
-    @include('pdf.loan-agreement.components.clause-heading', [
-        'number' => '12.',
-        'title' => 'INSURANCE',
-    ])
+@include('pdf.loan-agreement.components.clause-heading', [
+    'number' => '12.',
+    'title' => 'INSURANCE',
+])
+
+@if ($useLandDefinition)
 
     @include('pdf.loan-agreement.components.clause-row', [
         'number' => '12.1',
