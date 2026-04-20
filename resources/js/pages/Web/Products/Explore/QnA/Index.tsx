@@ -135,6 +135,8 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
     const [assistantOpen, setAssistantOpen] = useState(false);
     const chatScrollRef = useRef<HTMLDivElement | null>(null);
     const chatInputRef = useRef<HTMLInputElement | null>(null);
+    const nextButtonRef = useRef<HTMLButtonElement | null>(null);
+    const generateButtonRef = useRef<HTMLButtonElement | null>(null);
 
     if (!userDocument) {
         return <div className="p-10 text-center text-gray-500">User document not found.</div>;
@@ -462,6 +464,30 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
             chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
         }
     }, [chatMessages, chatLoading, assistantOpen]);
+
+    useEffect(() => {
+        const handleEnterPress = (e: KeyboardEvent) => {
+            const target = e.target as HTMLElement;
+
+            const isTextarea = target.tagName === 'TEXTAREA';
+            const isChatInput = target === chatInputRef.current;
+
+            if (e.key === 'Enter' && !isTextarea && !isChatInput) {
+                e.preventDefault();
+
+                const isLastStep = currentStepIndex === orderedSteps.length - 1 && safeCurrentPageIndex === currentStepPages.length - 1;
+
+                if (isLastStep) {
+                    generateButtonRef.current?.click();
+                } else {
+                    nextButtonRef.current?.click();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleEnterPress);
+        return () => window.removeEventListener('keydown', handleEnterPress);
+    }, [currentStepIndex, safeCurrentPageIndex, currentStepPages.length, orderedSteps.length]);
 
     const currentPageMissing = currentPageQuestions.filter(
         (q) => q.type !== 'info' && q.type !== 'group' && !isQuestionAnswered(q, answers[q.key], answers),
@@ -1224,6 +1250,7 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
                     <div className="flex items-center gap-3">
                         {currentStepIndex === orderedSteps.length - 1 && safeCurrentPageIndex === currentStepPages.length - 1 ? (
                             <Button
+                                ref={generateButtonRef}
                                 type="button"
                                 onClick={handleGenerate}
                                 disabled={processing}
@@ -1232,7 +1259,12 @@ export default function QuestionAndAnswer({ userDocument }: Props) {
                                 Generate Document
                             </Button>
                         ) : (
-                            <Button type="button" onClick={handleNext} className="rounded-xl bg-[#3D2B1F] px-6 text-white hover:bg-[#52382a]">
+                            <Button
+                                ref={nextButtonRef}
+                                type="button"
+                                onClick={handleNext}
+                                className="rounded-xl bg-[#3D2B1F] px-6 text-white hover:bg-[#52382a]"
+                            >
                                 Next
                                 <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
