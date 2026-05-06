@@ -39,7 +39,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/products/details/qna/{userDocument}', [QuestionController::class, 'update'])->name('product.qna.update');
 
     // Ai Bot
-    Route::post('/ai/loan-agreement/chat/{userDocument}', LoanAgreementChatController::class)->name('ai.loan-agreement.chat');
+    Route::post('/ai/loan-agreement/chat/{userDocument}', [LoanAgreementChatController::class, '__invoke'])->name('ai.loan-agreement.chat');
 });
 
 // step 1: product detail
