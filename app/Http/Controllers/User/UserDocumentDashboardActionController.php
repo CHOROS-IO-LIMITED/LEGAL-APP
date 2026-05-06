@@ -47,13 +47,13 @@ class UserDocumentDashboardActionController extends Controller
     {
         $this->authorize('download', $userDocument);
 
-        $disk = config('filesystems.default');
+        $disks = config('filesystems.default');
         $path = $userDocument->currentPdfPath();
 
         abort_unless(is_string($path) && $path !== '', 404, 'Document file not found.');
 
         /** @var FilesystemAdapter $storage */
-        $storage = Storage::disk($disk);
+        $storage = Storage::disk($disks);
 
         return $storage->download(
             $path,

@@ -24,7 +24,11 @@ function DocumentPreview({ pdfUrl }: { pdfUrl: string | null }) {
     return (
         <Card className="overflow-hidden rounded-none border-[#E7E1D7] bg-white shadow-sm">
             <CardContent className="p-0">
-                <iframe title="Document preview for signature" src={pdfUrl} className="h-[80vh] w-full bg-white" />
+                <iframe
+                    title="Document preview for signature"
+                    src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                    className="h-[80vh] w-full bg-white"
+                />
             </CardContent>
         </Card>
     );

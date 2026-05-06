@@ -14,43 +14,43 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UserDocumentSigningController extends Controller
 {
-    // public function start(
-    //     Request $request,
-    //     UserDocument $userDocument,
-    //     DocuSignService $docuSignService
-    // ): Response {
-    //     $this->authorize('sign', $userDocument);
+    public function start(
+        Request $request,
+        UserDocument $userDocument,
+        DocuSignService $docuSignService
+    ): Response {
+        $this->authorize('sign', $userDocument);
 
-    //     $user = Auth::user();
-    //     $recipient = $userDocument->findRecipientForEmail($user->email);
+        $user = Auth::user();
+        $recipient = $userDocument->findRecipientForEmail($user->email);
 
-    //     if (! $recipient) {
-    //         abort(403, 'No matching signing recipient found for the authenticated user.');
-    //     }
+        if (! $recipient) {
+            abort(403, 'No matching signing recipient found for the authenticated user.');
+        }
 
-    //     if (! $userDocument->signature_envelope_id) {
-    //         abort(404, 'Signature envelope not found.');
-    //     }
+        if (! $userDocument->signature_envelope_id) {
+            abort(404, 'Signature envelope not found.');
+        }
 
-    //     $clientUserId = (string) ($recipient['recipient_id'] ?? '');
+        $clientUserId = (string) ($recipient['recipient_id'] ?? '');
 
-    //     if ($clientUserId === '') {
-    //         abort(422, 'Recipient id is missing for embedded signing.');
-    //     }
+        if ($clientUserId === '') {
+            abort(422, 'Recipient id is missing for embedded signing.');
+        }
 
-    //     $returnUrl = route('user.documents.sign.return', [
-    //         'userDocument' => $userDocument->id,
-    //     ]);
+        $returnUrl = route('user.documents.sign.return', [
+            'userDocument' => $userDocument->id,
+        ]);
 
-    //     $signingUrl = $docuSignService->createRecipientView(
-    //         envelopeId: $userDocument->signature_envelope_id,
-    //         recipient: $recipient,
-    //         returnUrl: $returnUrl,
-    //         clientUserId: $clientUserId
-    //     );
+        $signingUrl = $docuSignService->createRecipientView(
+            envelopeId: $userDocument->signature_envelope_id,
+            recipient: $recipient,
+            returnUrl: $returnUrl,
+            clientUserId: $clientUserId
+        );
 
-    //     return Inertia::location($signingUrl);
-    // }
+        return Inertia::location($signingUrl);
+    }
 
     public function handleReturn(
         Request $request,
