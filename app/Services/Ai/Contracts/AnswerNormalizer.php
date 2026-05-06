@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\AI\Contracts;
+namespace App\Services\Ai\Contracts;
 
 interface AnswerNormalizer
 {

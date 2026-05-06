@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services\AI;
+namespace App\Services\Ai;
 
 use App\Exceptions\GeminiException;
-use App\Services\AI\Contracts\AnswerNormalizer;
+use App\Services\Ai\Contracts\AnswerNormalizer;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;

@@ -21,7 +21,7 @@ class GeminiFileUploader
         $cacheKey = 'gemini_uploaded_file_' . md5($path . '|' . @filemtime($path) . '|' . @filesize($path));
 
         return Cache::remember($cacheKey, now()->addHours(12), function () use ($path, $displayName) {
-            $apiKey = config('services.gemini.api_key');
+            $apiKey = config('services.gemini.key');
 
             if (! $apiKey) {
                 throw new RuntimeException('Gemini API key is not configured.');

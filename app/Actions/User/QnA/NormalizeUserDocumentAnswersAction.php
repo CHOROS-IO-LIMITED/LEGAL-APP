@@ -3,7 +3,7 @@
 namespace App\Actions\User\QnA;
 
 use App\Models\UserDocument;
-use App\Services\AI\Contracts\AnswerNormalizer;
+use App\Services\Ai\Contracts\AnswerNormalizer;
 use App\Support\Documents\LoanAgreement\NormalizedAnswerMerger;
 use Illuminate\Support\Facades\Log;
 

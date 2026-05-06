@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Services\AI\Contracts\AnswerNormalizer;
-use App\Services\AI\GeminiAnswerNormalizer;
+use App\Services\Ai\Contracts\AnswerNormalizer;
+use App\Services\Ai\GeminiAnswerNormalizer;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider

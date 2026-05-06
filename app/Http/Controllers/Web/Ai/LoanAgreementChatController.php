@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Web\AI;
 
 use App\Http\Controllers\Controller;
 use App\Models\UserDocument;
-use App\Services\AI\LoanAgreementChatService;
+use App\Services\Ai\LoanAgreementChatService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;

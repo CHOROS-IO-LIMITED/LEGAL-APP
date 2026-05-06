@@ -12,7 +12,7 @@ class GeminiLegalDocumentComposer
 {
     public function compose(Document $document, array $templateSchema, array $answers): array
     {
-        $apiKey = config('services.gemini.api_key');
+        $apiKey = config('services.gemini.key');
         $model = config('services.gemini.model');
         $timeout = (int) config('services.gemini.timeout');
 

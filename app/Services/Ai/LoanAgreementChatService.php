@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services\AI;
+namespace App\Services\Ai;
 
-use App\Services\AI\Prompts\LoanAgreementChatPrompt;
+use App\Services\Ai\Prompts\LoanAgreementChatPrompt;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
