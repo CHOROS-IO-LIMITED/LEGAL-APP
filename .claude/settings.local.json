@@ -5,7 +5,10 @@
       "Bash(Select-Object Name)",
       "Bash(xargs -I {} basename {})",
       "Bash(Get-ChildItem -Path \"D:\\\\TOMAS-PROJECT\\\\LEGAL-APP\" -Force)",
-      "Bash(Select-Object Name, Mode)"
+      "Bash(Select-Object Name, Mode)",
+      "Bash(Get-ChildItem -Path . -File -Name)",
+      "Bash(findstr /v node_modules)",
+      "Bash(findstr /v vendor)"
     ]
   }
 }
