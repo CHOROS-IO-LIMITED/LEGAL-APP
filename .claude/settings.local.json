@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"D:\\\\TOMAS-PROJECT\\\\LEGAL-APP\")",
+      "Bash(Select-Object Name)",
+      "Bash(xargs -I {} basename {})",
+      "Bash(Get-ChildItem -Path \"D:\\\\TOMAS-PROJECT\\\\LEGAL-APP\" -Force)",
+      "Bash(Select-Object Name, Mode)"
+    ]
+  }
+}
